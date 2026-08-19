@@ -145,6 +145,7 @@
     overflow: hidden; background: var(--bg-elevated);
   }
   .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+  .privacy-tag { font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -179,13 +180,13 @@
   </div>
 </div>
 
-<!-- 3. VISITOR INFO -->
+<!-- 3. VISITOR INFO (PRIVATE) -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
-    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your virtual identity</div>
+    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your local private profile</div>
     <div class="card">
-      <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
+      <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo <span class="privacy-tag">Private Local</span></div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="visitor-avatar-picker">
         <div class="avatar-select selected" onclick="pickAvatar('A', this)">🤖</div>
         <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
@@ -201,9 +202,9 @@
         <div id="visitor-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
       </div>
 
-      <div class="label" id="label-name" style="margin-top: 4px;">Name / Nickname</div>
+      <div class="label" id="label-name" style="margin-top: 4px;">Name / Nickname <span class="privacy-tag">Private Local</span></div>
       <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
-      <div class="label" id="label-city">City / Location</div>
+      <div class="label" id="label-city">City / Location <span class="privacy-tag">Private Local</span></div>
       <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
       <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next" onclick="submitVisitorInfo()">Continue</button>
     </div>
@@ -228,7 +229,7 @@
   </div>
 </div>
 
-<!-- 5. HOME / COMMUNITY HALL -->
+<!-- 5. HOME / SHARED COMMUNITY HALL -->
 <div id="page-home" class="page">
   <div class="header">
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -266,7 +267,7 @@
   </div>
 </div>
 
-<!-- 6. MY PROFILE -->
+<!-- 6. MY PRIVATE PROFILE -->
 <div id="page-profile" class="page">
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
@@ -278,7 +279,8 @@
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
-    <div id="profile-title" style="font-size: 20px; margin-bottom: 24px; color: var(--text); font-weight: 700;">My Information</div>
+    <div id="profile-title" style="font-size: 20px; margin-bottom: 4px; color: var(--text); font-weight: 700;">My Information</div>
+    <div style="color: var(--text-dim); font-size: 12px; margin-bottom: 20px;">🔒 Stored locally on this device only.</div>
     <div class="card">
       <div class="label">Avatar</div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="profile-avatars">
@@ -300,7 +302,7 @@
       <input class="input" id="profile-name" style="margin-bottom: 14px;">
       <div class="label">City / Location</div>
       <input class="input" id="profile-city" style="margin-bottom: 20px;">
-      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile" onclick="saveProfile()">Save Changes</button>
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile" onclick="saveProfile()">Save Private Info</button>
     </div>
   </div>
 </div>
@@ -341,69 +343,97 @@
 </div>
 
 <script>
+// 全局公共评论区 Key（全员共享）
+var SHARED_COMMENTS_KEY = 'PIT_SHARED_HUB_COMMENTS_V1';
+// 本地隐私信息 Key（仅本地保留）
+var LOCAL_PROFILE_KEY = 'PIT_PRIVATE_USER_PROFILE_V1';
+
 var state = {
   lang: 'en',
   identity: null,
-  avatar: 'A',
-  customAvatarUrl: null,
-  name: '',
-  city: '',
+  // 私有个人信息
+  userProfile: {
+    avatar: 'A',
+    customAvatarUrl: null,
+    name: '',
+    city: ''
+  },
   activeReplyId: null,
   products: [
     { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
     { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
     { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
   ],
-  multiLangComments: {
-    'en': [
-      { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-      { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-    ],
-    'zh-CN': [
-      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹行者', city: '北京', sentences: ['刚刚报名了高级 AI 课程。', '实验环境真的太棒了！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-      { id: 102, avatar: 'D', customAvatarUrl: null, name: '赛博极客', city: '深圳', sentences: ['请问 Quantum Chip Q-7 支持自定义 SDK 吗？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 团队', city: 'Peox 总部', sentences: ['当然支持！已原生提供完整 SDK 接口。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-    ],
-    'zh-HK': [
-      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹漫步者', city: '香港', sentences: ['剛剛報名咗高級 AI 課程。', '實驗室效果真係正！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-      { id: 102, avatar: 'D', customAvatarUrl: null, name: '極客阿森', city: '廣州', sentences: ['請問 Quantum Chip Q-7 支唔支援自定義 SDK？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 團隊', city: 'Peox 總部', sentences: ['當然支援！已經原生提供完整 SDK 介面。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-    ]
-  },
-  activeComments: []
+  defaultComments: [
+    { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+    { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+    { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+  ],
+  sharedComments: []
 };
+
+// 预加载公共评论区 & 本地隐私信息
+function loadSharedData() {
+  try {
+    var storedComments = localStorage.getItem(SHARED_COMMENTS_KEY);
+    if (storedComments) {
+      state.sharedComments = JSON.parse(storedComments);
+    } else {
+      state.sharedComments = state.defaultComments;
+      saveSharedComments();
+    }
+    
+    var storedProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
+    if (storedProfile) {
+      state.userProfile = JSON.parse(storedProfile);
+    }
+  } catch(e) {
+    state.sharedComments = state.defaultComments;
+  }
+}
+
+function saveSharedComments() {
+  try {
+    localStorage.setItem(SHARED_COMMENTS_KEY, JSON.stringify(state.sharedComments));
+  } catch(e) {}
+}
+
+function saveLocalProfile() {
+  try {
+    localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(state.userProfile));
+  } catch(e) {}
+}
 
 var i18n = {
   'en': {
     identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
-    visitorTitle: 'Create your virtual identity', labelAvatar: 'Choose Preset Avatar or Upload Photo',
+    visitorTitle: 'Create your local private profile', labelAvatar: 'Choose Preset Avatar or Upload Photo',
     labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
     surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
     btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
-    profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
+    profileTitle: 'My Information', btnSave: 'Save Private Info', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
     logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?', btnNo: 'No', btnYes: 'Yes',
     searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
     attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
   },
   'zh-CN': {
     identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
-    visitorTitle: '创建您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
+    visitorTitle: '创建本地私有身份', labelAvatar: '选择预设头像或上传照片',
     labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
     surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
     btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
-    profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
+    profileTitle: '我的信息', btnSave: '保存本地私有信息', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
     logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？', btnNo: '否', btnYes: '是',
     searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
     attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
   },
   'zh-HK': {
     identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
-    visitorTitle: '創建您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
+    visitorTitle: '創建本地私有身份', labelAvatar: '選擇預設頭像或上傳照片',
     labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
     surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
     btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
-    profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
+    profileTitle: '我的資訊', btnSave: '儲存本地私有資訊', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
     logoutTitle: '登出？', logoutText: '您確定要登出嗎？', btnNo: '否', btnYes: '是',
     searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
     attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
@@ -423,7 +453,6 @@ function showPage(pageId) {
 
 function selectLang(langKey) {
   state.lang = langKey;
-  state.activeComments = JSON.parse(JSON.stringify(state.multiLangComments[langKey]));
   updateTexts();
   showPage('page-identity');
 }
@@ -434,9 +463,6 @@ function updateTexts() {
   document.getElementById('btn-team').textContent = l.btnTeam;
   document.getElementById('btn-visitor').textContent = l.btnVisitor;
   document.getElementById('visitor-title').textContent = l.visitorTitle;
-  document.getElementById('label-avatar').textContent = l.labelAvatar;
-  document.getElementById('label-name').textContent = l.labelName;
-  document.getElementById('label-city').textContent = l.labelCity;
   document.getElementById('btn-visitor-next').textContent = l.btnContinue;
   document.getElementById('survey-title').textContent = l.surveyTitle;
   document.getElementById('btn-survey-submit').textContent = l.btnSubmit;
@@ -461,9 +487,9 @@ function updateTexts() {
 function selectIdentity(idType) {
   state.identity = idType;
   if (idType === 'team') {
-    state.name = 'PIT Team';
-    state.city = 'Peox HQ';
-    state.avatar = 'A';
+    state.userProfile.name = 'PIT Team';
+    state.userProfile.city = 'Peox HQ';
+    state.userProfile.avatar = 'A';
     document.getElementById('home-badge').style.display = 'inline-block';
     document.getElementById('nav-team').style.display = 'inline-block';
     document.getElementById('nav-profile-team').style.display = 'inline-block';
@@ -475,6 +501,11 @@ function selectIdentity(idType) {
     document.getElementById('nav-team').style.display = 'none';
     document.getElementById('nav-profile-team').style.display = 'none';
     document.getElementById('team-product-select').style.display = 'none';
+    
+    // 读取已保存的私有个人信息回填
+    if (state.userProfile.name) document.getElementById('visitor-name').value = state.userProfile.name;
+    if (state.userProfile.city) document.getElementById('visitor-city').value = state.userProfile.city;
+    
     showPage('page-visitor');
   }
 }
@@ -485,9 +516,9 @@ function pickAvatar(key, el) {
   for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
   
   if (el) el.classList.add('selected');
-  state.avatar = key;
+  state.userProfile.avatar = key;
   if (key !== 'CUSTOM') {
-    state.customAvatarUrl = null;
+    state.userProfile.customAvatarUrl = null;
     hideAvatarPreviews();
   }
 }
@@ -497,8 +528,8 @@ function handleFileUpload(e) {
   if (file) {
     var reader = new FileReader();
     reader.onload = function(evt) { 
-      state.customAvatarUrl = evt.target.result; 
-      state.avatar = 'CUSTOM';
+      state.userProfile.customAvatarUrl = evt.target.result; 
+      state.userProfile.avatar = 'CUSTOM';
       
       var page = e.target.closest('.page');
       if (page) {
@@ -506,8 +537,8 @@ function handleFileUpload(e) {
         for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
       }
       
-      updateAvatarPreviews(state.customAvatarUrl);
-      alert('Photo uploaded successfully!'); 
+      updateAvatarPreviews(state.userProfile.customAvatarUrl);
+      alert('Private photo updated locally!'); 
     };
     reader.readAsDataURL(file);
   }
@@ -536,8 +567,10 @@ function submitVisitorInfo() {
   var name = document.getElementById('visitor-name').value.trim();
   var city = document.getElementById('visitor-city').value.trim();
   if (!name || !city) return alert('Please enter name and city');
-  state.name = name;
-  state.city = city;
+  
+  state.userProfile.name = name;
+  state.userProfile.city = city;
+  saveLocalProfile(); // 保存隐私信息到本地存储
   showPage('page-survey');
 }
 
@@ -559,7 +592,7 @@ function renderComments() {
   var dateVal = document.getElementById('search-date').value;
   var html = '';
 
-  var list = state.activeComments.filter(function(c) {
+  var list = state.sharedComments.filter(function(c) {
     var matchKw = !keyword || c.sentences.join(' ').toLowerCase().indexOf(keyword) !== -1 || c.name.toLowerCase().indexOf(keyword) !== -1;
     var matchDate = true;
     if (dateVal) {
@@ -622,18 +655,21 @@ function addComment() {
   var prodSelect = document.getElementById('product-select');
   var selectedProdId = prodSelect ? parseInt(prodSelect.value) : null;
 
-  state.activeComments.unshift({
+  // 将个人公开发布的信息与留言捆绑，存入共享评论数据库
+  state.sharedComments.unshift({
     id: Date.now(),
-    avatar: state.avatar,
-    customAvatarUrl: state.customAvatarUrl,
-    name: state.name,
-    city: state.city,
+    avatar: state.userProfile.avatar,
+    customAvatarUrl: state.userProfile.customAvatarUrl,
+    name: state.userProfile.name || 'Anonymous Visitor',
+    city: state.userProfile.city || 'Unknown Location',
     sentences: [val],
     timestamp: Date.now(),
     isTeamReply: (state.identity === 'team'),
     productId: selectedProdId || null,
     replies: []
   });
+  
+  saveSharedComments(); // 持久化共享评论
   document.getElementById('new-comment').value = '';
   renderComments();
 }
@@ -646,10 +682,11 @@ function toggleReply(id) {
 function sendReply(id) {
   var input = document.getElementById('reply-input-' + id);
   if (input && input.value.trim()) {
-    var target = state.activeComments.find(function(item) { return item.id === id; });
+    var target = state.sharedComments.find(function(item) { return item.id === id; });
     if (target) {
       target.replies = target.replies || [];
-      target.replies.push({ name: state.name, content: input.value.trim() });
+      target.replies.push({ name: state.userProfile.name || 'Anonymous', content: input.value.trim() });
+      saveSharedComments();
     }
     state.activeReplyId = null;
     renderComments();
@@ -657,7 +694,8 @@ function sendReply(id) {
 }
 
 function deleteComment(id) {
-  state.activeComments = state.activeComments.filter(function(item) { return item.id !== id; });
+  state.sharedComments = state.sharedComments.filter(function(item) { return item.id !== id; });
+  saveSharedComments();
   renderComments();
 }
 
@@ -668,18 +706,19 @@ function clearSearch() {
 }
 
 function openProfilePage() {
-  document.getElementById('profile-name').value = state.name;
-  document.getElementById('profile-city').value = state.city;
-  if (state.customAvatarUrl) {
-    updateAvatarPreviews(state.customAvatarUrl);
+  document.getElementById('profile-name').value = state.userProfile.name;
+  document.getElementById('profile-city').value = state.userProfile.city;
+  if (state.userProfile.customAvatarUrl) {
+    updateAvatarPreviews(state.userProfile.customAvatarUrl);
   }
   showPage('page-profile');
 }
 
 function saveProfile() {
-  state.name = document.getElementById('profile-name').value.trim();
-  state.city = document.getElementById('profile-city').value.trim();
-  alert('Saved!');
+  state.userProfile.name = document.getElementById('profile-name').value.trim();
+  state.userProfile.city = document.getElementById('profile-city').value.trim();
+  saveLocalProfile(); // 保存在本地隐私中
+  alert('Private info saved to local device!');
   renderComments();
 }
 
@@ -750,6 +789,9 @@ function confirmLogout() {
   closeLogoutModal();
   showPage('page-lang');
 }
+
+// 页面加载时自动读取共享数据与私有本地数据
+loadSharedData();
 </script>
 </body>
 </html>
