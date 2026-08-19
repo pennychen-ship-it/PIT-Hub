@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIT Hub</title>
+<style>
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: rgba(37,99,235,0.08);
+    --bg: #f0f7ff;
+    --bg-card: #ffffff;
+    --bg-elevated: #f8fafc;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-dim: #64748b;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --success: #10b981;
+    --success-light: #ecfdf5;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+  .container { max-width: 800px; margin: 0 auto; width: 100%; padding: 0 20px; }
+  .center { display: flex; align-items: center; justify-content: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500;
+    transition: all 0.15s; border-radius: 8px; font-family: inherit;
+  }
+  .btn:hover { background: var(--bg-elevated); border-color: #cbd5e1; }
+  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-danger { border-color: var(--danger); color: var(--danger); background: #fef2f2; }
+  .btn-danger:hover { background: #fee2e2; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .input {
+    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 14px; font-size: 14px; width: 100%; outline: none;
+    transition: all 0.15s; border-radius: 8px; font-family: inherit;
+  }
+  .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .label {
+    color: var(--text-dim); font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .header {
+    background: var(--bg-card); border-bottom: 1px solid var(--border);
+    padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+    position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
+  }
+  .nav-link {
+    color: var(--text-dim); font-size: 14px; padding: 6px 12px; cursor: pointer;
+    transition: all 0.15s; border-radius: 6px; font-weight: 500;
+  }
+  .nav-link:hover, .nav-link.active { color: var(--primary); background: var(--primary-light); }
+  .team-badge {
+    display: inline-block; background: var(--success-light); color: var(--success);
+    border: 1px solid #a7f3d0; padding: 2px 10px; font-size: 11px; margin-left: 8px;
+    border-radius: 999px; font-weight: 600;
+  }
+  
+  /* 头像样式 */
+  .avatar-img {
+    width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+    border: 1px solid var(--border); background: var(--bg-elevated);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 22px;
+  }
+  .avatar-select {
+    width: 48px; height: 48px; border: 2px solid var(--border); border-radius: 50%;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    margin: 4px; transition: all 0.15s; background: var(--bg-elevated); font-size: 20px;
+    overflow: hidden;
+  }
+  .avatar-select img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-select:hover { border-color: var(--primary); transform: scale(1.05); }
+  .avatar-select.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); background: var(--primary-light); }
+
+  /* 评论区拉开间距，解决压抑感 */
+  .comment {
+    background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--primary);
+    padding: 22px; margin-bottom: 24px; border-radius: 0 12px 12px 0; box-shadow: var(--shadow);
+  }
+  .comment-sentence {
+    margin-bottom: 12px;
+    line-height: 1.8;
+    color: var(--text);
+    font-size: 15px;
+  }
+  .comment-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  
+  /* 子回复缩进样式 */
+  .reply-list {
+    margin-top: 16px; padding-left: 20px; border-left: 2px solid var(--border);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .reply-item {
+    background: var(--bg-elevated); padding: 12px 16px; border-radius: 8px;
+    border: 1px solid var(--border); font-size: 13.5px;
+  }
+
+  .product-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--primary-light); border: 1px solid #bfdbfe; color: var(--primary);
+    padding: 6px 12px; font-size: 12px; margin-top: 10px; cursor: pointer;
+    border-radius: 6px; font-weight: 500; transition: all 0.15s;
+  }
+  .product-tag:hover { background: #dbeafe; }
+  
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.5);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--bg-card); border: 1px solid var(--border); padding: 28px;
+    max-width: 400px; width: 90%; border-radius: 14px; box-shadow: var(--shadow-md);
+  }
+  .search-bar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+  .search-bar input { flex: 1; min-width: 140px; }
+  .scroll { max-height: 600px; overflow-y: auto; padding-right: 6px; }
+  .scroll::-webkit-scrollbar { width: 5px; }
+  .scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .radio-group { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+  .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 8px; border-radius: 8px; transition: background 0.15s; }
+  .radio-group label:hover { background: var(--bg-elevated); }
+  .radio-group input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; }
+  .top-banner {
+    background: linear-gradient(90deg, transparent, rgba(37,99,235,0.04), transparent);
+    border-bottom: 1px solid var(--border); padding: 10px 20px;
+    display: flex; justify-content: flex-end; gap: 12px;
+  }
+  .product-edit-card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; border-radius: 12px; box-shadow: var(--shadow); }
+  .lang-btn {
+    padding: 16px 32px; border: 1px solid var(--border); background: var(--bg-card);
+    color: var(--text); cursor: pointer; font-size: 15px; margin: 8px;
+    transition: all 0.15s; min-width: 180px; border-radius: 10px;
+    font-weight: 500; box-shadow: var(--shadow);
+  }
+  .lang-btn:hover { border-color: var(--primary); color: var(--primary); box-shadow: var(--shadow-md); }
+  .splash-logo { font-size: 32px; font-weight: 700; color: var(--primary); letter-spacing: 2px; }
+  .splash-sub { color: var(--text-dim); font-size: 13px; letter-spacing: 3px; font-weight: 500; }
+  
+  .file-upload-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; border: 1px dashed var(--primary); border-radius: 8px;
+    background: var(--primary-light); color: var(--primary); font-size: 13px;
+    cursor: pointer; font-weight: 500; transition: all 0.15s; margin-top: 8px;
+  }
+  .file-upload-btn:hover { background: #dbeafe; }
+</style>
+</head>
+<body>
+
+<!-- ==================== LANGUAGE SELECTION ==================== -->
+<div id="page-lang" class="page active center" style="padding: 40px 20px;">
+  <div style="text-align: center;">
+    <div class="splash-logo" style="margin-bottom: 8px;">PIT HUB</div>
+    <div class="splash-sub" style="margin-bottom: 40px;">PEOX INSTITUTE OF TECHNOLOGY</div>
+    <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 28px; font-weight: 500;">
+      Select Language / 選擇語言 / 选择语言
+    </div>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+      <button class="lang-btn" onclick="PIT.setLang('zh-HK')">繁體中文 (Cantonese)</button>
+      <button class="lang-btn" onclick="PIT.setLang('zh-CN')">简体中文 (Mandarin)</button>
+      <button class="lang-btn" onclick="PIT.setLang('en')">English</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== IDENTITY SELECTION ==================== -->
+<div id="page-identity" class="page center" style="padding: 40px 20px;">
+  <div style="text-align: center; max-width: 420px; width: 100%;">
+    <div class="splash-logo" style="margin-bottom: 24px; font-size: 26px;">PIT HUB</div>
+    <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim); font-weight: 500;">Select your identity</div>
+    <button class="btn btn-primary" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 15px;" onclick="PIT.setIdentity('team')">
+      <span id="btn-team">PIT Team</span>
+    </button>
+    <button class="btn" style="width: 100%; padding: 16px; font-size: 15px;" onclick="PIT.setIdentity('visitor')">
+      <span id="btn-visitor">Visitor</span>
+    </button>
+  </div>
+</div>
+
+<!-- ==================== VISITOR INFO ==================== -->
+<div id="page-visitor" class="page" style="padding: 40px 20px;">
+  <div class="container" style="max-width: 460px;">
+    <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
+    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your virtual identity</div>
+    <div class="card">
+      <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="visitor-avatar-picker">
+        <div class="avatar-select selected" data-avatar="A" onclick="PIT.selectAvatar(this)">🤖</div>
+        <div class="avatar-select" data-avatar="B" onclick="PIT.selectAvatar(this)">👾</div>
+        <div class="avatar-select" data-avatar="C" onclick="PIT.selectAvatar(this)">🦾</div>
+        <div class="avatar-select" data-avatar="D" onclick="PIT.selectAvatar(this)">👽</div>
+      </div>
+      
+      <!-- 从电脑选择照片 -->
+      <div style="text-align: center; margin-bottom: 20px;">
+        <label class="file-upload-btn">
+          📁 <span id="btn-upload-text">Upload photo from computer</span>
+          <input type="file" id="local-avatar-file" accept="image/*" style="display: none;" onchange="PIT.handleCustomAvatarUpload(event)">
+        </label>
+        <div id="custom-avatar-preview" style="margin-top: 8px; display: none;">
+          <img id="custom-avatar-img" src="" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+        </div>
+      </div>
+
+      <div class="label" id="label-name" style="margin-top: 4px;">Name / Nickname</div>
+      <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
+      <div class="label" id="label-city">City / Location</div>
+      <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next" onclick="PIT.goSurvey()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SURVEY ==================== -->
+<div id="page-survey" class="page" style="padding: 40px 20px;">
+  <div class="container" style="max-width: 460px;">
+    <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
+    <div id="survey-title" style="text-align: center; margin-bottom: 24px; color: var(--text); font-size: 16px; font-weight: 600;">How did you hear about PIT?</div>
+    <div class="card">
+      <div class="radio-group" id="survey-options">
+        <label><input type="radio" name="survey" value="social"> <span>Social Media</span></label>
+        <label><input type="radio" name="survey" value="friend"> <span>Friend / Colleague</span></label>
+        <label><input type="radio" name="survey" value="search"> <span>Search Engine</span></label>
+        <label><input type="radio" name="survey" value="event"> <span>Tech Event / Conference</span></label>
+        <label><input type="radio" name="survey" value="other"> <span>Other</span></label>
+      </div>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" id="btn-survey-submit" onclick="PIT.submitSurvey()">Submit & Enter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SPLASH ==================== -->
+<div id="page-splash" class="page center">
+  <div style="text-align: center;">
+    <div class="splash-logo" style="font-size: 40px; margin-bottom: 12px;">PIT</div>
+    <div class="splash-sub" style="margin-bottom: 32px;">PEOX INSTITUTE OF TECHNOLOGY</div>
+    <div id="splash-loading" style="color: var(--text-dim); font-size: 13px; font-weight: 500;">Initializing secure connection...</div>
+  </div>
+</div>
+
+<!-- ==================== HOME / COMMUNITY HALL ==================== -->
+<div id="page-home" class="page">
+  <div class="header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
+      <span id="home-badge" class="team-badge" style="display: none;">TEAM</span>
+    </div>
+    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+      <span class="nav-link active" id="nav-home">Home</span>
+      <span class="nav-link" id="nav-profile" onclick="PIT.goProfile()">My Info</span>
+      <span class="nav-link" id="nav-team" style="display: none;" onclick="PIT.goTeamPanel()">Edit Panel</span>
+      <span class="nav-link" onclick="PIT.showLogoutModal()">Log Out</span>
+    </div>
+  </div>
+  <div id="logged-out-banner" class="top-banner" style="display: none;">
+    <button class="btn btn-sm" onclick="PIT.restart()">Sign In</button>
+    <button class="btn btn-primary btn-sm" onclick="PIT.restart()">Create Account</button>
+  </div>
+  <div class="container" style="padding: 24px 20px;">
+    <div class="search-bar">
+      <input class="input" id="search-keyword" placeholder="Search keywords..." style="flex: 1;">
+      <input class="input" id="search-date" type="date" style="width: 150px; font-size: 13px; color: var(--text-dim);">
+      <button class="btn btn-sm" onclick="PIT.doSearch()">Search</button>
+      <button class="btn btn-sm" onclick="PIT.clearSearch()">Clear</button>
+    </div>
+    
+    <!-- 评论展示区 -->
+    <div id="comments-area" class="scroll"></div>
+
+    <!-- 发帖区，按钮改成 submit feedback -->
+    <div id="comment-input-area" style="margin-top: 24px; display: none;">
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <input class="input" id="new-comment" placeholder="Write a message..." style="flex: 1;">
+        <button class="btn btn-primary" onclick="PIT.postComment()" id="btn-submit-feedback">submit feedback</button>
+      </div>
+      <div id="team-product-select" style="display: none;">
+        <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);">
+          <option value="">-- Attach product (optional) --</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PROFILE ==================== -->
+<div id="page-profile" class="page">
+  <div class="header">
+    <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
+    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+      <span class="nav-link" onclick="PIT.goHome()">Home</span>
+      <span class="nav-link active">My Info</span>
+      <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="PIT.goTeamPanel()">Edit Panel</span>
+      <span class="nav-link" onclick="PIT.showLogoutModal()">Log Out</span>
+    </div>
+  </div>
+  <div class="container" style="padding: 32px 20px; max-width: 460px;">
+    <div id="profile-title" style="font-size: 20px; margin-bottom: 24px; color: var(--text); font-weight: 700;">My Information</div>
+    <div class="card">
+      <div class="label">Avatar</div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 12px;" id="profile-avatars"></div>
+      
+      <div style="text-align: center; margin-bottom: 20px;">
+        <label class="file-upload-btn">
+          📁 <span>Upload new photo</span>
+          <input type="file" accept="image/*" style="display: none;" onchange="PIT.handleCustomAvatarUpload(event)">
+        </label>
+      </div>
+
+      <div class="label">Name / Nickname</div>
+      <input class="input" id="profile-name" style="margin-bottom: 14px;">
+      <div class="label">City / Location</div>
+      <input class="input" id="profile-city" style="margin-bottom: 20px;">
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="PIT.saveProfile()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TEAM EDIT PANEL ==================== -->
+<div id="page-team" class="page">
+  <div class="header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
+      <span class="team-badge">TEAM ONLY</span>
+    </div>
+    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+      <span class="nav-link" onclick="PIT.goHome()">Home</span>
+      <span class="nav-link" onclick="PIT.goProfile()">My Info</span>
+      <span class="nav-link active">Edit Panel</span>
+      <span class="nav-link" onclick="PIT.showLogoutModal()">Log Out</span>
+    </div>
+  </div>
+  <div class="container" style="padding: 24px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div style="font-size: 17px; font-weight: 700; color: var(--text);">Product Management</div>
+      <button class="btn btn-primary btn-sm" onclick="PIT.addProduct()">+ Add Product</button>
+    </div>
+    <div id="products-list"></div>
+  </div>
+</div>
+
+<!-- ==================== LOGOUT MODAL ==================== -->
+<div id="logout-modal" class="modal-overlay" onclick="if(event.target===this)PIT.hideLogoutModal()">
+  <div class="modal">
+    <div style="font-size: 17px; margin-bottom: 12px; color: var(--text); font-weight: 700;">Log Out?</div>
+    <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;">Are you sure you want to log out?</div>
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button class="btn" onclick="PIT.hideLogoutModal()">No</button>
+      <button class="btn btn-danger" onclick="PIT.doLogout()">Yes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA & STATE ====================
+var state = {
+  lang: 'en',
+  identity: null,
+  visitor: { avatar: 'A', customAvatarUrl: null, name: '', city: '', survey: '' },
+  products: [
+    { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
+    { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
+    { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
+  ],
+  // 语言联动的多语言示例评论
+  multiLangComments: {
+    'en': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI Architecture course.', 'The neural interface labs are mind-blowing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does anyone know if the Quantum Chip Q-7 supports homebrew firmware?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Absolutely!', 'The Q-7 comes with full SDK access and our dev community is super active.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ],
+    'zh-CN': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹行者', city: '北京', sentences: ['刚刚报名了高级 AI 架构课程。', '神经接口实验室的效果真的太让人震撼了！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: '赛博极客', city: '深圳', sentences: ['请问有人知道 Quantum Chip Q-7 是否支持自定义开源固件吗？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 团队', city: 'Peox 总部', sentences: ['当然支持！', 'Q-7 芯片配备全套 SDK 接口，我们的开发者社区非常活跃。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ],
+    'zh-HK': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹漫步者', city: '香港', sentences: ['剛剛報名咗高級 AI 架構課程。', '神經接口實驗室嘅效果真係好震撼！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: '極客阿森', city: '廣州', sentences: ['請問有冇人知 Quantum Chip Q-7 支唔支援自定義開源韌體？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 團隊', city: 'Peox 總部', sentences: ['當然支援！', 'Q-7 晶片配備全套 SDK 介面，我哋嘅開發者社區非常活躍。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ]
+  },
+  activeComments: [], // 当前生效的评论数组
+  activeReplyId: null, // 当前正在回复的评论 ID
+  isLoggedOut: false
+};
+
+var i18n = {
+  'en': {
+    identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
+    visitorTitle: 'Create your virtual identity', labelAvatar: 'Choose Preset Avatar or Upload Photo',
+    labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
+    surveyTitle: 'How did you hear about PIT?',
+    surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
+    btnSubmit: 'Submit & Enter',
+    navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
+    profileTitle: 'My Information', btnSave: 'Save Changes',
+    productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
+    logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?',
+    btnNo: 'No', btnYes: 'Yes', searchPlaceholder: 'Search keywords...',
+    commentPlaceholder: 'Write a message...', teamReply: 'TEAM REPLY',
+    attachProduct: '-- Attach product (optional) --',
+    signIn: 'Sign In', createAccount: 'Create Account',
+    productName: 'Product Name', price: 'Price', promo: 'Promotion', link: 'Link',
+    btnDelete: 'Delete', btnUpdate: 'Update', noMessages: 'No messages found',
+    btnSubmitFeedback: 'submit feedback', btnReply: 'Reply', uploadText: 'Upload photo from computer'
+  },
+  'zh-CN': {
+    identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
+    visitorTitle: '创建您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
+    labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
+    surveyTitle: '您是通过什么渠道知道 PIT 的？',
+    surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
+    btnSubmit: '提交并进入',
+    navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
+    profileTitle: '我的信息', btnSave: '保存更改',
+    productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
+    logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？',
+    btnNo: '否', btnYes: '是', searchPlaceholder: '搜索关键词...',
+    commentPlaceholder: '输入消息...', teamReply: '团队回复',
+    attachProduct: '-- 附加产品（可选）--',
+    signIn: '登录', createAccount: '创建账号',
+    productName: '产品名称', price: '价格', promo: '促销信息', link: '链接',
+    btnDelete: '删除', btnUpdate: '更新', noMessages: '暂无消息',
+    btnSubmitFeedback: '提交反馈 (submit feedback)', btnReply: '回复', uploadText: '从电脑选择照片上传'
+  },
+  'zh-HK': {
+    identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
+    visitorTitle: '創建您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
+    labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
+    surveyTitle: '您是通過什麼渠道知道 PIT 的？',
+    surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','傳統渠道'],
+    btnSubmit: '提交並進入',
+    navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
+    profileTitle: '我的資訊', btnSave: '儲存變更',
+    productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
+    logoutTitle: '登出？', logoutText: '您確定要登出嗎？',
+    btnNo: '否', btnYes: '是', searchPlaceholder: '搜尋關鍵詞...',
+    commentPlaceholder: '輸入訊息...', teamReply: '團隊回覆',
+    attachProduct: '-- 附加產品（可選）--',
+    signIn: '登入', createAccount: '建立帳號',
+    productName: '產品名稱', price: '價格', promo: '促銷資訊', link: '連結',
+    btnDelete: '刪除', btnUpdate: '更新', noMessages: '暫無訊息',
+    btnSubmitFeedback: '提交反饋 (submit feedback)', btnReply: '回覆', uploadText: '從電腦選擇照片上傳'
+  }
+};
+
+var avatars = { A:'🤖', B:'👾', C:'🦾', D:'👽' };
+
+// ==================== HELPERS ====================
+function $(id) { return document.getElementById(id); }
+function t(key) { return i18n[state.lang][key] || key; }
+
+function showPage(id) {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+  $(id).classList.add('active');
+}
+
+function applyLang() {
+  var l = i18n[state.lang];
+  if ($('identity-title')) $('identity-title').textContent = l.identityTitle;
+  if ($('btn-team')) $('btn-team').textContent = l.btnTeam;
+  if ($('btn-visitor')) $('btn-visitor').textContent = l.btnVisitor;
+  if ($('visitor-title')) $('visitor-title').textContent = l.visitorTitle;
+  if ($('label-avatar')) $('label-avatar').textContent = l.labelAvatar;
+  if ($('label-name')) $('label-name').textContent = l.labelName;
+  if ($('label-city')) $('label-city').textContent = l.labelCity;
+  if ($('btn-visitor-next')) $('btn-visitor-next').textContent = l.btnContinue;
+  if ($('survey-title')) $('survey-title').textContent = l.surveyTitle;
+  if ($('btn-survey-submit')) $('btn-survey-submit').textContent = l.btnSubmit;
+  if ($('nav-home')) $('nav-home').textContent = l.navHome;
+  if ($('nav-profile')) $('nav-profile').textContent = l.navProfile;
+  if ($('nav-team')) $('nav-team').textContent = l.navTeam;
+  if ($('profile-title')) $('profile-title').textContent = l.profileTitle;
+  if ($('search-keyword')) $('search-keyword').placeholder = l.searchPlaceholder;
+  if ($('new-comment')) $('new-comment').placeholder = l.commentPlaceholder;
+  if ($('btn-submit-feedback')) $('btn-submit-feedback').textContent = l.btnSubmitFeedback;
+  if ($('btn-upload-text')) $('btn-upload-text').textContent = l.uploadText;
+  
+  var opts = $('survey-options') ? $('survey-options').querySelectorAll('label span') : [];
+  for (var i = 0; i < l.surveyOptions.length; i++) {
+    if (opts[i]) opts[i].textContent = l.surveyOptions[i];
+  }
+
+  // 语言联动规则：如果是 Visitor 访客，切换语言时同步评论的语言风格；如果是 PIT Team 视角，则不强行重置评论语言
+  if (state.identity !== 'team') {
+    state.activeComments = JSON.parse(JSON.stringify(state.multiLangComments[state.lang] || state.multiLangComments['en']));
+  }
+}
+
+// 渲染头像辅助函数（支持 Emoji 和本地上传照片）
+function getAvatarHTML(avatarKey, customUrl) {
+  if (customUrl) {
+    return '<img src="' + customUrl + '" class="avatar-img">';
+  }
+  return '<div class="avatar-img">' + (avatars[avatarKey] || avatarKey) + '</div>';
+}
+
+function renderComments() {
+  var area = $('comments-area');
+  if (!area) return;
+  var keywordVal = $('search-keyword') ? $('search-keyword').value.trim().toLowerCase() : '';
+  var dateVal = $('search-date') ? $('search-date').value : '';
+
+  var filtered = [];
+  for (var i = 0; i < state.activeComments.length; i++) {
+    var c = state.activeComments[i];
+    var keep = true;
+    var fullText = c.sentences.join(' ').toLowerCase();
+    if (keywordVal && fullText.indexOf(keywordVal) === -1 && c.name.toLowerCase().indexOf(keywordVal) === -1) keep = false;
+    if (dateVal) {
+      var d = new Date(c.timestamp);
+      var cmp = d.toISOString().split('T')[0];
+      if (cmp !== dateVal) keep = false;
+    }
+    if (keep) filtered.push(c);
+  }
+
+  filtered.sort(function(a, b) { return b.timestamp - a.timestamp; });
+
+  var html = '';
+  for (var i = 0; i < filtered.length; i++) {
+    var c = filtered[i];
+    var date = new Date(c.timestamp).toLocaleString(
+      state.lang === 'en' ? 'en-US' : (state.lang === 'zh-HK' ? 'zh-HK' : 'zh-CN'),
+      { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+    );
+    var teamBadge = c.isTeamReply ? '<span class="team-badge">' + t('teamReply') + '</span>' : '';
+    
+    // 渲染带有扩大间距的句子（解决视觉压抑感）
+    var sentencesHTML = '';
+    for (var s = 0; s < c.sentences.length; s++) {
+      sentencesHTML += '<div class="comment-sentence">' + c.sentences[s] + '</div>';
+    }
+
+    var product = null;
+    if (c.productId) {
+      for (var j = 0; j < state.products.length; j++) {
+        if (state.products[j].id == c.productId) { product = state.products[j]; break; }
+      }
+    }
+    var productTag = product ? '<div class="product-tag" onclick="window.open(\'' + product.link + '\',\'_blank\')">' + product.name + ' — ' + product.price + ' →</div>' : '';
+
+    // 子回复渲染
+    var repliesHTML = '';
+    if (c.replies && c.replies.length > 0) {
+      repliesHTML += '<div class="reply-list">';
+      for (var r = 0; r < c.replies.length; r++) {
+        var rep = c.replies[r];
+        repliesHTML += '<div class="reply-item">' +
+          '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">' +
+            getAvatarHTML(rep.avatar, rep.customAvatarUrl) +
+            '<strong>' + rep.name + '</strong>' +
+            '<span class="comment-meta">' + rep.city + '</span>' +
+          '</div>' +
+          '<div>' + rep.content + '</div>' +
+        '</div>';
+      }
+      repliesHTML += '</div>';
+    }
+
+    // 回复输入框（点击后展开）
+    var replyBoxHTML = '';
+    if (state.activeReplyId === c.id && !state.isLoggedOut) {
+      replyBoxHTML = '<div style="margin-top: 12px; display: flex; gap: 8px;">' +
+        '<input class="input" id="reply-input-' + c.id + '" placeholder="' + t('commentPlaceholder') + '" style="font-size: 13px;">' +
+        '<button class="btn btn-primary btn-sm" onclick="PIT.submitReply(' + c.id + ')">' + t('btnSubmitFeedback') + '</button>' +
+      '</div>';
+    }
+
+    html += '<div class="comment">' +
+      '<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">' +
+        '<div style="display: flex; align-items: center; gap: 12px;">' +
+          getAvatarHTML(c.avatar, c.customAvatarUrl) +
+          '<div>' +
+            '<span style="font-weight: 600; color: var(--primary);">' + c.name + '</span>' +
+            teamBadge +
+            '<div class="comment-meta">' + c.city + ' · ' + date + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          (!state.isLoggedOut ? '<button class="btn btn-sm" onclick="PIT.toggleReply(' + c.id + ')" style="margin-right: 6px;">💬 ' + t('btnReply') + '</button>' : '') +
+          '<button class="btn btn-danger btn-sm" onclick="PIT.deleteComment(' + c.id + ')">🗑️ ' + t('btnDelete') + '</button>' +
+        '</div>' +
+      '</div>' +
+      sentencesHTML +
+      productTag +
+      repliesHTML +
+      replyBoxHTML +
+    '</div>';
+  }
+  if (filtered.length === 0) {
+    html = '<div style="text-align: center; color: var(--text-dim); padding: 48px; font-weight: 500;">' + t('noMessages') + '</div>';
+  }
+  area.innerHTML = html;
+}
+
+function renderProducts() {
+  var list = $('products-list');
+  if (!list) return;
+  var html = '';
+  for (var i = 0; i < state.products.length; i++) {
+    var p = state.products[i];
+    html += '<div class="product-edit-card">' +
+      '<div style="display: grid; gap: 10px;">' +
+        '<div><div class="label">' + t('productName') + '</div><input class="input" id="p-name-' + i + '" value="' + p.name + '"></div>' +
+        '<div style="display: flex; gap: 10px;">' +
+          '<div style="flex: 1;"><div class="label">' + t('price') + '</div><input class="input" id="p-price-' + i + '" value="' + p.price + '"></div>' +
+          '<div style="flex: 2;"><div class="label">' + t('promo') + '</div><input class="input" id="p-promo-' + i + '" value="' + p.promo + '"></div>' +
+        '</div>' +
+        '<div><div class="label">' + t('link') + '</div><input class="input" id="p-link-' + i + '" value="' + p.link + '"></div>' +
+        '<div style="display: flex; gap: 10px; margin-top: 6px;">' +
+          '<button class="btn btn-primary" style="flex: 1;" onclick="PIT.updateProduct(' + i + ')">' + t('btnUpdate') + '</button>' +
+          '<button class="btn btn-danger" style="flex: 1;" onclick="PIT.deleteProduct(' + i + ')">' + t('btnDelete') + '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  list.innerHTML = html;
+
+  var select = $('product-select');
+  if (select) {
+    var opts = '<option value="">' + t('attachProduct') + '</option>';
+    for (var i = 0; i < state.products.length; i++) {
+      opts += '<option value="' + state.products[i].id + '">' + state.products[i].name + '</option>';
+    }
+    select.innerHTML = opts;
+  }
+}
+
+function renderProfileAvatars() {
+  var container = $('profile-avatars');
+  if (!container) return;
+  var html = '';
+  for (var k in avatars) {
+    var selected = (state.visitor.avatar === k && !state.visitor.customAvatarUrl) ? 'selected' : '';
+    html += '<div class="avatar-select ' + selected + '" data-avatar="' + k + '" onclick="PIT.selectProfileAvatar(this)">' + avatars[k] + '</div>';
+  }
+  if (state.visitor.customAvatarUrl) {
+    html += '<div class="avatar-select selected"><img src="' + state.visitor.customAvatarUrl + '"></div>';
+  }
+  container.innerHTML = html;
+}
+
+// ==================== PIT API ====================
+window.PIT = {
+  setLang: function(lang) {
+    state.lang = lang;
+    applyLang();
+    showPage('page-identity');
+  },
+  setIdentity: function(id) {
+    state.identity = id;
+    if (id === 'team') {
+      showPage('page-splash');
+      if ($('splash-loading')) $('splash-loading').textContent = 'Authenticating team credentials...';
+      setTimeout(function() { window.PIT.goHome(); }, 1500);
+    } else {
+      showPage('page-visitor');
+    }
+  },
+  selectAvatar: function(el) {
+    var all = document.querySelectorAll('#visitor-avatar-picker .avatar-select');
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+    el.classList.add('selected');
+    state.visitor.avatar = el.dataset.avatar;
+    state.visitor.customAvatarUrl = null;
+    if ($('custom-avatar-preview')) $('custom-avatar-preview').style.display = 'none';
+  },
+  selectProfileAvatar: function(el) {
+    var all = document.querySelectorAll('#profile-avatars .avatar-select');
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+    el.classList.add('selected');
+    state.visitor.avatar = el.dataset.avatar;
+    state.visitor.customAvatarUrl = null;
+  },
+  // 从电脑选择本地照片
+  handleCustomAvatarUpload: function(event) {
+    var file = event.target.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        state.visitor.customAvatarUrl = e.target.result;
+        if ($('custom-avatar-img')) {
+          $('custom-avatar-img').src = e.target.result;
+          $('custom-avatar-preview').style.display = 'block';
+        }
+        renderProfileAvatars();
+      };
+      reader.readAsDataURL(file);
+    }
+  },
+  goSurvey: function() {
+    var name = $('visitor-name').value.trim();
+    var city = $('visitor-city').value.trim();
+    if (!name || !city) { alert(t('labelName') + ' / ' + t('labelCity') + ' required'); return; }
+    state.visitor.name = name;
+    state.visitor.city = city;
+    showPage('page-survey');
+  },
+  submitSurvey: function() {
+    var selected = document.querySelector('input[name="survey"]:checked');
+    state.visitor.survey = selected ? selected.value : 'other';
+    showPage('page-splash');
+    if ($('splash-loading')) $('splash-loading').textContent = 'Generating your virtual identity...';
+    setTimeout(function() { window.PIT.goHome(); }, 1500);
+  },
+  goHome: function() {
+    showPage('page-home');
+    if ($('home-badge')) $('home-badge').style.display = state.identity === 'team' ? 'inline-block' : 'none';
+    if ($('nav-team')) $('nav-team').style.display = state.identity === 'team' ? 'inline' : 'none';
+    if ($('comment-input-area')) $('comment-input-area').style.display = state.isLoggedOut ? 'none' : 'block';
+    if ($('team-product-select')) $('team-product-select').style.display = state.identity === 'team' ? 'block' : 'none';
+    if ($('logged-out-banner')) $('logged-out-banner').style.display = state.isLoggedOut ? 'flex' : 'none';
+    renderComments();
+    renderProducts();
+  },
+  goProfile: function() {
+    showPage('page-profile');
+    if ($('nav-profile-team')) $('nav-profile-team').style.display = state.identity === 'team' ? 'inline' : 'none';
+    if ($('profile-name')) $('profile-name').value = state.identity === 'team' ? 'PIT Team' : state.visitor.name;
+    if ($('profile-city')) $('profile-city').value = state.identity === 'team' ? 'Peox HQ' : state.visitor.city;
+    renderProfileAvatars();
+  },
+  goTeamPanel: function() {
+    if (state.identity !== 'team') return;
+    showPage('page-team');
+    renderProducts();
+  },
+  saveProfile: function() {
+    if (state.identity !== 'team') {
+      state.visitor.name = $('profile-name').value.trim() || state.visitor.name;
+      state.visitor.city = $('profile-city').value.trim() || state.visitor.city;
+    }
+    this.goHome();
+  },
+  postComment: function() {
+    var content = $('new-comment').value.trim();
+    if (!content) return;
+    var productId = $('product-select').value;
+    
+    // 按句号/换行拆分句子，防止挤在一起
+    var rawSentences = content.split(/[\n。!！?？]+/);
+    var sentences = [];
+    for (var i = 0; i < rawSentences.length; i++) {
+      if (rawSentences[i].trim().length > 0) sentences.push(rawSentences[i].trim());
+    }
+    if (sentences.length === 0) sentences = [content];
+
+    var comment = {
+      id: Date.now(),
+      avatar: state.identity === 'team' ? 'A' : state.visitor.avatar,
+      customAvatarUrl: state.identity === 'team' ? null : state.visitor.customAvatarUrl,
+      name: state.identity === 'team' ? 'PIT Team' : state.visitor.name,
+      city: state.identity === 'team' ? 'Peox HQ' : state.visitor.city,
+      sentences: sentences,
+      timestamp: Date.now(),
+      isTeamReply: state.identity === 'team',
+      productId: productId || null,
+      replies: []
+    };
+    state.activeComments.unshift(comment);
+    $('new-comment').value = '';
+    if ($('product-select')) $('product-select').value = '';
+    renderComments();
+  },
+  toggleReply: function(commentId) {
+    state.activeReplyId = state.activeReplyId === commentId ? null : commentId;
+    renderComments();
+  },
+  submitReply: function(commentId) {
+    var input = $('reply-input-' + commentId);
+    if (!input) return;
+    var text = input.value.trim();
+    if (!text) return;
+
+    for (var i = 0; i < state.activeComments.length; i++) {
+      if (state.activeComments[i].id === commentId) {
+        if (!state.activeComments[i].replies) state.activeComments[i].replies = [];
+        state.activeComments[i].replies.push({
+          avatar: state.identity === 'team' ? 'A' : state.visitor.avatar,
+          customAvatarUrl: state.identity === 'team' ? null : state.visitor.customAvatarUrl,
+          name: state.identity === 'team' ? 'PIT Team' : state.visitor.name,
+          city: state.identity === 'team' ? 'Peox HQ' : state.visitor.city,
+          content: text
+        });
+        break;
+      }
+    }
+    state.activeReplyId = null;
+    renderComments();
+  },
+  deleteComment: function(commentId) {
+    for (var i = 0; i < state.activeComments.length; i++) {
+      if (state.activeComments[i].id === commentId) {
+        state.activeComments.splice(i, 1);
+        break;
+      }
+    }
+    renderComments();
+  },
+  doSearch: function() { renderComments(); },
+  clearSearch: function() {
+    $('search-keyword').value = '';
+    $('search-date').value = '';
+    renderComments();
+  },
+  addProduct: function() {
+    var maxId = 0;
+    for (var i = 0; i < state.products.length; i++) {
+      if (state.products[i].id > maxId) maxId = state.products[i].id;
+    }
+    var id = maxId + 1;
+    state.products.push({ id: id, name: 'New Product', price: '$0.00', promo: '', link: '#' });
+    renderProducts();
+  },
+  updateProduct: function(idx) {
+    state.products[idx].name = $('p-name-' + idx).value;
+    state.products[idx].price = $('p-price-' + idx).value;
+    state.products[idx].promo = $('p-promo-' + idx).value;
+    state.products[idx].link = $('p-link-' + idx).value;
+    renderProducts();
+    renderComments();
+  },
+  deleteProduct: function(idx) {
+    state.products.splice(idx, 1);
+    renderProducts();
+    renderComments();
+  },
+  showLogoutModal: function() { $('logout-modal').classList.add('active'); },
+  hideLogoutModal: function() { $('logout-modal').classList.remove('active'); },
+  doLogout: function() {
+    state.isLoggedOut = true;
+    this.hideLogoutModal();
+    this.goHome();
+  },
+  restart: function() {
+    state.isLoggedOut = false;
+    state.identity = null;
+    state.visitor = { avatar: 'A', customAvatarUrl: null, name: '', city: '', survey: '' };
+    showPage('page-lang');
+  }
+};
+
+// ==================== INIT ====================
+applyLang();
+</script>
+</body>
+</html>
