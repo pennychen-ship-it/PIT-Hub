@@ -16,76 +16,143 @@
     --text: #1e293b;
     --text-dim: #64748b;
     --danger: #ef4444;
+    --warning: #f59e0b;
     --success: #10b981;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --success-light: #ecfdf5;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.06);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
   .page { display: none; min-height: 100vh; }
   .page.active { display: flex; flex-direction: column; }
-  .center { align-items: center; justify-content: center; }
   .container { max-width: 800px; margin: 0 auto; width: 100%; padding: 0 20px; }
+  .center { display: flex; align-items: center; justify-content: center; }
   .btn {
     display: inline-flex; align-items: center; justify-content: center;
     background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
     padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500;
-    border-radius: 8px; transition: all 0.15s;
+    transition: all 0.15s; border-radius: 8px; font-family: inherit;
   }
-  .btn:hover { background: var(--bg-elevated); }
+  .btn:hover { background: var(--bg-elevated); border-color: #cbd5e1; }
   .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
   .btn-primary:hover { background: var(--primary-hover); }
   .btn-danger { border-color: var(--danger); color: var(--danger); background: #fef2f2; }
+  .btn-danger:hover { background: #fee2e2; }
   .btn-sm { padding: 6px 12px; font-size: 12px; }
   .input {
     background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
-    padding: 10px 14px; font-size: 14px; width: 100%; border-radius: 8px; outline: none;
+    padding: 10px 14px; font-size: 14px; width: 100%; outline: none;
+    transition: all 0.15s; border-radius: 8px; font-family: inherit;
   }
-  .input:focus { border-color: var(--primary); }
-  .card { background: var(--bg-card); border: 1px solid var(--border); padding: 24px; border-radius: 12px; margin-bottom: 20px; }
-  .label { color: var(--text-dim); font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+  .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .label {
+    color: var(--text-dim); font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+  }
   .header {
     background: var(--bg-card); border-bottom: 1px solid var(--border);
     padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
-    position: sticky; top: 0; z-index: 100;
+    position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
   }
-  .nav-link { color: var(--text-dim); font-size: 14px; padding: 6px 12px; cursor: pointer; border-radius: 6px; }
-  .nav-link.active, .nav-link:hover { color: var(--primary); background: var(--primary-light); }
-  .team-badge { background: #ecfdf5; color: var(--success); border: 1px solid #a7f3d0; padding: 2px 8px; font-size: 11px; border-radius: 999px; }
-  .avatar-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+  .nav-link {
+    color: var(--text-dim); font-size: 14px; padding: 6px 12px; cursor: pointer;
+    transition: all 0.15s; border-radius: 6px; font-weight: 500;
+  }
+  .nav-link:hover, .nav-link.active { color: var(--primary); background: var(--primary-light); }
+  .team-badge {
+    display: inline-block; background: var(--success-light); color: var(--success);
+    border: 1px solid #a7f3d0; padding: 2px 10px; font-size: 11px; margin-left: 8px;
+    border-radius: 999px; font-weight: 600;
+  }
+  .avatar-img {
+    width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
+    border: 1px solid var(--border); background: var(--bg-elevated);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 22px;
+  }
   .avatar-select {
     width: 48px; height: 48px; border: 2px solid var(--border); border-radius: 50%;
     cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-    margin: 4px; font-size: 20px; background: var(--bg-elevated);
+    margin: 4px; transition: all 0.15s; background: var(--bg-elevated); font-size: 20px;
+    overflow: hidden;
   }
-  .avatar-select.selected { border-color: var(--primary); background: var(--primary-light); }
+  .avatar-select:hover { border-color: var(--primary); transform: scale(1.05); }
+  .avatar-select.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); background: var(--primary-light); }
   .comment {
     background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--primary);
-    padding: 22px; margin-bottom: 24px; border-radius: 0 12px 12px 0;
+    padding: 22px; margin-bottom: 24px; border-radius: 0 12px 12px 0; box-shadow: var(--shadow);
   }
-  .comment-sentence { margin-bottom: 12px; line-height: 1.8; font-size: 15px; }
+  .comment-sentence { margin-bottom: 12px; line-height: 1.8; color: var(--text); font-size: 15px; }
   .comment-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-  .reply-list { margin-top: 16px; padding-left: 20px; border-left: 2px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
-  .reply-item { background: var(--bg-elevated); padding: 12px; border-radius: 8px; border: 1px solid var(--border); font-size: 13.5px; }
-  .splash-logo { font-size: 32px; font-weight: 700; color: var(--primary); letter-spacing: 2px; }
-  .splash-sub { color: var(--text-dim); font-size: 13px; letter-spacing: 3px; }
+  .reply-list {
+    margin-top: 16px; padding-left: 20px; border-left: 2px solid var(--border);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .reply-item {
+    background: var(--bg-elevated); padding: 12px 16px; border-radius: 8px;
+    border: 1px solid var(--border); font-size: 13.5px;
+  }
+  .product-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--primary-light); border: 1px solid #bfdbfe; color: var(--primary);
+    padding: 6px 12px; font-size: 12px; margin-top: 10px; cursor: pointer;
+    border-radius: 6px; font-weight: 500; transition: all 0.15s;
+  }
+  .product-tag:hover { background: #dbeafe; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.5);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--bg-card); border: 1px solid var(--border); padding: 28px;
+    max-width: 400px; width: 90%; border-radius: 14px; box-shadow: var(--shadow-md);
+  }
+  .search-bar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+  .search-bar input { flex: 1; min-width: 140px; }
+  .scroll { max-height: 600px; overflow-y: auto; padding-right: 6px; }
+  .radio-group { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+  .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 8px; border-radius: 8px; }
+  .radio-group label:hover { background: var(--bg-elevated); }
+  .radio-group input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; }
+  .product-edit-card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; border-radius: 12px; box-shadow: var(--shadow); }
   .lang-btn {
     padding: 16px 32px; border: 1px solid var(--border); background: var(--bg-card);
-    color: var(--text); cursor: pointer; font-size: 15px; margin: 8px; border-radius: 10px; font-weight: 500;
+    color: var(--text); cursor: pointer; font-size: 15px; margin: 8px;
+    transition: all 0.15s; min-width: 180px; border-radius: 10px; font-weight: 500; box-shadow: var(--shadow);
   }
-  .lang-btn:hover { border-color: var(--primary); color: var(--primary); }
-  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
-  .modal-overlay.active { display: flex; }
-  .modal { background: var(--bg-card); padding: 28px; max-width: 400px; width: 90%; border-radius: 14px; }
+  .lang-btn:hover { border-color: var(--primary); color: var(--primary); box-shadow: var(--shadow-md); }
+  .splash-logo { font-size: 32px; font-weight: 700; color: var(--primary); letter-spacing: 2px; }
+  .splash-sub { color: var(--text-dim); font-size: 13px; letter-spacing: 3px; font-weight: 500; }
+  .file-upload-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; border: 1px dashed var(--primary); border-radius: 8px;
+    background: var(--primary-light); color: var(--primary); font-size: 13px;
+    cursor: pointer; font-weight: 500; transition: all 0.15s; margin-top: 8px;
+  }
 </style>
 </head>
 <body>
 
-<!-- 1. 语言选择页面 -->
+<!-- 1. LANGUAGE SELECTION -->
 <div id="page-lang" class="page active center" style="padding: 40px 20px;">
   <div style="text-align: center;">
     <div class="splash-logo" style="margin-bottom: 8px;">PIT HUB</div>
     <div class="splash-sub" style="margin-bottom: 40px;">PEOX INSTITUTE OF TECHNOLOGY</div>
-    <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 28px;">Select Language / 選擇語言 / 选择语言</div>
+    <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 28px; font-weight: 500;">
+      Select Language / 選擇語言 / 选择语言
+    </div>
     <div style="display: flex; flex-wrap: wrap; justify-content: center;">
       <button class="lang-btn" data-lang="zh-HK">繁體中文 (Cantonese)</button>
       <button class="lang-btn" data-lang="zh-CN">简体中文 (Mandarin)</button>
@@ -94,89 +161,172 @@
   </div>
 </div>
 
-<!-- 2. 身份选择 -->
+<!-- 2. IDENTITY SELECTION -->
 <div id="page-identity" class="page center" style="padding: 40px 20px;">
   <div style="text-align: center; max-width: 420px; width: 100%;">
     <div class="splash-logo" style="margin-bottom: 24px; font-size: 26px;">PIT HUB</div>
-    <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim);">Select your identity</div>
-    <button class="btn btn-primary" id="btn-team" style="width: 100%; margin-bottom: 12px; padding: 16px;">PIT Team</button>
-    <button class="btn" id="btn-visitor" style="width: 100%; padding: 16px;">Visitor</button>
+    <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim); font-weight: 500;">Select your identity</div>
+    <button class="btn btn-primary" id="btn-team-identity" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 15px;">
+      <span id="btn-team">PIT Team</span>
+    </button>
+    <button class="btn" id="btn-visitor-identity" style="width: 100%; padding: 16px; font-size: 15px;">
+      <span id="btn-visitor">Visitor</span>
+    </button>
   </div>
 </div>
 
-<!-- 3. 访客设置 -->
+<!-- 3. VISITOR INFO -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
-    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px;">Create your virtual identity</div>
+    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your virtual identity</div>
     <div class="card">
       <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
-      <div style="display: flex; justify-content: center; margin-bottom: 12px;" id="avatar-picker">
-        <div class="avatar-select selected" data-avatar="🤖">🤖</div>
-        <div class="avatar-select" data-avatar="👾">👾</div>
-        <div class="avatar-select" data-avatar="🦾">🦾</div>
-        <div class="avatar-select" data-avatar="👽">👽</div>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="visitor-avatar-picker">
+        <div class="avatar-select selected" data-avatar="A">🤖</div>
+        <div class="avatar-select" data-avatar="B">👾</div>
+        <div class="avatar-select" data-avatar="C">🦾</div>
+        <div class="avatar-select" data-avatar="D">👽</div>
       </div>
+      
       <div style="text-align: center; margin-bottom: 20px;">
-        <label class="btn btn-sm" style="cursor: pointer;">
-          📁 <span id="btn-upload-text">Upload photo</span>
+        <label class="file-upload-btn">
+          📁 <span id="btn-upload-text">Upload photo from computer</span>
           <input type="file" id="local-avatar-file" accept="image/*" style="display: none;">
         </label>
       </div>
-      <div class="label" id="label-name">Name / Nickname</div>
-      <input class="input" id="visitor-name" placeholder="Enter name" style="margin-bottom: 14px;">
+
+      <div class="label" id="label-name" style="margin-top: 4px;">Name / Nickname</div>
+      <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
       <div class="label" id="label-city">City / Location</div>
-      <input class="input" id="visitor-city" placeholder="Enter city" style="margin-bottom: 20px;">
-      <button class="btn btn-primary" id="btn-visitor-next" style="width: 100%; padding: 12px;">Continue</button>
+      <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next">Continue</button>
     </div>
   </div>
 </div>
 
-<!-- 4. 问卷 -->
+<!-- 4. SURVEY -->
 <div id="page-survey" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
-    <div id="survey-title" style="text-align: center; margin-bottom: 24px; font-weight: 600;">How did you hear about PIT?</div>
+    <div id="survey-title" style="text-align: center; margin-bottom: 24px; color: var(--text); font-size: 16px; font-weight: 600;">How did you hear about PIT?</div>
     <div class="card">
-      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;" id="survey-options">
+      <div class="radio-group" id="survey-options">
         <label><input type="radio" name="survey" value="social" checked> <span>Social Media</span></label>
         <label><input type="radio" name="survey" value="friend"> <span>Friend / Colleague</span></label>
         <label><input type="radio" name="survey" value="search"> <span>Search Engine</span></label>
+        <label><input type="radio" name="survey" value="event"> <span>Tech Event / Conference</span></label>
+        <label><input type="radio" name="survey" value="other"> <span>Other</span></label>
       </div>
-      <button class="btn btn-primary" id="btn-survey-submit" style="width: 100%; padding: 12px;">Submit & Enter</button>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" id="btn-survey-submit">Submit & Enter</button>
     </div>
   </div>
 </div>
 
-<!-- 5. 首页 / 社区大厅 -->
+<!-- 5. HOME / COMMUNITY HALL -->
 <div id="page-home" class="page">
   <div class="header">
     <div style="display: flex; align-items: center; gap: 10px;">
       <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
       <span id="home-badge" class="team-badge" style="display: none;">TEAM</span>
     </div>
-    <div style="display: flex; gap: 8px;">
+    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
       <span class="nav-link active" id="nav-home">Home</span>
+      <span class="nav-link" id="nav-profile">My Info</span>
+      <span class="nav-link" id="nav-team" style="display: none;">Edit Panel</span>
       <span class="nav-link" id="nav-logout">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
-    <div id="comments-area"></div>
+    <div class="search-bar">
+      <input class="input" id="search-keyword" placeholder="Search keywords..." style="flex: 1;">
+      <input class="input" id="search-date" type="date" style="width: 150px; font-size: 13px; color: var(--text-dim);">
+      <button class="btn btn-sm" id="btn-search">Search</button>
+      <button class="btn btn-sm" id="btn-clear-search">Clear</button>
+    </div>
+    
+    <div id="comments-area" class="scroll"></div>
 
     <div id="comment-input-area" style="margin-top: 24px;">
-      <div style="display: flex; gap: 10px;">
+      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
         <input class="input" id="new-comment" placeholder="Write a message..." style="flex: 1;">
         <button class="btn btn-primary" id="btn-submit-feedback">submit feedback</button>
+      </div>
+      <div id="team-product-select" style="display: none;">
+        <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);">
+          <option value="">-- Attach product (optional) --</option>
+        </select>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Logout Modal -->
+<!-- 6. MY PROFILE -->
+<div id="page-profile" class="page">
+  <div class="header">
+    <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
+    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+      <span class="nav-link" id="nav-profile-home">Home</span>
+      <span class="nav-link active" id="nav-profile-self">My Info</span>
+      <span class="nav-link" id="nav-profile-team" style="display: none;">Edit Panel</span>
+      <span class="nav-link" id="nav-profile-logout">Log Out</span>
+    </div>
+  </div>
+  <div class="container" style="padding: 32px 20px; max-width: 460px;">
+    <div id="profile-title" style="font-size: 20px; margin-bottom: 24px; color: var(--text); font-weight: 700;">My Information</div>
+    <div class="card">
+      <div class="label">Avatar</div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 12px;" id="profile-avatars">
+        <div class="avatar-select" data-avatar="A">🤖</div>
+        <div class="avatar-select" data-avatar="B">👾</div>
+        <div class="avatar-select" data-avatar="C">🦾</div>
+        <div class="avatar-select" data-avatar="D">👽</div>
+      </div>
+      
+      <div style="text-align: center; margin-bottom: 20px;">
+        <label class="file-upload-btn">
+          📁 <span>Upload new photo</span>
+          <input type="file" id="profile-upload-file" accept="image/*" style="display: none;">
+        </label>
+      </div>
+
+      <div class="label">Name / Nickname</div>
+      <input class="input" id="profile-name" style="margin-bottom: 14px;">
+      <div class="label">City / Location</div>
+      <input class="input" id="profile-city" style="margin-bottom: 20px;">
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. TEAM EDIT PANEL (Full Management) -->
+<div id="page-team" class="page">
+  <div class="header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
+      <span class="team-badge">TEAM ONLY</span>
+    </div>
+    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+      <span class="nav-link" id="nav-team-home">Home</span>
+      <span class="nav-link" id="nav-team-profile">My Info</span>
+      <span class="nav-link active">Edit Panel</span>
+      <span class="nav-link" id="nav-team-logout">Log Out</span>
+    </div>
+  </div>
+  <div class="container" style="padding: 24px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div style="font-size: 17px; font-weight: 700; color: var(--text);" id="txt-product-mgmt">Product Management</div>
+      <button class="btn btn-primary btn-sm" id="btn-add-product">+ Add Product</button>
+    </div>
+    <div id="products-list"></div>
+  </div>
+</div>
+
+<!-- LOGOUT MODAL -->
 <div id="logout-modal" class="modal-overlay">
   <div class="modal">
-    <div style="font-size: 17px; margin-bottom: 12px; font-weight: 700;">Log Out?</div>
-    <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;">Are you sure you want to log out?</div>
+    <div style="font-size: 17px; margin-bottom: 12px; color: var(--text); font-weight: 700;" id="txt-logout-title">Log Out?</div>
+    <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;" id="txt-logout-desc">Are you sure you want to log out?</div>
     <div style="display: flex; gap: 10px; justify-content: flex-end;">
       <button class="btn" id="modal-cancel">No</button>
       <button class="btn btn-danger" id="modal-confirm">Yes</button>
@@ -186,14 +336,38 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // 全局响应式状态
   var state = {
     lang: 'en',
-    identity: null,
-    avatar: '🤖',
-    customAvatar: null,
+    identity: null, // 'team' 或 'visitor'
+    avatar: 'A',
+    customAvatarUrl: null,
     name: '',
     city: '',
-    comments: []
+    activeReplyId: null,
+    products: [
+      { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
+      { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
+      { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
+    ],
+    multiLangComments: {
+      'en': [
+        { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+        { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+        { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+      ],
+      'zh-CN': [
+        { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹行者', city: '北京', sentences: ['刚刚报名了高级 AI 课程。', '实验环境真的太棒了！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+        { id: 102, avatar: 'D', customAvatarUrl: null, name: '赛博极客', city: '深圳', sentences: ['请问 Quantum Chip Q-7 支持自定义 SDK 吗？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+        { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 团队', city: 'Peox 总部', sentences: ['当然支持！已原生提供完整 SDK 接口。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+      ],
+      'zh-HK': [
+        { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹漫步者', city: '香港', sentences: ['剛剛報名咗高級 AI 課程。', '實驗室效果真係正！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+        { id: 102, avatar: 'D', customAvatarUrl: null, name: '極客阿森', city: '廣州', sentences: ['請問 Quantum Chip Q-7 支唔支援自定義 SDK？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+        { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 團隊', city: 'Peox 總部', sentences: ['當然支援！已經原生提供完整 SDK 介面。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+      ]
+    },
+    activeComments: []
   };
 
   var i18n = {
@@ -201,39 +375,38 @@ document.addEventListener('DOMContentLoaded', function() {
       identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
       visitorTitle: 'Create your virtual identity', labelAvatar: 'Choose Preset Avatar or Upload Photo',
       labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
-      surveyTitle: 'How did you hear about PIT?', btnSubmit: 'Submit & Enter',
-      navHome: 'Home', navLogout: 'Log Out', btnSubmitFeedback: 'submit feedback',
-      uploadText: 'Upload photo'
+      surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
+      btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
+      profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
+      logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?', btnNo: 'No', btnYes: 'Yes',
+      searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
+      attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', btnReply: 'Reply', uploadText: 'Upload photo from computer'
     },
     'zh-CN': {
       identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
       visitorTitle: '创建您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
       labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
-      surveyTitle: '您是通过什么渠道知道 PIT 的？', btnSubmit: '提交并进入',
-      navHome: '首页', navLogout: '退出登录', btnSubmitFeedback: '提交反馈 (submit feedback)',
-      uploadText: '选择照片上传'
+      surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
+      btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
+      profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
+      logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？', btnNo: '否', btnYes: '是',
+      searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
+      attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', btnReply: '回复', uploadText: '从电脑选择照片上传'
     },
     'zh-HK': {
       identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
       visitorTitle: '創建您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
       labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
-      surveyTitle: '您是通過什麼渠道知道 PIT 的？', btnSubmit: '提交並進入',
-      navHome: '首頁', navLogout: '登出', btnSubmitFeedback: '提交反饋 (submit feedback)',
-      uploadText: '選擇照片上傳'
+      surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
+      btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
+      profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
+      logoutTitle: '登出？', logoutText: '您確定要登出嗎？', btnNo: '否', btnYes: '是',
+      searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
+      attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', btnReply: '回覆', uploadText: '從電腦選擇照片上傳'
     }
   };
 
-  var sampleComments = {
-    'en': [
-      { id: 1, avatar: '🤖', name: 'Alex', city: 'Hong Kong', text: 'Welcome to PIT Hub! Feel free to leave feedback.' }
-    ],
-    'zh-CN': [
-      { id: 1, avatar: '🤖', name: 'Alex', city: '北京', text: '欢迎来到 PIT Hub！请随时提交反馈。' }
-    ],
-    'zh-HK': [
-      { id: 1, avatar: '🤖', name: 'Alex', city: '香港', text: '歡迎嚟到 PIT Hub！請隨時提交反饋。' }
-    ]
-  };
+  var avatars = { A: '🤖', B: '👾', C: '🦾', D: '👽' };
 
   function showPage(id) {
     var pages = document.querySelectorAll('.page');
@@ -254,126 +427,362 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('survey-title').textContent = l.surveyTitle;
     document.getElementById('btn-survey-submit').textContent = l.btnSubmit;
     document.getElementById('nav-home').textContent = l.navHome;
-    document.getElementById('nav-logout').textContent = l.navLogout;
+    document.getElementById('nav-profile').textContent = l.navProfile;
+    document.getElementById('nav-team').textContent = l.navTeam;
+    document.getElementById('nav-profile-home').textContent = l.navHome;
+    document.getElementById('nav-profile-self').textContent = l.navProfile;
+    document.getElementById('nav-profile-team').textContent = l.navTeam;
+    document.getElementById('nav-team-home').textContent = l.navHome;
+    document.getElementById('nav-team-profile').textContent = l.navProfile;
+    document.getElementById('profile-title').textContent = l.profileTitle;
+    document.getElementById('btn-save-profile').textContent = l.btnSave;
+    document.getElementById('txt-product-mgmt').textContent = l.productMgmt;
+    document.getElementById('btn-add-product').textContent = l.btnAddProduct;
+    document.getElementById('txt-logout-title').textContent = l.logoutTitle;
+    document.getElementById('txt-logout-desc').textContent = l.logoutText;
+    document.getElementById('modal-cancel').textContent = l.btnNo;
+    document.getElementById('modal-confirm').textContent = l.btnYes;
+    document.getElementById('search-keyword').placeholder = l.searchPlaceholder;
+    document.getElementById('new-comment').placeholder = l.commentPlaceholder;
     document.getElementById('btn-submit-feedback').textContent = l.btnSubmitFeedback;
     document.getElementById('btn-upload-text').textContent = l.uploadText;
+
+    var opts = document.querySelectorAll('#survey-options label span');
+    for (var i = 0; i < l.surveyOptions.length; i++) {
+      if (opts[i]) opts[i].textContent = l.surveyOptions[i];
+    }
+    updateProductDropdown();
+  }
+
+  function getAvatarHTML(avatarKey, customUrl) {
+    if (customUrl) return '<img src="' + customUrl + '" class="avatar-img">';
+    return '<div class="avatar-img">' + (avatars[avatarKey] || '🤖') + '</div>';
   }
 
   function renderComments() {
     var area = document.getElementById('comments-area');
+    var keyword = document.getElementById('search-keyword').value.trim().toLowerCase();
+    var dateVal = document.getElementById('search-date').value;
     var html = '';
-    for (var i = 0; i < state.comments.length; i++) {
-      var c = state.comments[i];
-      var avatarHTML = c.customAvatar 
-        ? '<img src="' + c.customAvatar + '" class="avatar-img">'
-        : '<div class="avatar-select" style="cursor:default;">' + c.avatar + '</div>';
+
+    var list = state.activeComments.filter(function(c) {
+      var matchKw = !keyword || c.sentences.join(' ').toLowerCase().indexOf(keyword) !== -1 || c.name.toLowerCase().indexOf(keyword) !== -1;
+      var matchDate = true;
+      if (dateVal) {
+        var d = new Date(c.timestamp).toISOString().split('T')[0];
+        matchDate = (d === dateVal);
+      }
+      return matchKw && matchDate;
+    });
+
+    list.sort(function(a, b) { return b.timestamp - a.timestamp; });
+
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      var dateStr = new Date(c.timestamp).toLocaleDateString();
+      var product = state.products.find(function(p) { return p.id === c.productId; });
+      var productTag = product ? '<div class="product-tag" onclick="window.open(\'' + product.link + '\')">' + product.name + ' — ' + product.price + ' →</div>' : '';
+
+      var repliesHTML = '';
+      if (c.replies && c.replies.length > 0) {
+        repliesHTML += '<div class="reply-list">';
+        for (var r = 0; r < c.replies.length; r++) {
+          var rep = c.replies[r];
+          repliesHTML += '<div class="reply-item"><strong>' + rep.name + ': </strong>' + rep.content + '</div>';
+        }
+        repliesHTML += '</div>';
+      }
+
+      var replyBoxHTML = '';
+      if (state.activeReplyId === c.id) {
+        replyBoxHTML = '<div style="margin-top:12px; display:flex; gap:8px;">' +
+          '<input class="input" id="reply-input-' + c.id + '" placeholder="Reply..." style="font-size:13px;">' +
+          '<button class="btn btn-primary btn-sm" data-reply-btn="' + c.id + '">Send</button>' +
+        '</div>';
+      }
 
       html += '<div class="comment">' +
-        '<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">' +
-          avatarHTML +
-          '<div><strong>' + c.name + '</strong><div class="comment-meta">' + c.city + '</div></div>' +
+        '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
+          '<div style="display:flex; align-items:center; gap:12px;">' +
+            getAvatarHTML(c.avatar, c.customAvatarUrl) +
+            '<div>' +
+              '<strong>' + c.name + '</strong>' + (c.isTeamReply ? ' <span class="team-badge">' + i18n[state.lang].teamReply + '</span>' : '') +
+              '<div class="comment-meta">' + c.city + ' · ' + dateStr + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div>' +
+            '<button class="btn btn-sm" data-action="reply" data-id="' + c.id + '" style="margin-right:6px;">💬 Reply</button>' +
+            '<button class="btn btn-danger btn-sm" data-action="delete" data-id="' + c.id + '">🗑️ Delete</button>' +
+          '</div>' +
         '</div>' +
-        '<div class="comment-sentence">' + c.text + '</div>' +
+        '<div class="comment-sentence">' + c.sentences.join('<br>') + '</div>' +
+        productTag + repliesHTML + replyBoxHTML +
       '</div>';
     }
-    area.innerHTML = html;
+    area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages found</div>';
+
+    // 动态绑定列表内部按钮的逻辑
+    var delBtns = area.querySelectorAll('[data-action="delete"]');
+    for (var d = 0; d < delBtns.length; d++) {
+      delBtns[d].addEventListener('click', function() {
+        var id = parseInt(this.getAttribute('data-id'));
+        state.activeComments = state.activeComments.filter(function(item) { return item.id !== id; });
+        renderComments();
+      });
+    }
+
+    var repBtns = area.querySelectorAll('[data-action="reply"]');
+    for (var rp = 0; rp < repBtns.length; rp++) {
+      repBtns[rp].addEventListener('click', function() {
+        var id = parseInt(this.getAttribute('data-id'));
+        state.activeReplyId = state.activeReplyId === id ? null : id;
+        renderComments();
+      });
+    }
+
+    var sendRepBtns = area.querySelectorAll('[data-reply-btn]');
+    for (var sr = 0; sr < sendRepBtns.length; sr++) {
+      sendRepBtns[sr].addEventListener('click', function() {
+        var id = parseInt(this.getAttribute('data-reply-btn'));
+        var input = document.getElementById('reply-input-' + id);
+        if (input && input.value.trim()) {
+          var target = state.activeComments.find(function(item) { return item.id === id; });
+          if (target) {
+            target.replies = target.replies || [];
+            target.replies.push({ name: state.name, content: input.value.trim() });
+          }
+          state.activeReplyId = null;
+          renderComments();
+        }
+      });
+    }
   }
 
-  // 事件监听：语言选择
+  // PIT Team 产品下拉框同步
+  function updateProductDropdown() {
+    var select = document.getElementById('product-select');
+    if (!select) return;
+    var html = '<option value="">' + i18n[state.lang].attachProduct + '</option>';
+    for (var i = 0; i < state.products.length; i++) {
+      html += '<option value="' + state.products[i].id + '">' + state.products[i].name + ' (' + state.products[i].price + ')</option>';
+    }
+    select.innerHTML = html;
+  }
+
+  // PIT Team 编辑面板渲染 (Product Edit List)
+  function renderTeamProducts() {
+    var list = document.getElementById('products-list');
+    if (!list) return;
+    var html = '';
+    for (var i = 0; i < state.products.length; i++) {
+      var p = state.products[i];
+      html += '<div class="product-edit-card">' +
+        '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;">' +
+          '<div><div class="label">Product Name</div><input class="input" value="' + p.name + '" id="prod-name-' + p.id + '"></div>' +
+          '<div><div class="label">Price</div><input class="input" value="' + p.price + '" id="prod-price-' + p.id + '"></div>' +
+          '<div><div class="label">Promo Text</div><input class="input" value="' + p.promo + '" id="prod-promo-' + p.id + '"></div>' +
+          '<div><div class="label">Link URL</div><input class="input" value="' + p.link + '" id="prod-link-' + p.id + '"></div>' +
+        '</div>' +
+        '<div style="display:flex; justify-content:flex-end; gap:8px;">' +
+          '<button class="btn btn-danger btn-sm" data-prod-del="' + p.id + '">Delete</button>' +
+          '<button class="btn btn-primary btn-sm" data-prod-save="' + p.id + '">Update</button>' +
+        '</div>' +
+      '</div>';
+    }
+    list.innerHTML = html;
+
+    var saveBtns = list.querySelectorAll('[data-prod-save]');
+    for (var s = 0; s < saveBtns.length; s++) {
+      saveBtns[s].addEventListener('click', function() {
+        var id = parseInt(this.getAttribute('data-prod-save'));
+        var item = state.products.find(function(p) { return p.id === id; });
+        if (item) {
+          item.name = document.getElementById('prod-name-' + id).value;
+          item.price = document.getElementById('prod-price-' + id).value;
+          item.promo = document.getElementById('prod-promo-' + id).value;
+          item.link = document.getElementById('prod-link-' + id).value;
+          alert('Product updated successfully!');
+          updateProductDropdown();
+        }
+      });
+    }
+
+    var delBtns = list.querySelectorAll('[data-prod-del]');
+    for (var d = 0; d < delBtns.length; d++) {
+      delBtns[d].addEventListener('click', function() {
+        var id = parseInt(this.getAttribute('data-prod-del'));
+        state.products = state.products.filter(function(p) { return p.id !== id; });
+        renderTeamProducts();
+        updateProductDropdown();
+      });
+    }
+  }
+
+  // ==================== 绑定全局交互事件 ==================== //
+
+  // 1. 语言选择
   var langBtns = document.querySelectorAll('.lang-btn');
   for (var i = 0; i < langBtns.length; i++) {
     langBtns[i].addEventListener('click', function() {
       state.lang = this.getAttribute('data-lang');
-      state.comments = JSON.parse(JSON.stringify(sampleComments[state.lang]));
+      state.activeComments = JSON.parse(JSON.stringify(state.multiLangComments[state.lang]));
       updateTexts();
       showPage('page-identity');
     });
   }
 
-  // 事件监听：身份选择
-  document.getElementById('btn-team').addEventListener('click', function() {
+  // 2. 身份选择
+  document.getElementById('btn-team-identity').addEventListener('click', function() {
     state.identity = 'team';
     state.name = 'PIT Team';
     state.city = 'Peox HQ';
-    state.avatar = '🤖';
+    state.avatar = 'A';
     document.getElementById('home-badge').style.display = 'inline-block';
+    document.getElementById('nav-team').style.display = 'inline-block';
+    document.getElementById('nav-profile-team').style.display = 'inline-block';
+    document.getElementById('team-product-select').style.display = 'block';
     renderComments();
     showPage('page-home');
   });
 
-  document.getElementById('btn-visitor').addEventListener('click', function() {
+  document.getElementById('btn-visitor-identity').addEventListener('click', function() {
     state.identity = 'visitor';
     document.getElementById('home-badge').style.display = 'none';
+    document.getElementById('nav-team').style.display = 'none';
+    document.getElementById('nav-profile-team').style.display = 'none';
+    document.getElementById('team-product-select').style.display = 'none';
     showPage('page-visitor');
   });
 
-  // 头像选择
-  var avatars = document.querySelectorAll('#avatar-picker .avatar-select');
-  for (var j = 0; j < avatars.length; j++) {
-    avatars[j].addEventListener('click', function() {
-      for (var k = 0; k < avatars.length; k++) avatars[k].classList.remove('selected');
-      this.classList.add('selected');
-      state.avatar = this.getAttribute('data-avatar');
-      state.customAvatar = null;
-    });
+  // 3. 各种头像选择机制
+  function setupAvatarPicker(pickerSelector) {
+    var nodes = document.querySelectorAll(pickerSelector + ' .avatar-select');
+    for (var j = 0; j < nodes.length; j++) {
+      nodes[j].addEventListener('click', function() {
+        for (var k = 0; k < nodes.length; k++) nodes[k].classList.remove('selected');
+        this.classList.add('selected');
+        state.avatar = this.getAttribute('data-avatar');
+        state.customAvatarUrl = null;
+      });
+    }
   }
+  setupAvatarPicker('#visitor-avatar-picker');
+  setupAvatarPicker('#profile-avatars');
 
-  // 本地图片上传
-  document.getElementById('local-avatar-file').addEventListener('change', function(e) {
+  // 本地照片上传 handler
+  function handleImageUpload(e) {
     var file = e.target.files[0];
     if (file) {
       var reader = new FileReader();
-      reader.onload = function(evt) {
-        state.customAvatar = evt.target.result;
-      };
+      reader.onload = function(evt) { state.customAvatarUrl = evt.target.result; alert('Custom avatar uploaded!'); };
       reader.readAsDataURL(file);
     }
-  });
+  }
+  document.getElementById('local-avatar-file').addEventListener('change', handleImageUpload);
+  document.getElementById('profile-upload-file').addEventListener('change', handleImageUpload);
 
-  // 访客下一步
+  // 4. 步骤跳转
   document.getElementById('btn-visitor-next').addEventListener('click', function() {
     var name = document.getElementById('visitor-name').value.trim();
     var city = document.getElementById('visitor-city').value.trim();
-    if (!name || !city) { alert('Please enter name and city'); return; }
+    if (!name || !city) return alert('Please enter name and city');
     state.name = name;
     state.city = city;
     showPage('page-survey');
   });
 
-  // 提交问卷
   document.getElementById('btn-survey-submit').addEventListener('click', function() {
     renderComments();
     showPage('page-home');
   });
 
-  // 提交评论
+  // 5. 发表留言反馈
   document.getElementById('btn-submit-feedback').addEventListener('click', function() {
-    var input = document.getElementById('new-comment');
-    var val = input.value.trim();
+    var val = document.getElementById('new-comment').value.trim();
     if (!val) return;
-    state.comments.unshift({
+    var prodSelect = document.getElementById('product-select');
+    var selectedProdId = prodSelect ? parseInt(prodSelect.value) : null;
+
+    state.activeComments.unshift({
       id: Date.now(),
       avatar: state.avatar,
-      customAvatar: state.customAvatar,
+      customAvatarUrl: state.customAvatarUrl,
       name: state.name,
       city: state.city,
-      text: val
+      sentences: [val],
+      timestamp: Date.now(),
+      isTeamReply: (state.identity === 'team'),
+      productId: selectedProdId || null,
+      replies: []
     });
-    input.value = '';
+    document.getElementById('new-comment').value = '';
     renderComments();
   });
 
-  // 退出弹窗
-  document.getElementById('nav-logout').addEventListener('click', function() {
-    document.getElementById('logout-modal').classList.add('active');
+  // 6. 搜索框
+  document.getElementById('btn-search').addEventListener('click', renderComments);
+  document.getElementById('btn-clear-search').addEventListener('click', function() {
+    document.getElementById('search-keyword').value = '';
+    document.getElementById('search-date').value = '';
+    renderComments();
   });
-  document.getElementById('modal-cancel').addEventListener('click', function() {
+
+  // 7. My Profile 信息管理保存
+  function syncProfileInputs() {
+    document.getElementById('profile-name').value = state.name;
+    document.getElementById('profile-city').value = state.city;
+  }
+  document.getElementById('btn-save-profile').addEventListener('click', function() {
+    state.name = document.getElementById('profile-name').value.trim();
+    state.city = document.getElementById('profile-city').value.trim();
+    alert('Information saved successfully!');
+    renderComments();
+  });
+
+  // 8. PIT Team 管理添加产品
+  document.getElementById('btn-add-product').addEventListener('click', function() {
+    var newId = Date.now();
+    state.products.push({ id: newId, name: 'New Product', price: '$0.00', promo: 'New Promo', link: 'https://peox.tech' });
+    renderTeamProducts();
+    updateProductDropdown();
+  });
+
+  // 9. 导航路由点击处理
+  function bindNavLinks() {
+    document.getElementById('nav-home').onclick = function() { showPage('page-home'); };
+    document.getElementById('nav-profile').onclick = function() { syncProfileInputs(); showPage('page-profile'); };
+    document.getElementById('nav-team').onclick = function() { renderTeamProducts(); showPage('page-team'); };
+
+    document.getElementById('nav-profile-home').onclick = function() { showPage('page-home'); };
+    document.getElementById('nav-profile-self').onclick = function() { syncProfileInputs(); showPage('page-profile'); };
+    document.getElementById('nav-profile-team').onclick = function() { renderTeamProducts(); showPage('page-team'); };
+
+    document.getElementById('nav-team-home').onclick = function() { showPage('page-home'); };
+    document.getElementById('nav-team-profile').onclick = function() { syncProfileInputs(); showPage('page-profile'); };
+
+    var logouts = [
+      document.getElementById('nav-logout'),
+      document.getElementById('nav-profile-logout'),
+      document.getElementById('nav-team-logout')
+    ];
+    for (var l = 0; l < logouts.length; l++) {
+      if (logouts[l]) {
+        logouts[l].onclick = function() {
+          document.getElementById('logout-modal').classList.add('active');
+        };
+      }
+    }
+  }
+  bindNavLinks();
+
+  // 10. 退出登录 Modal 确认
+  document.getElementById('modal-cancel').onclick = function() {
     document.getElementById('logout-modal').classList.remove('active');
-  });
-  document.getElementById('modal-confirm').addEventListener('click', function() {
+  };
+  document.getElementById('modal-confirm').onclick = function() {
     document.getElementById('logout-modal').classList.remove('active');
     showPage('page-lang');
-  });
+  };
 });
 </script>
 </body>
