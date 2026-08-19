@@ -139,6 +139,12 @@
     background: var(--primary-light); color: var(--primary); font-size: 13px;
     cursor: pointer; font-weight: 500; transition: all 0.15s; margin-top: 8px;
   }
+  .avatar-preview-box {
+    width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary);
+    margin: 10px auto 0 auto; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; background: var(--bg-elevated);
+  }
+  .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
 </style>
 </head>
 <body>
@@ -192,6 +198,7 @@
           📁 <span id="btn-upload-text">Upload photo from computer</span>
           <input type="file" onchange="handleFileUpload(event)" accept="image/*" style="display: none;">
         </label>
+        <div id="visitor-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
       </div>
 
       <div class="label" id="label-name" style="margin-top: 4px;">Name / Nickname</div>
@@ -274,7 +281,7 @@
     <div id="profile-title" style="font-size: 20px; margin-bottom: 24px; color: var(--text); font-weight: 700;">My Information</div>
     <div class="card">
       <div class="label">Avatar</div>
-      <div style="display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 12px;" id="profile-avatars">
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="profile-avatars">
         <div class="avatar-select" onclick="pickAvatar('A', this)">🤖</div>
         <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
         <div class="avatar-select" onclick="pickAvatar('C', this)">🦾</div>
@@ -286,6 +293,7 @@
           📁 <span>Upload new photo</span>
           <input type="file" onchange="handleFileUpload(event)" accept="image/*" style="display: none;">
         </label>
+        <div id="profile-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
       </div>
 
       <div class="label">Name / Nickname</div>
@@ -333,7 +341,6 @@
 </div>
 
 <script>
-// 全局直接定义状态
 var state = {
   lang: 'en',
   identity: null,
@@ -476,17 +483,52 @@ function pickAvatar(key, el) {
   var parent = el.parentNode;
   var nodes = parent.querySelectorAll('.avatar-select');
   for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
-  el.classList.add('selected');
+  
+  if (el) el.classList.add('selected');
   state.avatar = key;
-  state.customAvatarUrl = null;
+  if (key !== 'CUSTOM') {
+    state.customAvatarUrl = null;
+    hideAvatarPreviews();
+  }
 }
 
 function handleFileUpload(e) {
   var file = e.target.files[0];
   if (file) {
     var reader = new FileReader();
-    reader.onload = function(evt) { state.customAvatarUrl = evt.target.result; alert('Photo uploaded successfully!'); };
+    reader.onload = function(evt) { 
+      state.customAvatarUrl = evt.target.result; 
+      state.avatar = 'CUSTOM';
+      
+      var page = e.target.closest('.page');
+      if (page) {
+        var nodes = page.querySelectorAll('.avatar-select');
+        for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
+      }
+      
+      updateAvatarPreviews(state.customAvatarUrl);
+      alert('Photo uploaded successfully!'); 
+    };
     reader.readAsDataURL(file);
+  }
+}
+
+function updateAvatarPreviews(url) {
+  var boxes = ['visitor-avatar-preview', 'profile-avatar-preview'];
+  for (var i = 0; i < boxes.length; i++) {
+    var box = document.getElementById(boxes[i]);
+    if (box) {
+      box.innerHTML = '<img src="' + url + '">';
+      box.style.display = 'flex';
+    }
+  }
+}
+
+function hideAvatarPreviews() {
+  var boxes = ['visitor-avatar-preview', 'profile-avatar-preview'];
+  for (var i = 0; i < boxes.length; i++) {
+    var box = document.getElementById(boxes[i]);
+    if (box) box.style.display = 'none';
   }
 }
 
@@ -505,7 +547,9 @@ function submitSurvey() {
 }
 
 function getAvatarHTML(avatarKey, customUrl) {
-  if (customUrl) return '<img src="' + customUrl + '" class="avatar-img">';
+  if (customUrl) {
+    return '<img src="' + customUrl + '" class="avatar-img">';
+  }
   return '<div class="avatar-img">' + (avatars[avatarKey] || '🤖') + '</div>';
 }
 
@@ -626,6 +670,9 @@ function clearSearch() {
 function openProfilePage() {
   document.getElementById('profile-name').value = state.name;
   document.getElementById('profile-city').value = state.city;
+  if (state.customAvatarUrl) {
+    updateAvatarPreviews(state.customAvatarUrl);
+  }
   showPage('page-profile');
 }
 
