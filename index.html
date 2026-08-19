@@ -24,16 +24,14 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    min-height: 100vh;
-    line-height: 1.6;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    min-height: 100vh; line-height: 1.6;
   }
-  .page { display: none; min-height: 100vh; }
+  .page { display: none !important; min-height: 100vh; }
   .page.active { display: flex !important; flex-direction: column; }
   .container { max-width: 800px; margin: 0 auto; width: 100%; padding: 0 20px; }
-  .center { display: flex; align-items: center; justify-content: center; }
+  .center { align-items: center; justify-content: center; }
   .btn {
     display: inline-flex; align-items: center; justify-content: center;
     background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
@@ -154,9 +152,9 @@
       Select Language / 選擇語言 / 选择语言
     </div>
     <div style="display: flex; flex-wrap: wrap; justify-content: center;">
-      <button class="lang-btn" id="btn-lang-hk">繁體中文 (Cantonese)</button>
-      <button class="lang-btn" id="btn-lang-cn">简体中文 (Mandarin)</button>
-      <button class="lang-btn" id="btn-lang-en">English</button>
+      <button class="lang-btn" onclick="selectLang('zh-HK')">繁體中文 (Cantonese)</button>
+      <button class="lang-btn" onclick="selectLang('zh-CN')">简体中文 (Mandarin)</button>
+      <button class="lang-btn" onclick="selectLang('en')">English</button>
     </div>
   </div>
 </div>
@@ -166,10 +164,10 @@
   <div style="text-align: center; max-width: 420px; width: 100%;">
     <div class="splash-logo" style="margin-bottom: 24px; font-size: 26px;">PIT HUB</div>
     <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim); font-weight: 500;">Select your identity</div>
-    <button class="btn btn-primary" id="btn-team-identity" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 15px;">
+    <button class="btn btn-primary" onclick="selectIdentity('team')" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 15px;">
       <span id="btn-team">PIT Team</span>
     </button>
-    <button class="btn" id="btn-visitor-identity" style="width: 100%; padding: 16px; font-size: 15px;">
+    <button class="btn" onclick="selectIdentity('visitor')" style="width: 100%; padding: 16px; font-size: 15px;">
       <span id="btn-visitor">Visitor</span>
     </button>
   </div>
@@ -183,16 +181,16 @@
     <div class="card">
       <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="visitor-avatar-picker">
-        <div class="avatar-select selected" data-avatar="A">🤖</div>
-        <div class="avatar-select" data-avatar="B">👾</div>
-        <div class="avatar-select" data-avatar="C">🦾</div>
-        <div class="avatar-select" data-avatar="D">👽</div>
+        <div class="avatar-select selected" onclick="pickAvatar('A', this)">🤖</div>
+        <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
+        <div class="avatar-select" onclick="pickAvatar('C', this)">🦾</div>
+        <div class="avatar-select" onclick="pickAvatar('D', this)">👽</div>
       </div>
       
       <div style="text-align: center; margin-bottom: 20px;">
         <label class="file-upload-btn">
           📁 <span id="btn-upload-text">Upload photo from computer</span>
-          <input type="file" id="local-avatar-file" accept="image/*" style="display: none;">
+          <input type="file" onchange="handleFileUpload(event)" accept="image/*" style="display: none;">
         </label>
       </div>
 
@@ -200,7 +198,7 @@
       <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
       <div class="label" id="label-city">City / Location</div>
       <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
-      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next">Continue</button>
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next" onclick="submitVisitorInfo()">Continue</button>
     </div>
   </div>
 </div>
@@ -218,7 +216,7 @@
         <label><input type="radio" name="survey" value="event"> <span>Tech Event / Conference</span></label>
         <label><input type="radio" name="survey" value="other"> <span>Other</span></label>
       </div>
-      <button class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" id="btn-survey-submit">Submit & Enter</button>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" id="btn-survey-submit" onclick="submitSurvey()">Submit & Enter</button>
     </div>
   </div>
 </div>
@@ -231,18 +229,18 @@
       <span id="home-badge" class="team-badge" style="display: none;">TEAM</span>
     </div>
     <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
-      <span class="nav-link active" id="nav-home">Home</span>
-      <span class="nav-link" id="nav-profile">My Info</span>
-      <span class="nav-link" id="nav-team" style="display: none;">Edit Panel</span>
-      <span class="nav-link" id="nav-logout">Log Out</span>
+      <span class="nav-link active" onclick="showPage('page-home')">Home</span>
+      <span class="nav-link" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link" id="nav-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
+      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
     <div class="search-bar">
       <input class="input" id="search-keyword" placeholder="Search keywords..." style="flex: 1;">
       <input class="input" id="search-date" type="date" style="width: 150px; font-size: 13px; color: var(--text-dim);">
-      <button class="btn btn-sm" id="btn-search">Search</button>
-      <button class="btn btn-sm" id="btn-clear-search">Clear</button>
+      <button class="btn btn-sm" onclick="renderComments()">Search</button>
+      <button class="btn btn-sm" onclick="clearSearch()">Clear</button>
     </div>
     
     <div id="comments-area" class="scroll"></div>
@@ -250,7 +248,7 @@
     <div id="comment-input-area" style="margin-top: 24px;">
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
         <input class="input" id="new-comment" placeholder="Write a message..." style="flex: 1;">
-        <button class="btn btn-primary" id="btn-submit-feedback">submit feedback</button>
+        <button class="btn btn-primary" id="btn-submit-feedback" onclick="addComment()">submit feedback</button>
       </div>
       <div id="team-product-select" style="display: none;">
         <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);">
@@ -266,10 +264,10 @@
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
     <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
-      <span class="nav-link" id="nav-profile-home">Home</span>
-      <span class="nav-link active" id="nav-profile-self">My Info</span>
-      <span class="nav-link" id="nav-profile-team" style="display: none;">Edit Panel</span>
-      <span class="nav-link" id="nav-profile-logout">Log Out</span>
+      <span class="nav-link" onclick="showPage('page-home')">Home</span>
+      <span class="nav-link active" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
+      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
@@ -277,16 +275,16 @@
     <div class="card">
       <div class="label">Avatar</div>
       <div style="display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 12px;" id="profile-avatars">
-        <div class="avatar-select" data-avatar="A">🤖</div>
-        <div class="avatar-select" data-avatar="B">👾</div>
-        <div class="avatar-select" data-avatar="C">🦾</div>
-        <div class="avatar-select" data-avatar="D">👽</div>
+        <div class="avatar-select" onclick="pickAvatar('A', this)">🤖</div>
+        <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
+        <div class="avatar-select" onclick="pickAvatar('C', this)">🦾</div>
+        <div class="avatar-select" onclick="pickAvatar('D', this)">👽</div>
       </div>
       
       <div style="text-align: center; margin-bottom: 20px;">
         <label class="file-upload-btn">
           📁 <span>Upload new photo</span>
-          <input type="file" id="profile-upload-file" accept="image/*" style="display: none;">
+          <input type="file" onchange="handleFileUpload(event)" accept="image/*" style="display: none;">
         </label>
       </div>
 
@@ -294,12 +292,12 @@
       <input class="input" id="profile-name" style="margin-bottom: 14px;">
       <div class="label">City / Location</div>
       <input class="input" id="profile-city" style="margin-bottom: 20px;">
-      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile">Save Changes</button>
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile" onclick="saveProfile()">Save Changes</button>
     </div>
   </div>
 </div>
 
-<!-- 7. TEAM EDIT PANEL (Full Management) -->
+<!-- 7. TEAM EDIT PANEL -->
 <div id="page-team" class="page">
   <div class="header">
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -307,16 +305,16 @@
       <span class="team-badge">TEAM ONLY</span>
     </div>
     <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
-      <span class="nav-link" id="nav-team-home">Home</span>
-      <span class="nav-link" id="nav-team-profile">My Info</span>
+      <span class="nav-link" onclick="showPage('page-home')">Home</span>
+      <span class="nav-link" onclick="openProfilePage()">My Info</span>
       <span class="nav-link active">Edit Panel</span>
-      <span class="nav-link" id="nav-team-logout">Log Out</span>
+      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
       <div style="font-size: 17px; font-weight: 700; color: var(--text);" id="txt-product-mgmt">Product Management</div>
-      <button class="btn btn-primary btn-sm" id="btn-add-product">+ Add Product</button>
+      <button class="btn btn-primary btn-sm" id="btn-add-product" onclick="addProduct()">+ Add Product</button>
     </div>
     <div id="products-list"></div>
   </div>
@@ -328,444 +326,382 @@
     <div style="font-size: 17px; margin-bottom: 12px; color: var(--text); font-weight: 700;" id="txt-logout-title">Log Out?</div>
     <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;" id="txt-logout-desc">Are you sure you want to log out?</div>
     <div style="display: flex; gap: 10px; justify-content: flex-end;">
-      <button class="btn" id="modal-cancel">No</button>
-      <button class="btn btn-danger" id="modal-confirm">Yes</button>
+      <button class="btn" onclick="closeLogoutModal()">No</button>
+      <button class="btn btn-danger" onclick="confirmLogout()">Yes</button>
     </div>
   </div>
 </div>
 
 <script>
-// 全局应用程序对象
-window.PIT = {
-  state: {
-    lang: 'en',
-    identity: null,
-    avatar: 'A',
-    customAvatarUrl: null,
-    name: '',
-    city: '',
-    activeReplyId: null,
-    products: [
-      { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
-      { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
-      { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
+// 全局直接定义状态
+var state = {
+  lang: 'en',
+  identity: null,
+  avatar: 'A',
+  customAvatarUrl: null,
+  name: '',
+  city: '',
+  activeReplyId: null,
+  products: [
+    { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
+    { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
+    { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
+  ],
+  multiLangComments: {
+    'en': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
     ],
-    multiLangComments: {
-      'en': [
-        { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-        { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-        { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-      ],
-      'zh-CN': [
-        { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹行者', city: '北京', sentences: ['刚刚报名了高级 AI 课程。', '实验环境真的太棒了！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-        { id: 102, avatar: 'D', customAvatarUrl: null, name: '赛博极客', city: '深圳', sentences: ['请问 Quantum Chip Q-7 支持自定义 SDK 吗？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-        { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 团队', city: 'Peox 总部', sentences: ['当然支持！已原生提供完整 SDK 接口。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-      ],
-      'zh-HK': [
-        { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹漫步者', city: '香港', sentences: ['剛剛報名咗高級 AI 課程。', '實驗室效果真係正！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-        { id: 102, avatar: 'D', customAvatarUrl: null, name: '極客阿森', city: '廣州', sentences: ['請問 Quantum Chip Q-7 支唔支援自定義 SDK？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-        { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 團隊', city: 'Peox 總部', sentences: ['當然支援！已經原生提供完整 SDK 介面。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-      ]
-    },
-    activeComments: []
+    'zh-CN': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹行者', city: '北京', sentences: ['刚刚报名了高级 AI 课程。', '实验环境真的太棒了！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: '赛博极客', city: '深圳', sentences: ['请问 Quantum Chip Q-7 支持自定义 SDK 吗？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 团队', city: 'Peox 总部', sentences: ['当然支持！已原生提供完整 SDK 接口。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ],
+    'zh-HK': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹漫步者', city: '香港', sentences: ['剛剛報名咗高級 AI 課程。', '實驗室效果真係正！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: '極客阿森', city: '廣州', sentences: ['請問 Quantum Chip Q-7 支唔支援自定義 SDK？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 團隊', city: 'Peox 總部', sentences: ['當然支援！已經原生提供完整 SDK 介面。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ]
   },
+  activeComments: []
+};
 
-  i18n: {
-    'en': {
-      identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
-      visitorTitle: 'Create your virtual identity', labelAvatar: 'Choose Preset Avatar or Upload Photo',
-      labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
-      surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
-      btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
-      profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
-      logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?', btnNo: 'No', btnYes: 'Yes',
-      searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
-      attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
-    },
-    'zh-CN': {
-      identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
-      visitorTitle: '创建您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
-      labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
-      surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
-      btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
-      profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
-      logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？', btnNo: '否', btnYes: '是',
-      searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
-      attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
-    },
-    'zh-HK': {
-      identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
-      visitorTitle: '創建您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
-      labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
-      surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
-      btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
-      profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
-      logoutTitle: '登出？', logoutText: '您確定要登出嗎？', btnNo: '否', btnYes: '是',
-      searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
-      attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
-    }
+var i18n = {
+  'en': {
+    identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
+    visitorTitle: 'Create your virtual identity', labelAvatar: 'Choose Preset Avatar or Upload Photo',
+    labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
+    surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
+    btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
+    profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
+    logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?', btnNo: 'No', btnYes: 'Yes',
+    searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
+    attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
   },
-
-  avatars: { A: '🤖', B: '👾', C: '🦾', D: '👽' },
-
-  showPage: function(id) {
-    var pages = document.querySelectorAll('.page');
-    for (var i = 0; i < pages.length; i++) {
-      pages[i].classList.remove('active');
-    }
-    var target = document.getElementById(id);
-    if (target) target.classList.add('active');
+  'zh-CN': {
+    identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
+    visitorTitle: '创建您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
+    labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
+    surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
+    btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
+    profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
+    logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？', btnNo: '否', btnYes: '是',
+    searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
+    attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
   },
-
-  selectLang: function(lang) {
-    this.state.lang = lang;
-    this.state.activeComments = JSON.parse(JSON.stringify(this.state.multiLangComments[lang]));
-    this.updateTexts();
-    this.showPage('page-identity');
-  },
-
-  updateTexts: function() {
-    var l = this.i18n[this.state.lang];
-    document.getElementById('identity-title').textContent = l.identityTitle;
-    document.getElementById('btn-team').textContent = l.btnTeam;
-    document.getElementById('btn-visitor').textContent = l.btnVisitor;
-    document.getElementById('visitor-title').textContent = l.visitorTitle;
-    document.getElementById('label-avatar').textContent = l.labelAvatar;
-    document.getElementById('label-name').textContent = l.labelName;
-    document.getElementById('label-city').textContent = l.labelCity;
-    document.getElementById('btn-visitor-next').textContent = l.btnContinue;
-    document.getElementById('survey-title').textContent = l.surveyTitle;
-    document.getElementById('btn-survey-submit').textContent = l.btnSubmit;
-    document.getElementById('nav-home').textContent = l.navHome;
-    document.getElementById('nav-profile').textContent = l.navProfile;
-    document.getElementById('nav-team').textContent = l.navTeam;
-    document.getElementById('nav-profile-home').textContent = l.navHome;
-    document.getElementById('nav-profile-self').textContent = l.navProfile;
-    document.getElementById('nav-profile-team').textContent = l.navTeam;
-    document.getElementById('nav-team-home').textContent = l.navHome;
-    document.getElementById('nav-team-profile').textContent = l.navProfile;
-    document.getElementById('profile-title').textContent = l.profileTitle;
-    document.getElementById('btn-save-profile').textContent = l.btnSave;
-    document.getElementById('txt-product-mgmt').textContent = l.productMgmt;
-    document.getElementById('btn-add-product').textContent = l.btnAddProduct;
-    document.getElementById('txt-logout-title').textContent = l.logoutTitle;
-    document.getElementById('txt-logout-desc').textContent = l.logoutText;
-    document.getElementById('modal-cancel').textContent = l.btnNo;
-    document.getElementById('modal-confirm').textContent = l.btnYes;
-    document.getElementById('search-keyword').placeholder = l.searchPlaceholder;
-    document.getElementById('new-comment').placeholder = l.commentPlaceholder;
-    document.getElementById('btn-submit-feedback').textContent = l.btnSubmitFeedback;
-    document.getElementById('btn-upload-text').textContent = l.uploadText;
-
-    var opts = document.querySelectorAll('#survey-options label span');
-    for (var i = 0; i < l.surveyOptions.length; i++) {
-      if (opts[i]) opts[i].textContent = l.surveyOptions[i];
-    }
-    this.updateProductDropdown();
-  },
-
-  getAvatarHTML: function(avatarKey, customUrl) {
-    if (customUrl) return '<img src="' + customUrl + '" class="avatar-img">';
-    return '<div class="avatar-img">' + (this.avatars[avatarKey] || '🤖') + '</div>';
-  },
-
-  renderComments: function() {
-    var area = document.getElementById('comments-area');
-    var keyword = document.getElementById('search-keyword').value.trim().toLowerCase();
-    var dateVal = document.getElementById('search-date').value;
-    var html = '';
-
-    var list = this.state.activeComments.filter(function(c) {
-      var matchKw = !keyword || c.sentences.join(' ').toLowerCase().indexOf(keyword) !== -1 || c.name.toLowerCase().indexOf(keyword) !== -1;
-      var matchDate = true;
-      if (dateVal) {
-        var d = new Date(c.timestamp).toISOString().split('T')[0];
-        matchDate = (d === dateVal);
-      }
-      return matchKw && matchDate;
-    });
-
-    list.sort(function(a, b) { return b.timestamp - a.timestamp; });
-
-    for (var i = 0; i < list.length; i++) {
-      var c = list[i];
-      var dateStr = new Date(c.timestamp).toLocaleDateString();
-      var product = this.state.products.find(function(p) { return p.id === c.productId; });
-      var productTag = product ? '<div class="product-tag" onclick="window.open(\'' + product.link + '\')">' + product.name + ' — ' + product.price + ' →</div>' : '';
-
-      var repliesHTML = '';
-      if (c.replies && c.replies.length > 0) {
-        repliesHTML += '<div class="reply-list">';
-        for (var r = 0; r < c.replies.length; r++) {
-          var rep = c.replies[r];
-          repliesHTML += '<div class="reply-item"><strong>' + rep.name + ': </strong>' + rep.content + '</div>';
-        }
-        repliesHTML += '</div>';
-      }
-
-      var replyBoxHTML = '';
-      if (this.state.activeReplyId === c.id) {
-        replyBoxHTML = '<div style="margin-top:12px; display:flex; gap:8px;">' +
-          '<input class="input" id="reply-input-' + c.id + '" placeholder="Reply..." style="font-size:13px;">' +
-          '<button class="btn btn-primary btn-sm" onclick="PIT.sendReply(' + c.id + ')">Send</button>' +
-        '</div>';
-      }
-
-      html += '<div class="comment">' +
-        '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
-          '<div style="display:flex; align-items:center; gap:12px;">' +
-            this.getAvatarHTML(c.avatar, c.customAvatarUrl) +
-            '<div>' +
-              '<strong>' + c.name + '</strong>' + (c.isTeamReply ? ' <span class="team-badge">' + this.i18n[this.state.lang].teamReply + '</span>' : '') +
-              '<div class="comment-meta">' + c.city + ' · ' + dateStr + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div>' +
-            '<button class="btn btn-sm" onclick="PIT.toggleReply(' + c.id + ')" style="margin-right:6px;">💬 Reply</button>' +
-            '<button class="btn btn-danger btn-sm" onclick="PIT.deleteComment(' + c.id + ')">🗑️ Delete</button>' +
-          '</div>' +
-        '</div>' +
-        '<div class="comment-sentence">' + c.sentences.join('<br>') + '</div>' +
-        productTag + repliesHTML + replyBoxHTML +
-      '</div>';
-    }
-    area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages found</div>';
-  },
-
-  deleteComment: function(id) {
-    this.state.activeComments = this.state.activeComments.filter(function(item) { return item.id !== id; });
-    this.renderComments();
-  },
-
-  toggleReply: function(id) {
-    this.state.activeReplyId = this.state.activeReplyId === id ? null : id;
-    this.renderComments();
-  },
-
-  sendReply: function(id) {
-    var input = document.getElementById('reply-input-' + id);
-    if (input && input.value.trim()) {
-      var target = this.state.activeComments.find(function(item) { return item.id === id; });
-      if (target) {
-        target.replies = target.replies || [];
-        target.replies.push({ name: this.state.name, content: input.value.trim() });
-      }
-      this.state.activeReplyId = null;
-      this.renderComments();
-    }
-  },
-
-  updateProductDropdown: function() {
-    var select = document.getElementById('product-select');
-    if (!select) return;
-    var html = '<option value="">' + this.i18n[this.state.lang].attachProduct + '</option>';
-    for (var i = 0; i < this.state.products.length; i++) {
-      html += '<option value="' + this.state.products[i].id + '">' + this.state.products[i].name + ' (' + this.state.products[i].price + ')</option>';
-    }
-    select.innerHTML = html;
-  },
-
-  renderTeamProducts: function() {
-    var list = document.getElementById('products-list');
-    if (!list) return;
-    var html = '';
-    for (var i = 0; i < this.state.products.length; i++) {
-      var p = this.state.products[i];
-      html += '<div class="product-edit-card">' +
-        '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;">' +
-          '<div><div class="label">Product Name</div><input class="input" value="' + p.name + '" id="prod-name-' + p.id + '"></div>' +
-          '<div><div class="label">Price</div><input class="input" value="' + p.price + '" id="prod-price-' + p.id + '"></div>' +
-          '<div><div class="label">Promo Text</div><input class="input" value="' + p.promo + '" id="prod-promo-' + p.id + '"></div>' +
-          '<div><div class="label">Link URL</div><input class="input" value="' + p.link + '" id="prod-link-' + p.id + '"></div>' +
-        '</div>' +
-        '<div style="display:flex; justify-content:flex-end; gap:8px;">' +
-          '<button class="btn btn-danger btn-sm" onclick="PIT.deleteProduct(' + p.id + ')">Delete</button>' +
-          '<button class="btn btn-primary btn-sm" onclick="PIT.saveProduct(' + p.id + ')">Update</button>' +
-        '</div>' +
-      '</div>';
-    }
-    list.innerHTML = html;
-  },
-
-  saveProduct: function(id) {
-    var item = this.state.products.find(function(p) { return p.id === id; });
-    if (item) {
-      item.name = document.getElementById('prod-name-' + id).value;
-      item.price = document.getElementById('prod-price-' + id).value;
-      item.promo = document.getElementById('prod-promo-' + id).value;
-      item.link = document.getElementById('prod-link-' + id).value;
-      alert('Product updated successfully!');
-      this.updateProductDropdown();
-    }
-  },
-
-  deleteProduct: function(id) {
-    this.state.products = this.state.products.filter(function(p) { return p.id !== id; });
-    this.renderTeamProducts();
-    this.updateProductDropdown();
-  },
-
-  init: function() {
-    var self = this;
-
-    // 绑定语言按钮
-    document.getElementById('btn-lang-hk').onclick = function() { self.selectLang('zh-HK'); };
-    document.getElementById('btn-lang-cn').onclick = function() { self.selectLang('zh-CN'); };
-    document.getElementById('btn-lang-en').onclick = function() { self.selectLang('en'); };
-
-    // 绑定身份按钮
-    document.getElementById('btn-team-identity').onclick = function() {
-      self.state.identity = 'team';
-      self.state.name = 'PIT Team';
-      self.state.city = 'Peox HQ';
-      self.state.avatar = 'A';
-      document.getElementById('home-badge').style.display = 'inline-block';
-      document.getElementById('nav-team').style.display = 'inline-block';
-      document.getElementById('nav-profile-team').style.display = 'inline-block';
-      document.getElementById('team-product-select').style.display = 'block';
-      self.renderComments();
-      self.showPage('page-home');
-    };
-
-    document.getElementById('btn-visitor-identity').onclick = function() {
-      self.state.identity = 'visitor';
-      document.getElementById('home-badge').style.display = 'none';
-      document.getElementById('nav-team').style.display = 'none';
-      document.getElementById('nav-profile-team').style.display = 'none';
-      document.getElementById('team-product-select').style.display = 'none';
-      self.showPage('page-visitor');
-    };
-
-    // 头像选择支持
-    var setupAvatarPickers = function(selector) {
-      var nodes = document.querySelectorAll(selector + ' .avatar-select');
-      for (var j = 0; j < nodes.length; j++) {
-        nodes[j].onclick = function() {
-          for (var k = 0; k < nodes.length; k++) nodes[k].classList.remove('selected');
-          this.classList.add('selected');
-          self.state.avatar = this.getAttribute('data-avatar');
-          self.state.customAvatarUrl = null;
-        };
-      }
-    };
-    setupAvatarPickers('#visitor-avatar-picker');
-    setupAvatarPickers('#profile-avatars');
-
-    // 图片上传支持
-    var handleFileUpload = function(e) {
-      var file = e.target.files[0];
-      if (file) {
-        var reader = new FileReader();
-        reader.onload = function(evt) { self.state.customAvatarUrl = evt.target.result; alert('Photo uploaded successfully!'); };
-        reader.readAsDataURL(file);
-      }
-    };
-    document.getElementById('local-avatar-file').onchange = handleFileUpload;
-    document.getElementById('profile-upload-file').onchange = handleFileUpload;
-
-    // 访客下一步与问卷
-    document.getElementById('btn-visitor-next').onclick = function() {
-      var name = document.getElementById('visitor-name').value.trim();
-      var city = document.getElementById('visitor-city').value.trim();
-      if (!name || !city) return alert('Please enter name and city');
-      self.state.name = name;
-      self.state.city = city;
-      self.showPage('page-survey');
-    };
-
-    document.getElementById('btn-survey-submit').onclick = function() {
-      self.renderComments();
-      self.showPage('page-home');
-    };
-
-    // 发布留言
-    document.getElementById('btn-submit-feedback').onclick = function() {
-      var val = document.getElementById('new-comment').value.trim();
-      if (!val) return;
-      var prodSelect = document.getElementById('product-select');
-      var selectedProdId = prodSelect ? parseInt(prodSelect.value) : null;
-
-      self.state.activeComments.unshift({
-        id: Date.now(),
-        avatar: self.state.avatar,
-        customAvatarUrl: self.state.customAvatarUrl,
-        name: self.state.name,
-        city: self.state.city,
-        sentences: [val],
-        timestamp: Date.now(),
-        isTeamReply: (self.state.identity === 'team'),
-        productId: selectedProdId || null,
-        replies: []
-      });
-      document.getElementById('new-comment').value = '';
-      self.renderComments();
-    };
-
-    // 搜索
-    document.getElementById('btn-search').onclick = function() { self.renderComments(); };
-    document.getElementById('btn-clear-search').onclick = function() {
-      document.getElementById('search-keyword').value = '';
-      document.getElementById('search-date').value = '';
-      self.renderComments();
-    };
-
-    // My Info 保存
-    document.getElementById('btn-save-profile').onclick = function() {
-      self.state.name = document.getElementById('profile-name').value.trim();
-      self.state.city = document.getElementById('profile-city').value.trim();
-      alert('Saved!');
-      self.renderComments();
-    };
-
-    // 添加产品
-    document.getElementById('btn-add-product').onclick = function() {
-      self.state.products.push({ id: Date.now(), name: 'New Product', price: '$0.00', promo: 'New Promo', link: 'https://peox.tech' });
-      self.renderTeamProducts();
-      self.updateProductDropdown();
-    };
-
-    // 页面路由切换绑定
-    var bindRoute = function(id, action) {
-      var el = document.getElementById(id);
-      if (el) el.onclick = action;
-    };
-
-    bindRoute('nav-home', function() { self.showPage('page-home'); });
-    bindRoute('nav-profile', function() {
-      document.getElementById('profile-name').value = self.state.name;
-      document.getElementById('profile-city').value = self.state.city;
-      self.showPage('page-profile');
-    });
-    bindRoute('nav-team', function() { self.renderTeamProducts(); self.showPage('page-team'); });
-
-    bindRoute('nav-profile-home', function() { self.showPage('page-home'); });
-    bindRoute('nav-profile-self', function() { self.showPage('page-profile'); });
-    bindRoute('nav-profile-team', function() { self.renderTeamProducts(); self.showPage('page-team'); });
-
-    bindRoute('nav-team-home', function() { self.showPage('page-home'); });
-    bindRoute('nav-team-profile', function() { self.showPage('page-profile'); });
-
-    // Logout Modal
-    var openLogout = function() { document.getElementById('logout-modal').classList.add('active'); };
-    bindRoute('nav-logout', openLogout);
-    bindRoute('nav-profile-logout', openLogout);
-    bindRoute('nav-team-logout', openLogout);
-
-    document.getElementById('modal-cancel').onclick = function() {
-      document.getElementById('logout-modal').classList.remove('active');
-    };
-    document.getElementById('modal-confirm').onclick = function() {
-      document.getElementById('logout-modal').classList.remove('active');
-      self.showPage('page-lang');
-    };
+  'zh-HK': {
+    identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
+    visitorTitle: '創建您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
+    labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
+    surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
+    btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
+    profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
+    logoutTitle: '登出？', logoutText: '您確定要登出嗎？', btnNo: '否', btnYes: '是',
+    searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
+    attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
   }
 };
 
-// 确保 DOM 准备完毕时立即安全加载
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() { window.PIT.init(); });
-} else {
-  window.PIT.init();
+var avatars = { A: '🤖', B: '👾', C: '🦾', D: '👽' };
+
+function showPage(pageId) {
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) {
+    pages[i].classList.remove('active');
+  }
+  var target = document.getElementById(pageId);
+  if (target) target.classList.add('active');
+}
+
+function selectLang(langKey) {
+  state.lang = langKey;
+  state.activeComments = JSON.parse(JSON.stringify(state.multiLangComments[langKey]));
+  updateTexts();
+  showPage('page-identity');
+}
+
+function updateTexts() {
+  var l = i18n[state.lang];
+  document.getElementById('identity-title').textContent = l.identityTitle;
+  document.getElementById('btn-team').textContent = l.btnTeam;
+  document.getElementById('btn-visitor').textContent = l.btnVisitor;
+  document.getElementById('visitor-title').textContent = l.visitorTitle;
+  document.getElementById('label-avatar').textContent = l.labelAvatar;
+  document.getElementById('label-name').textContent = l.labelName;
+  document.getElementById('label-city').textContent = l.labelCity;
+  document.getElementById('btn-visitor-next').textContent = l.btnContinue;
+  document.getElementById('survey-title').textContent = l.surveyTitle;
+  document.getElementById('btn-survey-submit').textContent = l.btnSubmit;
+  document.getElementById('profile-title').textContent = l.profileTitle;
+  document.getElementById('btn-save-profile').textContent = l.btnSave;
+  document.getElementById('txt-product-mgmt').textContent = l.productMgmt;
+  document.getElementById('btn-add-product').textContent = l.btnAddProduct;
+  document.getElementById('txt-logout-title').textContent = l.logoutTitle;
+  document.getElementById('txt-logout-desc').textContent = l.logoutText;
+  document.getElementById('search-keyword').placeholder = l.searchPlaceholder;
+  document.getElementById('new-comment').placeholder = l.commentPlaceholder;
+  document.getElementById('btn-submit-feedback').textContent = l.btnSubmitFeedback;
+  document.getElementById('btn-upload-text').textContent = l.uploadText;
+
+  var opts = document.querySelectorAll('#survey-options label span');
+  for (var i = 0; i < l.surveyOptions.length; i++) {
+    if (opts[i]) opts[i].textContent = l.surveyOptions[i];
+  }
+  updateProductDropdown();
+}
+
+function selectIdentity(idType) {
+  state.identity = idType;
+  if (idType === 'team') {
+    state.name = 'PIT Team';
+    state.city = 'Peox HQ';
+    state.avatar = 'A';
+    document.getElementById('home-badge').style.display = 'inline-block';
+    document.getElementById('nav-team').style.display = 'inline-block';
+    document.getElementById('nav-profile-team').style.display = 'inline-block';
+    document.getElementById('team-product-select').style.display = 'block';
+    renderComments();
+    showPage('page-home');
+  } else {
+    document.getElementById('home-badge').style.display = 'none';
+    document.getElementById('nav-team').style.display = 'none';
+    document.getElementById('nav-profile-team').style.display = 'none';
+    document.getElementById('team-product-select').style.display = 'none';
+    showPage('page-visitor');
+  }
+}
+
+function pickAvatar(key, el) {
+  var parent = el.parentNode;
+  var nodes = parent.querySelectorAll('.avatar-select');
+  for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
+  el.classList.add('selected');
+  state.avatar = key;
+  state.customAvatarUrl = null;
+}
+
+function handleFileUpload(e) {
+  var file = e.target.files[0];
+  if (file) {
+    var reader = new FileReader();
+    reader.onload = function(evt) { state.customAvatarUrl = evt.target.result; alert('Photo uploaded successfully!'); };
+    reader.readAsDataURL(file);
+  }
+}
+
+function submitVisitorInfo() {
+  var name = document.getElementById('visitor-name').value.trim();
+  var city = document.getElementById('visitor-city').value.trim();
+  if (!name || !city) return alert('Please enter name and city');
+  state.name = name;
+  state.city = city;
+  showPage('page-survey');
+}
+
+function submitSurvey() {
+  renderComments();
+  showPage('page-home');
+}
+
+function getAvatarHTML(avatarKey, customUrl) {
+  if (customUrl) return '<img src="' + customUrl + '" class="avatar-img">';
+  return '<div class="avatar-img">' + (avatars[avatarKey] || '🤖') + '</div>';
+}
+
+function renderComments() {
+  var area = document.getElementById('comments-area');
+  var keyword = document.getElementById('search-keyword').value.trim().toLowerCase();
+  var dateVal = document.getElementById('search-date').value;
+  var html = '';
+
+  var list = state.activeComments.filter(function(c) {
+    var matchKw = !keyword || c.sentences.join(' ').toLowerCase().indexOf(keyword) !== -1 || c.name.toLowerCase().indexOf(keyword) !== -1;
+    var matchDate = true;
+    if (dateVal) {
+      var d = new Date(c.timestamp).toISOString().split('T')[0];
+      matchDate = (d === dateVal);
+    }
+    return matchKw && matchDate;
+  });
+
+  list.sort(function(a, b) { return b.timestamp - a.timestamp; });
+
+  for (var i = 0; i < list.length; i++) {
+    var c = list[i];
+    var dateStr = new Date(c.timestamp).toLocaleDateString();
+    var product = state.products.find(function(p) { return p.id === c.productId; });
+    var productTag = product ? '<div class="product-tag" onclick="window.open(\'' + product.link + '\')">' + product.name + ' — ' + product.price + ' →</div>' : '';
+
+    var repliesHTML = '';
+    if (c.replies && c.replies.length > 0) {
+      repliesHTML += '<div class="reply-list">';
+      for (var r = 0; r < c.replies.length; r++) {
+        var rep = c.replies[r];
+        repliesHTML += '<div class="reply-item"><strong>' + rep.name + ': </strong>' + rep.content + '</div>';
+      }
+      repliesHTML += '</div>';
+    }
+
+    var replyBoxHTML = '';
+    if (state.activeReplyId === c.id) {
+      replyBoxHTML = '<div style="margin-top:12px; display:flex; gap:8px;">' +
+        '<input class="input" id="reply-input-' + c.id + '" placeholder="Reply..." style="font-size:13px;">' +
+        '<button class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">Send</button>' +
+      '</div>';
+    }
+
+    html += '<div class="comment">' +
+      '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
+        '<div style="display:flex; align-items:center; gap:12px;">' +
+          getAvatarHTML(c.avatar, c.customAvatarUrl) +
+          '<div>' +
+            '<strong>' + c.name + '</strong>' + (c.isTeamReply ? ' <span class="team-badge">' + i18n[state.lang].teamReply + '</span>' : '') +
+            '<div class="comment-meta">' + c.city + ' · ' + dateStr + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<button class="btn btn-sm" onclick="toggleReply(' + c.id + ')" style="margin-right:6px;">💬 Reply</button>' +
+          '<button class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">🗑️ Delete</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="comment-sentence">' + c.sentences.join('<br>') + '</div>' +
+      productTag + repliesHTML + replyBoxHTML +
+    '</div>';
+  }
+  area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages found</div>';
+}
+
+function addComment() {
+  var val = document.getElementById('new-comment').value.trim();
+  if (!val) return;
+  var prodSelect = document.getElementById('product-select');
+  var selectedProdId = prodSelect ? parseInt(prodSelect.value) : null;
+
+  state.activeComments.unshift({
+    id: Date.now(),
+    avatar: state.avatar,
+    customAvatarUrl: state.customAvatarUrl,
+    name: state.name,
+    city: state.city,
+    sentences: [val],
+    timestamp: Date.now(),
+    isTeamReply: (state.identity === 'team'),
+    productId: selectedProdId || null,
+    replies: []
+  });
+  document.getElementById('new-comment').value = '';
+  renderComments();
+}
+
+function toggleReply(id) {
+  state.activeReplyId = state.activeReplyId === id ? null : id;
+  renderComments();
+}
+
+function sendReply(id) {
+  var input = document.getElementById('reply-input-' + id);
+  if (input && input.value.trim()) {
+    var target = state.activeComments.find(function(item) { return item.id === id; });
+    if (target) {
+      target.replies = target.replies || [];
+      target.replies.push({ name: state.name, content: input.value.trim() });
+    }
+    state.activeReplyId = null;
+    renderComments();
+  }
+}
+
+function deleteComment(id) {
+  state.activeComments = state.activeComments.filter(function(item) { return item.id !== id; });
+  renderComments();
+}
+
+function clearSearch() {
+  document.getElementById('search-keyword').value = '';
+  document.getElementById('search-date').value = '';
+  renderComments();
+}
+
+function openProfilePage() {
+  document.getElementById('profile-name').value = state.name;
+  document.getElementById('profile-city').value = state.city;
+  showPage('page-profile');
+}
+
+function saveProfile() {
+  state.name = document.getElementById('profile-name').value.trim();
+  state.city = document.getElementById('profile-city').value.trim();
+  alert('Saved!');
+  renderComments();
+}
+
+function updateProductDropdown() {
+  var select = document.getElementById('product-select');
+  if (!select) return;
+  var html = '<option value="">' + i18n[state.lang].attachProduct + '</option>';
+  for (var i = 0; i < state.products.length; i++) {
+    html += '<option value="' + state.products[i].id + '">' + state.products[i].name + ' (' + state.products[i].price + ')</option>';
+  }
+  select.innerHTML = html;
+}
+
+function openTeamPage() {
+  renderTeamProducts();
+  showPage('page-team');
+}
+
+function renderTeamProducts() {
+  var list = document.getElementById('products-list');
+  if (!list) return;
+  var html = '';
+  for (var i = 0; i < state.products.length; i++) {
+    var p = state.products[i];
+    html += '<div class="product-edit-card">' +
+      '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;">' +
+        '<div><div class="label">Product Name</div><input class="input" value="' + p.name + '" id="prod-name-' + p.id + '"></div>' +
+        '<div><div class="label">Price</div><input class="input" value="' + p.price + '" id="prod-price-' + p.id + '"></div>' +
+        '<div><div class="label">Promo Text</div><input class="input" value="' + p.promo + '" id="prod-promo-' + p.id + '"></div>' +
+        '<div><div class="label">Link URL</div><input class="input" value="' + p.link + '" id="prod-link-' + p.id + '"></div>' +
+      '</div>' +
+      '<div style="display:flex; justify-content:flex-end; gap:8px;">' +
+        '<button class="btn btn-danger btn-sm" onclick="deleteProduct(' + p.id + ')">Delete</button>' +
+        '<button class="btn btn-primary btn-sm" onclick="saveProduct(' + p.id + ')">Update</button>' +
+      '</div>' +
+    '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function saveProduct(id) {
+  var item = state.products.find(function(p) { return p.id === id; });
+  if (item) {
+    item.name = document.getElementById('prod-name-' + id).value;
+    item.price = document.getElementById('prod-price-' + id).value;
+    item.promo = document.getElementById('prod-promo-' + id).value;
+    item.link = document.getElementById('prod-link-' + id).value;
+    alert('Product updated successfully!');
+    updateProductDropdown();
+  }
+}
+
+function deleteProduct(id) {
+  state.products = state.products.filter(function(p) { return p.id !== id; });
+  renderTeamProducts();
+  updateProductDropdown();
+}
+
+function addProduct() {
+  state.products.push({ id: Date.now(), name: 'New Product', price: '$0.00', promo: 'New Promo', link: 'https://peox.tech' });
+  renderTeamProducts();
+  updateProductDropdown();
+}
+
+function openLogoutModal() { document.getElementById('logout-modal').classList.add('active'); }
+function closeLogoutModal() { document.getElementById('logout-modal').classList.remove('active'); }
+function confirmLogout() {
+  closeLogoutModal();
+  showPage('page-lang');
 }
 </script>
 </body>
