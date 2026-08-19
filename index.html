@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PIT Hub</title>
+<!-- 引入 Supabase 官方 SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --primary: #2563eb;
@@ -92,14 +94,6 @@
   }
   .comment-sentence { margin-bottom: 12px; line-height: 1.8; color: var(--text); font-size: 15px; }
   .comment-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-  .reply-list {
-    margin-top: 16px; padding-left: 20px; border-left: 2px solid var(--border);
-    display: flex; flex-direction: column; gap: 12px;
-  }
-  .reply-item {
-    background: var(--bg-elevated); padding: 12px 16px; border-radius: 8px;
-    border: 1px solid var(--border); font-size: 13.5px;
-  }
   .product-tag {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--primary-light); border: 1px solid #bfdbfe; color: var(--primary);
@@ -124,7 +118,6 @@
   .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 8px; border-radius: 8px; }
   .radio-group label:hover { background: var(--bg-elevated); }
   .radio-group input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; }
-  .product-edit-card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; border-radius: 12px; box-shadow: var(--shadow); }
   .lang-btn {
     padding: 16px 32px; border: 1px solid var(--border); background: var(--bg-card);
     color: var(--text); cursor: pointer; font-size: 15px; margin: 8px;
@@ -239,14 +232,12 @@
     <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
       <span class="nav-link active" onclick="showPage('page-home')">Home</span>
       <span class="nav-link" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link" id="nav-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
       <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
     <div class="search-bar">
       <input class="input" id="search-keyword" placeholder="Search keywords..." style="flex: 1;">
-      <input class="input" id="search-date" type="date" style="width: 150px; font-size: 13px; color: var(--text-dim);">
       <button class="btn btn-sm" onclick="renderComments()">Search</button>
       <button class="btn btn-sm" onclick="clearSearch()">Clear</button>
     </div>
@@ -256,12 +247,7 @@
     <div id="comment-input-area" style="margin-top: 24px;">
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
         <input class="input" id="new-comment" placeholder="Write a message..." style="flex: 1;">
-        <button class="btn btn-primary" id="btn-submit-feedback" onclick="addComment()">submit feedback</button>
-      </div>
-      <div id="team-product-select" style="display: none;">
-        <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);">
-          <option value="">-- Attach product (optional) --</option>
-        </select>
+        <button class="btn btn-primary" id="btn-submit-feedback" onclick="addComment()">Submit Comment</button>
       </div>
     </div>
   </div>
@@ -274,7 +260,6 @@
     <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link active" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
       <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
     </div>
   </div>
@@ -307,29 +292,6 @@
   </div>
 </div>
 
-<!-- 7. TEAM EDIT PANEL -->
-<div id="page-team" class="page">
-  <div class="header">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
-      <span class="team-badge">TEAM ONLY</span>
-    </div>
-    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
-      <span class="nav-link" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link active">Edit Panel</span>
-      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
-    </div>
-  </div>
-  <div class="container" style="padding: 24px 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-      <div style="font-size: 17px; font-weight: 700; color: var(--text);" id="txt-product-mgmt">Product Management</div>
-      <button class="btn btn-primary btn-sm" id="btn-add-product" onclick="addProduct()">+ Add Product</button>
-    </div>
-    <div id="products-list"></div>
-  </div>
-</div>
-
 <!-- LOGOUT MODAL -->
 <div id="logout-modal" class="modal-overlay">
   <div class="modal">
@@ -343,58 +305,33 @@
 </div>
 
 <script>
-// 全局公共评论区 Key（全员共享）
-var SHARED_COMMENTS_KEY = 'PIT_SHARED_HUB_COMMENTS_V1';
-// 本地隐私信息 Key（仅本地保留）
+// 1. 初始化 Supabase 云端引擎（使用你的项目链接和公开 Publishable Key）
+const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// 本地隐私信息存贮 Key
 var LOCAL_PROFILE_KEY = 'PIT_PRIVATE_USER_PROFILE_V1';
 
 var state = {
   lang: 'en',
   identity: null,
-  // 私有个人信息
   userProfile: {
     avatar: 'A',
     customAvatarUrl: null,
     name: '',
     city: ''
   },
-  activeReplyId: null,
-  products: [
-    { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
-    { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
-    { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
-  ],
-  defaultComments: [
-    { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-    { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-    { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-  ],
   sharedComments: []
 };
 
-// 预加载公共评论区 & 本地隐私信息
-function loadSharedData() {
+// 读取本地私有信息
+function loadLocalProfile() {
   try {
-    var storedComments = localStorage.getItem(SHARED_COMMENTS_KEY);
-    if (storedComments) {
-      state.sharedComments = JSON.parse(storedComments);
-    } else {
-      state.sharedComments = state.defaultComments;
-      saveSharedComments();
-    }
-    
     var storedProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
     if (storedProfile) {
       state.userProfile = JSON.parse(storedProfile);
     }
-  } catch(e) {
-    state.sharedComments = state.defaultComments;
-  }
-}
-
-function saveSharedComments() {
-  try {
-    localStorage.setItem(SHARED_COMMENTS_KEY, JSON.stringify(state.sharedComments));
   } catch(e) {}
 }
 
@@ -404,39 +341,62 @@ function saveLocalProfile() {
   } catch(e) {}
 }
 
+// 2. 从 Supabase 获取云端数据库中的最新评论
+async function fetchCloudComments() {
+  const { data, error } = await supabase
+    .from('comments')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (!error && data) {
+    state.sharedComments = data;
+    renderComments();
+  }
+}
+
+// 3. 开启 Supabase 实时 WebSocket 监听（任何人新增/删除，所有人屏幕毫秒级自动重绘）
+function listenRealtimeComments() {
+  supabase
+    .channel('public:comments')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, (payload) => {
+      fetchCloudComments(); // 云端变动，立刻刷新同步
+    })
+    .subscribe();
+}
+
 var i18n = {
   'en': {
     identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
     visitorTitle: 'Create your local private profile', labelAvatar: 'Choose Preset Avatar or Upload Photo',
     labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
     surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
-    btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
-    profileTitle: 'My Information', btnSave: 'Save Private Info', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
+    btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navLogout: 'Log Out',
+    profileTitle: 'My Information', btnSave: 'Save Private Info',
     logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?', btnNo: 'No', btnYes: 'Yes',
     searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
-    attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
+    btnSubmitFeedback: 'Submit Comment', uploadText: 'Upload photo from computer'
   },
   'zh-CN': {
     identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
     visitorTitle: '创建本地私有身份', labelAvatar: '选择预设头像或上传照片',
     labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
     surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
-    btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
-    profileTitle: '我的信息', btnSave: '保存本地私有信息', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
+    btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navLogout: '退出登录',
+    profileTitle: '我的信息', btnSave: '保存本地私有信息',
     logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？', btnNo: '否', btnYes: '是',
     searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
-    attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
+    btnSubmitFeedback: '发布留言', uploadText: '从电脑选择照片上传'
   },
   'zh-HK': {
     identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
     visitorTitle: '創建本地私有身份', labelAvatar: '選擇預設頭像或上傳照片',
     labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
     surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
-    btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
-    profileTitle: '我的資訊', btnSave: '儲存本地私有資訊', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
+    btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navLogout: '登出',
+    profileTitle: '我的資訊', btnSave: '儲存本地私有資訊',
     logoutTitle: '登出？', logoutText: '您確定要登出嗎？', btnNo: '否', btnYes: '是',
     searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
-    attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
+    btnSubmitFeedback: '發布留言', uploadText: '從電腦選擇照片上傳'
   }
 };
 
@@ -468,8 +428,6 @@ function updateTexts() {
   document.getElementById('btn-survey-submit').textContent = l.btnSubmit;
   document.getElementById('profile-title').textContent = l.profileTitle;
   document.getElementById('btn-save-profile').textContent = l.btnSave;
-  document.getElementById('txt-product-mgmt').textContent = l.productMgmt;
-  document.getElementById('btn-add-product').textContent = l.btnAddProduct;
   document.getElementById('txt-logout-title').textContent = l.logoutTitle;
   document.getElementById('txt-logout-desc').textContent = l.logoutText;
   document.getElementById('search-keyword').placeholder = l.searchPlaceholder;
@@ -481,7 +439,6 @@ function updateTexts() {
   for (var i = 0; i < l.surveyOptions.length; i++) {
     if (opts[i]) opts[i].textContent = l.surveyOptions[i];
   }
-  updateProductDropdown();
 }
 
 function selectIdentity(idType) {
@@ -491,21 +448,12 @@ function selectIdentity(idType) {
     state.userProfile.city = 'Peox HQ';
     state.userProfile.avatar = 'A';
     document.getElementById('home-badge').style.display = 'inline-block';
-    document.getElementById('nav-team').style.display = 'inline-block';
-    document.getElementById('nav-profile-team').style.display = 'inline-block';
-    document.getElementById('team-product-select').style.display = 'block';
     renderComments();
     showPage('page-home');
   } else {
     document.getElementById('home-badge').style.display = 'none';
-    document.getElementById('nav-team').style.display = 'none';
-    document.getElementById('nav-profile-team').style.display = 'none';
-    document.getElementById('team-product-select').style.display = 'none';
-    
-    // 读取已保存的私有个人信息回填
     if (state.userProfile.name) document.getElementById('visitor-name').value = state.userProfile.name;
     if (state.userProfile.city) document.getElementById('visitor-city').value = state.userProfile.city;
-    
     showPage('page-visitor');
   }
 }
@@ -570,7 +518,7 @@ function submitVisitorInfo() {
   
   state.userProfile.name = name;
   state.userProfile.city = city;
-  saveLocalProfile(); // 保存隐私信息到本地存储
+  saveLocalProfile();
   showPage('page-survey');
 }
 
@@ -579,208 +527,97 @@ function submitSurvey() {
   showPage('page-home');
 }
 
-function getAvatarHTML(avatarKey, customUrl) {
-  if (customUrl) {
-    return '<img src="' + customUrl + '" class="avatar-img">';
-  }
+function getAvatarHTML(avatarKey) {
   return '<div class="avatar-img">' + (avatars[avatarKey] || '🤖') + '</div>';
 }
 
+// 渲染评论界面
 function renderComments() {
   var area = document.getElementById('comments-area');
   var keyword = document.getElementById('search-keyword').value.trim().toLowerCase();
-  var dateVal = document.getElementById('search-date').value;
   var html = '';
 
   var list = state.sharedComments.filter(function(c) {
-    var matchKw = !keyword || c.sentences.join(' ').toLowerCase().indexOf(keyword) !== -1 || c.name.toLowerCase().indexOf(keyword) !== -1;
-    var matchDate = true;
-    if (dateVal) {
-      var d = new Date(c.timestamp).toISOString().split('T')[0];
-      matchDate = (d === dateVal);
-    }
-    return matchKw && matchDate;
+    return !keyword || (c.content && c.content.toLowerCase().indexOf(keyword) !== -1) || (c.name && c.name.toLowerCase().indexOf(keyword) !== -1);
   });
-
-  list.sort(function(a, b) { return b.timestamp - a.timestamp; });
 
   for (var i = 0; i < list.length; i++) {
     var c = list[i];
-    var dateStr = new Date(c.timestamp).toLocaleDateString();
-    var product = state.products.find(function(p) { return p.id === c.productId; });
-    var productTag = product ? '<div class="product-tag" onclick="window.open(\'' + product.link + '\')">' + product.name + ' — ' + product.price + ' →</div>' : '';
-
-    var repliesHTML = '';
-    if (c.replies && c.replies.length > 0) {
-      repliesHTML += '<div class="reply-list">';
-      for (var r = 0; r < c.replies.length; r++) {
-        var rep = c.replies[r];
-        repliesHTML += '<div class="reply-item"><strong>' + rep.name + ': </strong>' + rep.content + '</div>';
-      }
-      repliesHTML += '</div>';
-    }
-
-    var replyBoxHTML = '';
-    if (state.activeReplyId === c.id) {
-      replyBoxHTML = '<div style="margin-top:12px; display:flex; gap:8px;">' +
-        '<input class="input" id="reply-input-' + c.id + '" placeholder="Reply..." style="font-size:13px;">' +
-        '<button class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">Send</button>' +
-      '</div>';
-    }
+    var dateStr = new Date(c.created_at).toLocaleDateString();
 
     html += '<div class="comment">' +
       '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
         '<div style="display:flex; align-items:center; gap:12px;">' +
-          getAvatarHTML(c.avatar, c.customAvatarUrl) +
+          getAvatarHTML(c.avatar) +
           '<div>' +
-            '<strong>' + c.name + '</strong>' + (c.isTeamReply ? ' <span class="team-badge">' + i18n[state.lang].teamReply + '</span>' : '') +
-            '<div class="comment-meta">' + c.city + ' · ' + dateStr + '</div>' +
+            '<strong>' + (c.name || 'Anonymous') + '</strong>' +
+            '<div class="comment-meta">' + (c.city || 'Unknown') + ' · ' + dateStr + '</div>' +
           '</div>' +
         '</div>' +
         '<div>' +
-          '<button class="btn btn-sm" onclick="toggleReply(' + c.id + ')" style="margin-right:6px;">💬 Reply</button>' +
           '<button class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">🗑️ Delete</button>' +
         '</div>' +
       '</div>' +
-      '<div class="comment-sentence">' + c.sentences.join('<br>') + '</div>' +
-      productTag + repliesHTML + replyBoxHTML +
+      '<div class="comment-sentence">' + c.content + '</div>' +
     '</div>';
   }
   area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages found</div>';
 }
 
-function addComment() {
+// 4. 发送评论到 Supabase 云端
+async function addComment() {
   var val = document.getElementById('new-comment').value.trim();
   if (!val) return;
-  var prodSelect = document.getElementById('product-select');
-  var selectedProdId = prodSelect ? parseInt(prodSelect.value) : null;
 
-  // 将个人公开发布的信息与留言捆绑，存入共享评论数据库
-  state.sharedComments.unshift({
-    id: Date.now(),
-    avatar: state.userProfile.avatar,
-    customAvatarUrl: state.userProfile.customAvatarUrl,
-    name: state.userProfile.name || 'Anonymous Visitor',
-    city: state.userProfile.city || 'Unknown Location',
-    sentences: [val],
-    timestamp: Date.now(),
-    isTeamReply: (state.identity === 'team'),
-    productId: selectedProdId || null,
-    replies: []
-  });
-  
-  saveSharedComments(); // 持久化共享评论
-  document.getElementById('new-comment').value = '';
-  renderComments();
-}
+  const { error } = await supabase
+    .from('comments')
+    .insert([
+      {
+        name: state.userProfile.name || 'Anonymous Visitor',
+        city: state.userProfile.city || 'Unknown Location',
+        avatar: state.userProfile.avatar || 'A',
+        content: val
+      }
+    ]);
 
-function toggleReply(id) {
-  state.activeReplyId = state.activeReplyId === id ? null : id;
-  renderComments();
-}
-
-function sendReply(id) {
-  var input = document.getElementById('reply-input-' + id);
-  if (input && input.value.trim()) {
-    var target = state.sharedComments.find(function(item) { return item.id === id; });
-    if (target) {
-      target.replies = target.replies || [];
-      target.replies.push({ name: state.userProfile.name || 'Anonymous', content: input.value.trim() });
-      saveSharedComments();
-    }
-    state.activeReplyId = null;
-    renderComments();
+  if (error) {
+    alert('发布失败，请检查 Supabase 表名字段设置！');
+  } else {
+    document.getElementById('new-comment').value = '';
   }
 }
 
-function deleteComment(id) {
-  state.sharedComments = state.sharedComments.filter(function(item) { return item.id !== id; });
-  saveSharedComments();
-  renderComments();
+// 5. 从 Supabase 云端删除评论（实时同步抹除）
+async function deleteComment(id) {
+  if (confirm("确定要删除这条留言吗？（所有在线用户的屏幕上将实时同步消失）")) {
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      alert('删除失败！');
+    }
+  }
 }
 
 function clearSearch() {
   document.getElementById('search-keyword').value = '';
-  document.getElementById('search-date').value = '';
   renderComments();
 }
 
 function openProfilePage() {
   document.getElementById('profile-name').value = state.userProfile.name;
   document.getElementById('profile-city').value = state.userProfile.city;
-  if (state.userProfile.customAvatarUrl) {
-    updateAvatarPreviews(state.userProfile.customAvatarUrl);
-  }
   showPage('page-profile');
 }
 
 function saveProfile() {
   state.userProfile.name = document.getElementById('profile-name').value.trim();
   state.userProfile.city = document.getElementById('profile-city').value.trim();
-  saveLocalProfile(); // 保存在本地隐私中
+  saveLocalProfile();
   alert('Private info saved to local device!');
   renderComments();
-}
-
-function updateProductDropdown() {
-  var select = document.getElementById('product-select');
-  if (!select) return;
-  var html = '<option value="">' + i18n[state.lang].attachProduct + '</option>';
-  for (var i = 0; i < state.products.length; i++) {
-    html += '<option value="' + state.products[i].id + '">' + state.products[i].name + ' (' + state.products[i].price + ')</option>';
-  }
-  select.innerHTML = html;
-}
-
-function openTeamPage() {
-  renderTeamProducts();
-  showPage('page-team');
-}
-
-function renderTeamProducts() {
-  var list = document.getElementById('products-list');
-  if (!list) return;
-  var html = '';
-  for (var i = 0; i < state.products.length; i++) {
-    var p = state.products[i];
-    html += '<div class="product-edit-card">' +
-      '<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px; margin-bottom:12px;">' +
-        '<div><div class="label">Product Name</div><input class="input" value="' + p.name + '" id="prod-name-' + p.id + '"></div>' +
-        '<div><div class="label">Price</div><input class="input" value="' + p.price + '" id="prod-price-' + p.id + '"></div>' +
-        '<div><div class="label">Promo Text</div><input class="input" value="' + p.promo + '" id="prod-promo-' + p.id + '"></div>' +
-        '<div><div class="label">Link URL</div><input class="input" value="' + p.link + '" id="prod-link-' + p.id + '"></div>' +
-      '</div>' +
-      '<div style="display:flex; justify-content:flex-end; gap:8px;">' +
-        '<button class="btn btn-danger btn-sm" onclick="deleteProduct(' + p.id + ')">Delete</button>' +
-        '<button class="btn btn-primary btn-sm" onclick="saveProduct(' + p.id + ')">Update</button>' +
-      '</div>' +
-    '</div>';
-  }
-  list.innerHTML = html;
-}
-
-function saveProduct(id) {
-  var item = state.products.find(function(p) { return p.id === id; });
-  if (item) {
-    item.name = document.getElementById('prod-name-' + id).value;
-    item.price = document.getElementById('prod-price-' + id).value;
-    item.promo = document.getElementById('prod-promo-' + id).value;
-    item.link = document.getElementById('prod-link-' + id).value;
-    alert('Product updated successfully!');
-    updateProductDropdown();
-  }
-}
-
-function deleteProduct(id) {
-  state.products = state.products.filter(function(p) { return p.id !== id; });
-  renderTeamProducts();
-  updateProductDropdown();
-}
-
-function addProduct() {
-  state.products.push({ id: Date.now(), name: 'New Product', price: '$0.00', promo: 'New Promo', link: 'https://peox.tech' });
-  renderTeamProducts();
-  updateProductDropdown();
 }
 
 function openLogoutModal() { document.getElementById('logout-modal').classList.add('active'); }
@@ -790,8 +627,10 @@ function confirmLogout() {
   showPage('page-lang');
 }
 
-// 页面加载时自动读取共享数据与私有本地数据
-loadSharedData();
+// 页面启动初始化
+loadLocalProfile();
+fetchCloudComments();
+listenRealtimeComments();
 </script>
 </body>
 </html>
