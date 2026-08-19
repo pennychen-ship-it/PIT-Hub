@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PIT Hub</title>
-<!-- 引入 Supabase 官方 SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --primary: #2563eb;
@@ -94,6 +92,14 @@
   }
   .comment-sentence { margin-bottom: 12px; line-height: 1.8; color: var(--text); font-size: 15px; }
   .comment-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .reply-list {
+    margin-top: 16px; padding-left: 20px; border-left: 2px solid var(--border);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .reply-item {
+    background: var(--bg-elevated); padding: 12px 16px; border-radius: 8px;
+    border: 1px solid var(--border); font-size: 13.5px;
+  }
   .product-tag {
     display: inline-flex; align-items: center; gap: 6px;
     background: var(--primary-light); border: 1px solid #bfdbfe; color: var(--primary);
@@ -118,6 +124,7 @@
   .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 8px; border-radius: 8px; }
   .radio-group label:hover { background: var(--bg-elevated); }
   .radio-group input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; }
+  .product-edit-card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; border-radius: 12px; box-shadow: var(--shadow); }
   .lang-btn {
     padding: 16px 32px; border: 1px solid var(--border); background: var(--bg-card);
     color: var(--text); cursor: pointer; font-size: 15px; margin: 8px;
@@ -138,7 +145,6 @@
     overflow: hidden; background: var(--bg-elevated);
   }
   .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
-  .privacy-tag { font-size: 10px; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
 </style>
 </head>
 <body>
@@ -173,13 +179,13 @@
   </div>
 </div>
 
-<!-- 3. VISITOR INFO (PRIVATE) -->
+<!-- 3. VISITOR INFO -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
-    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your local private profile</div>
+    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your virtual identity</div>
     <div class="card">
-      <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo <span class="privacy-tag">Private Local</span></div>
+      <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="visitor-avatar-picker">
         <div class="avatar-select selected" onclick="pickAvatar('A', this)">🤖</div>
         <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
@@ -195,9 +201,9 @@
         <div id="visitor-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
       </div>
 
-      <div class="label" id="label-name" style="margin-top: 4px;">Name / Nickname <span class="privacy-tag">Private Local</span></div>
+      <div class="label" id="label-name" style="margin-top: 4px;">Name / Nickname</div>
       <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
-      <div class="label" id="label-city">City / Location <span class="privacy-tag">Private Local</span></div>
+      <div class="label" id="label-city">City / Location</div>
       <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
       <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next" onclick="submitVisitorInfo()">Continue</button>
     </div>
@@ -222,7 +228,7 @@
   </div>
 </div>
 
-<!-- 5. HOME / SHARED COMMUNITY HALL -->
+<!-- 5. HOME / COMMUNITY HALL -->
 <div id="page-home" class="page">
   <div class="header">
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -232,12 +238,14 @@
     <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
       <span class="nav-link active" onclick="showPage('page-home')">Home</span>
       <span class="nav-link" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link" id="nav-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
       <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
     <div class="search-bar">
       <input class="input" id="search-keyword" placeholder="Search keywords..." style="flex: 1;">
+      <input class="input" id="search-date" type="date" style="width: 150px; font-size: 13px; color: var(--text-dim);">
       <button class="btn btn-sm" onclick="renderComments()">Search</button>
       <button class="btn btn-sm" onclick="clearSearch()">Clear</button>
     </div>
@@ -247,25 +255,30 @@
     <div id="comment-input-area" style="margin-top: 24px;">
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
         <input class="input" id="new-comment" placeholder="Write a message..." style="flex: 1;">
-        <button class="btn btn-primary" id="btn-submit-feedback" onclick="addComment()">Submit Comment</button>
+        <button class="btn btn-primary" id="btn-submit-feedback" onclick="addComment()">submit feedback</button>
+      </div>
+      <div id="team-product-select" style="display: none;">
+        <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);">
+          <option value="">-- Attach product (optional) --</option>
+        </select>
       </div>
     </div>
   </div>
 </div>
 
-<!-- 6. MY PRIVATE PROFILE -->
+<!-- 6. MY PROFILE -->
 <div id="page-profile" class="page">
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
     <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link active" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
       <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
-    <div id="profile-title" style="font-size: 20px; margin-bottom: 4px; color: var(--text); font-weight: 700;">My Information</div>
-    <div style="color: var(--text-dim); font-size: 12px; margin-bottom: 20px;">🔒 Stored locally on this device only.</div>
+    <div id="profile-title" style="font-size: 20px; margin-bottom: 24px; color: var(--text); font-weight: 700;">My Information</div>
     <div class="card">
       <div class="label">Avatar</div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="profile-avatars">
@@ -287,8 +300,31 @@
       <input class="input" id="profile-name" style="margin-bottom: 14px;">
       <div class="label">City / Location</div>
       <input class="input" id="profile-city" style="margin-bottom: 20px;">
-      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile" onclick="saveProfile()">Save Private Info</button>
+      <button class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile" onclick="saveProfile()">Save Changes</button>
     </div>
+  </div>
+</div>
+
+<!-- 7. TEAM EDIT PANEL -->
+<div id="page-team" class="page">
+  <div class="header">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
+      <span class="team-badge">TEAM ONLY</span>
+    </div>
+    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+      <span class="nav-link" onclick="showPage('page-home')">Home</span>
+      <span class="nav-link" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link active">Edit Panel</span>
+      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
+    </div>
+  </div>
+  <div class="container" style="padding: 24px 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div style="font-size: 17px; font-weight: 700; color: var(--text);" id="txt-product-mgmt">Product Management</div>
+      <button class="btn btn-primary btn-sm" id="btn-add-product" onclick="addProduct()">+ Add Product</button>
+    </div>
+    <div id="products-list"></div>
   </div>
 </div>
 
@@ -304,99 +340,81 @@
   </div>
 </div>
 
+<!-- Supabase SDK Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-// 1. 初始化 Supabase 云端引擎（使用你的项目链接和公开 Publishable Key）
+// Supabase Configuration
 const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 本地隐私信息存贮 Key
-var LOCAL_PROFILE_KEY = 'PIT_PRIVATE_USER_PROFILE_V1';
-
 var state = {
   lang: 'en',
   identity: null,
-  userProfile: {
-    avatar: 'A',
-    customAvatarUrl: null,
-    name: '',
-    city: ''
+  avatar: 'A',
+  customAvatarUrl: null,
+  name: '',
+  city: '',
+  activeReplyId: null,
+  products: [
+    { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
+    { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
+    { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
+  ],
+  multiLangComments: {
+    'en': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ],
+    'zh-CN': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹行者', city: '北京', sentences: ['刚刚报名了高级 AI 课程。', '实验环境真的太棒了！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: '赛博极客', city: '深圳', sentences: ['请问 Quantum Chip Q-7 支持自定义 SDK 吗？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 团队', city: 'Peox 总部', sentences: ['当然支持！已原生提供完整 SDK 接口。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ],
+    'zh-HK': [
+      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹漫步者', city: '香港', sentences: ['剛剛報名咗高級 AI 課程。', '實驗室效果真係正！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
+      { id: 102, avatar: 'D', customAvatarUrl: null, name: '極客阿森', city: '廣州', sentences: ['請問 Quantum Chip Q-7 支唔支援自定義 SDK？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 團隊', city: 'Peox 總部', sentences: ['當然支援！已經原生提供完整 SDK 介面。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
+    ]
   },
-  sharedComments: []
+  activeComments: []
 };
-
-// 读取本地私有信息
-function loadLocalProfile() {
-  try {
-    var storedProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
-    if (storedProfile) {
-      state.userProfile = JSON.parse(storedProfile);
-    }
-  } catch(e) {}
-}
-
-function saveLocalProfile() {
-  try {
-    localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(state.userProfile));
-  } catch(e) {}
-}
-
-// 2. 从 Supabase 获取云端数据库中的最新评论
-async function fetchCloudComments() {
-  const { data, error } = await supabase
-    .from('comments')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (!error && data) {
-    state.sharedComments = data;
-    renderComments();
-  }
-}
-
-// 3. 开启 Supabase 实时 WebSocket 监听（任何人新增/删除，所有人屏幕毫秒级自动重绘）
-function listenRealtimeComments() {
-  supabase
-    .channel('public:comments')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, (payload) => {
-      fetchCloudComments(); // 云端变动，立刻刷新同步
-    })
-    .subscribe();
-}
 
 var i18n = {
   'en': {
     identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
-    visitorTitle: 'Create your local private profile', labelAvatar: 'Choose Preset Avatar or Upload Photo',
+    visitorTitle: 'Create your virtual identity', labelAvatar: 'Choose Preset Avatar or Upload Photo',
     labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
     surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
-    btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navLogout: 'Log Out',
-    profileTitle: 'My Information', btnSave: 'Save Private Info',
+    btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
+    profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
     logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?', btnNo: 'No', btnYes: 'Yes',
     searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
-    btnSubmitFeedback: 'Submit Comment', uploadText: 'Upload photo from computer'
+    attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
   },
   'zh-CN': {
     identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
-    visitorTitle: '创建本地私有身份', labelAvatar: '选择预设头像或上传照片',
+    visitorTitle: '创建您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
     labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
     surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
-    btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navLogout: '退出登录',
-    profileTitle: '我的信息', btnSave: '保存本地私有信息',
+    btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
+    profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
     logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？', btnNo: '否', btnYes: '是',
     searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
-    btnSubmitFeedback: '发布留言', uploadText: '从电脑选择照片上传'
+    attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
   },
   'zh-HK': {
     identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
-    visitorTitle: '創建本地私有身份', labelAvatar: '選擇預設頭像或上傳照片',
+    visitorTitle: '創建您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
     labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
     surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
-    btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navLogout: '登出',
-    profileTitle: '我的資訊', btnSave: '儲存本地私有資訊',
+    btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
+    profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
     logoutTitle: '登出？', logoutText: '您確定要登出嗎？', btnNo: '否', btnYes: '是',
     searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
-    btnSubmitFeedback: '發布留言', uploadText: '從電腦選擇照片上傳'
+    attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
   }
 };
 
@@ -413,6 +431,7 @@ function showPage(pageId) {
 
 function selectLang(langKey) {
   state.lang = langKey;
+  state.activeComments = JSON.parse(JSON.stringify(state.multiLangComments[langKey]));
   updateTexts();
   showPage('page-identity');
 }
@@ -423,11 +442,16 @@ function updateTexts() {
   document.getElementById('btn-team').textContent = l.btnTeam;
   document.getElementById('btn-visitor').textContent = l.btnVisitor;
   document.getElementById('visitor-title').textContent = l.visitorTitle;
+  document.getElementById('label-avatar').textContent = l.labelAvatar;
+  document.getElementById('label-name').textContent = l.labelName;
+  document.getElementById('label-city').textContent = l.labelCity;
   document.getElementById('btn-visitor-next').textContent = l.btnContinue;
   document.getElementById('survey-title').textContent = l.surveyTitle;
   document.getElementById('btn-survey-submit').textContent = l.btnSubmit;
   document.getElementById('profile-title').textContent = l.profileTitle;
   document.getElementById('btn-save-profile').textContent = l.btnSave;
+  document.getElementById('txt-product-mgmt').textContent = l.productMgmt;
+  document.getElementById('btn-add-product').textContent = l.btnAddProduct;
   document.getElementById('txt-logout-title').textContent = l.logoutTitle;
   document.getElementById('txt-logout-desc').textContent = l.logoutText;
   document.getElementById('search-keyword').placeholder = l.searchPlaceholder;
@@ -439,21 +463,27 @@ function updateTexts() {
   for (var i = 0; i < l.surveyOptions.length; i++) {
     if (opts[i]) opts[i].textContent = l.surveyOptions[i];
   }
+  updateProductDropdown();
 }
 
 function selectIdentity(idType) {
   state.identity = idType;
   if (idType === 'team') {
-    state.userProfile.name = 'PIT Team';
-    state.userProfile.city = 'Peox HQ';
-    state.userProfile.avatar = 'A';
+    state.name = 'PIT Team';
+    state.city = 'Peox HQ';
+    state.avatar = 'A';
     document.getElementById('home-badge').style.display = 'inline-block';
-    renderComments();
+    document.getElementById('nav-team').style.display = 'inline-block';
+    document.getElementById('nav-profile-team').style.display = 'inline-block';
+    document.getElementById('team-product-select').style.display = 'block';
+    fetchCloudComments();
+    listenRealtimeComments();
     showPage('page-home');
   } else {
     document.getElementById('home-badge').style.display = 'none';
-    if (state.userProfile.name) document.getElementById('visitor-name').value = state.userProfile.name;
-    if (state.userProfile.city) document.getElementById('visitor-city').value = state.userProfile.city;
+    document.getElementById('nav-team').style.display = 'none';
+    document.getElementById('nav-profile-team').style.display = 'none';
+    document.getElementById('team-product-select').style.display = 'none';
     showPage('page-visitor');
   }
 }
@@ -464,9 +494,9 @@ function pickAvatar(key, el) {
   for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
   
   if (el) el.classList.add('selected');
-  state.userProfile.avatar = key;
+  state.avatar = key;
   if (key !== 'CUSTOM') {
-    state.userProfile.customAvatarUrl = null;
+    state.customAvatarUrl = null;
     hideAvatarPreviews();
   }
 }
@@ -476,8 +506,8 @@ function handleFileUpload(e) {
   if (file) {
     var reader = new FileReader();
     reader.onload = function(evt) { 
-      state.userProfile.customAvatarUrl = evt.target.result; 
-      state.userProfile.avatar = 'CUSTOM';
+      state.customAvatarUrl = evt.target.result; 
+      state.avatar = 'CUSTOM';
       
       var page = e.target.closest('.page');
       if (page) {
@@ -485,8 +515,8 @@ function handleFileUpload(e) {
         for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
       }
       
-      updateAvatarPreviews(state.userProfile.customAvatarUrl);
-      alert('Private photo updated locally!'); 
+      updateAvatarPreviews(state.customAvatarUrl);
+      alert('Photo uploaded successfully!'); 
     };
     reader.readAsDataURL(file);
   }
@@ -515,122 +545,281 @@ function submitVisitorInfo() {
   var name = document.getElementById('visitor-name').value.trim();
   var city = document.getElementById('visitor-city').value.trim();
   if (!name || !city) return alert('Please enter name and city');
-  
-  state.userProfile.name = name;
-  state.userProfile.city = city;
-  saveLocalProfile();
+  state.name = name;
+  state.city = city;
   showPage('page-survey');
 }
 
 function submitSurvey() {
-  renderComments();
+  fetchCloudComments();
+  listenRealtimeComments();
   showPage('page-home');
 }
 
-function getAvatarHTML(avatarKey) {
+function getAvatarHTML(avatarKey, customUrl) {
+  if (customUrl) {
+    return '<img src="' + customUrl + '" class="avatar-img">';
+  }
   return '<div class="avatar-img">' + (avatars[avatarKey] || '🤖') + '</div>';
 }
 
-// 渲染评论界面
+async function fetchCloudComments() {
+  const { data, error } = await supabase
+    .from('comments')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (!error && data && data.length > 0) {
+    const cloudComments = data.map(item => ({
+      id: item.id,
+      avatar: item.avatar || 'A',
+      customAvatarUrl: item.custom_avatar_url || null,
+      name: item.name || 'Anonymous',
+      city: item.city || 'Earth',
+      sentences: [item.content],
+      timestamp: new Date(item.created_at).getTime(),
+      isTeamReply: item.is_team_reply || false,
+      productId: item.product_id || null,
+      replies: item.replies || []
+    }));
+    state.activeComments = cloudComments;
+  }
+  renderComments();
+}
+
+function listenRealtimeComments() {
+  supabase
+    .channel('public:comments')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+      fetchCloudComments();
+    })
+    .subscribe();
+}
+
 function renderComments() {
   var area = document.getElementById('comments-area');
   var keyword = document.getElementById('search-keyword').value.trim().toLowerCase();
+  var dateVal = document.getElementById('search-date').value;
   var html = '';
 
-  var list = state.sharedComments.filter(function(c) {
-    return !keyword || (c.content && c.content.toLowerCase().indexOf(keyword) !== -1) || (c.name && c.name.toLowerCase().indexOf(keyword) !== -1);
+  var list = state.activeComments.filter(function(c) {
+    var matchKw = !keyword || c.sentences.join(' ').toLowerCase().indexOf(keyword) !== -1 || c.name.toLowerCase().indexOf(keyword) !== -1;
+    var matchDate = true;
+    if (dateVal) {
+      var d = new Date(c.timestamp).toISOString().split('T')[0];
+      matchDate = (d === dateVal);
+    }
+    return matchKw && matchDate;
   });
+
+  list.sort(function(a, b) { return b.timestamp - a.timestamp; });
 
   for (var i = 0; i < list.length; i++) {
     var c = list[i];
-    var dateStr = new Date(c.created_at).toLocaleDateString();
+    var dateStr = new Date(c.timestamp).toLocaleDateString();
+    var product = state.products.find(function(p) { return p.id === c.productId; });
+    var productTag = product ? '<div class="product-tag" onclick="window.open(\'' + product.link + '\')">' + product.name + ' — ' + product.price + ' →</div>' : '';
+
+    var repliesHTML = '';
+    if (c.replies && c.replies.length > 0) {
+      repliesHTML += '<div class="reply-list">';
+      for (var r = 0; r < c.replies.length; r++) {
+        var rep = c.replies[r];
+        repliesHTML += '<div class="reply-item"><strong>' + rep.name + ': </strong>' + rep.content + '</div>';
+      }
+      repliesHTML += '</div>';
+    }
+
+    var replyBoxHTML = '';
+    if (state.activeReplyId === c.id) {
+      replyBoxHTML = '<div style="margin-top:12px; display:flex; gap:8px;">' +
+        '<input class="input" id="reply-input-' + c.id + '" placeholder="Reply..." style="font-size:13px;">' +
+        '<button class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">Send</button>' +
+      '</div>';
+    }
 
     html += '<div class="comment">' +
       '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
         '<div style="display:flex; align-items:center; gap:12px;">' +
-          getAvatarHTML(c.avatar) +
+          getAvatarHTML(c.avatar, c.customAvatarUrl) +
           '<div>' +
-            '<strong>' + (c.name || 'Anonymous') + '</strong>' +
-            '<div class="comment-meta">' + (c.city || 'Unknown') + ' · ' + dateStr + '</div>' +
+            '<strong>' + c.name + '</strong>' + (c.isTeamReply ? ' <span class="team-badge">' + i18n[state.lang].teamReply + '</span>' : '') +
+            '<div class="comment-meta">' + c.city + ' · ' + dateStr + '</div>' +
           '</div>' +
         '</div>' +
         '<div>' +
+          '<button class="btn btn-sm" onclick="toggleReply(' + c.id + ')" style="margin-right:6px;">💬 Reply</button>' +
           '<button class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">🗑️ Delete</button>' +
         '</div>' +
       '</div>' +
-      '<div class="comment-sentence">' + c.content + '</div>' +
+      '<div class="comment-sentence">' + c.sentences.join('<br>') + '</div>' +
+      productTag + repliesHTML + replyBoxHTML +
     '</div>';
   }
   area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages found</div>';
 }
 
-// 4. 发送评论到 Supabase 云端
 async function addComment() {
   var val = document.getElementById('new-comment').value.trim();
   if (!val) return;
+  var prodSelect = document.getElementById('product-select');
+  var selectedProdId = prodSelect ? parseInt(prodSelect.value) : null;
 
-  const { error } = await supabase
-    .from('comments')
-    .insert([
-      {
-        name: state.userProfile.name || 'Anonymous Visitor',
-        city: state.userProfile.city || 'Unknown Location',
-        avatar: state.userProfile.avatar || 'A',
-        content: val
-      }
-    ]);
+  var newObj = {
+    avatar: state.avatar,
+    custom_avatar_url: state.customAvatarUrl,
+    name: state.name || 'Anonymous',
+    city: state.city || 'Unknown',
+    content: val,
+    is_team_reply: (state.identity === 'team'),
+    product_id: selectedProdId || null,
+    replies: []
+  };
 
+  const { error } = await supabase.from('comments').insert([newObj]);
   if (error) {
-    alert('发布失败，请检查 Supabase 表名字段设置！');
+    console.error("Cloud push failed:", error);
+    state.activeComments.unshift({
+      id: Date.now(),
+      avatar: newObj.avatar,
+      customAvatarUrl: newObj.custom_avatar_url,
+      name: newObj.name,
+      city: newObj.city,
+      sentences: [val],
+      timestamp: Date.now(),
+      isTeamReply: newObj.is_team_reply,
+      productId: newObj.product_id,
+      replies: []
+    });
+    renderComments();
   } else {
-    document.getElementById('new-comment').value = '';
+    fetchCloudComments();
   }
+  document.getElementById('new-comment').value = '';
 }
 
-// 5. 从 Supabase 云端删除评论（实时同步抹除）
-async function deleteComment(id) {
-  if (confirm("确定要删除这条留言吗？（所有在线用户的屏幕上将实时同步消失）")) {
-    const { error } = await supabase
-      .from('comments')
-      .delete()
-      .eq('id', id);
+function toggleReply(id) {
+  state.activeReplyId = (state.activeReplyId === id) ? null : id;
+  renderComments();
+}
 
-    if (error) {
-      alert('删除失败！');
-    }
+async function sendReply(commentId) {
+  var inp = document.getElementById('reply-input-' + commentId);
+  if (!inp || !inp.value.trim()) return;
+
+  var comment = state.activeComments.find(function(c) { return c.id === commentId; });
+  if (comment) {
+    var newReplies = (comment.replies || []).concat([{
+      name: state.name || 'Anonymous',
+      content: inp.value.trim(),
+      timestamp: Date.now()
+    }]);
+
+    await supabase.from('comments').update({ replies: newReplies }).eq('id', commentId);
+    comment.replies = newReplies;
   }
+  state.activeReplyId = null;
+  renderComments();
+}
+
+async function deleteComment(id) {
+  await supabase.from('comments').delete().eq('id', id);
+  state.activeComments = state.activeComments.filter(function(c) { return c.id !== id; });
+  renderComments();
 }
 
 function clearSearch() {
   document.getElementById('search-keyword').value = '';
+  document.getElementById('search-date').value = '';
   renderComments();
 }
 
 function openProfilePage() {
-  document.getElementById('profile-name').value = state.userProfile.name;
-  document.getElementById('profile-city').value = state.userProfile.city;
+  document.getElementById('profile-name').value = state.name;
+  document.getElementById('profile-city').value = state.city;
   showPage('page-profile');
 }
 
 function saveProfile() {
-  state.userProfile.name = document.getElementById('profile-name').value.trim();
-  state.userProfile.city = document.getElementById('profile-city').value.trim();
-  saveLocalProfile();
-  alert('Private info saved to local device!');
+  state.name = document.getElementById('profile-name').value.trim();
+  state.city = document.getElementById('profile-city').value.trim();
+  alert('Profile saved!');
+  showPage('page-home');
   renderComments();
 }
 
-function openLogoutModal() { document.getElementById('logout-modal').classList.add('active'); }
-function closeLogoutModal() { document.getElementById('logout-modal').classList.remove('active'); }
-function confirmLogout() {
-  closeLogoutModal();
-  showPage('page-lang');
+function openTeamPage() {
+  renderProductEditor();
+  showPage('page-team');
 }
 
-// 页面启动初始化
-loadLocalProfile();
-fetchCloudComments();
-listenRealtimeComments();
+function updateProductDropdown() {
+  var sel = document.getElementById('product-select');
+  if (!sel) return;
+  var l = i18n[state.lang];
+  var opts = '<option value="">' + l.attachProduct + '</option>';
+  for (var i = 0; i < state.products.length; i++) {
+    var p = state.products[i];
+    opts += '<option value="' + p.id + '">' + p.name + ' (' + p.price + ')</option>';
+  }
+  sel.innerHTML = opts;
+}
+
+function renderProductEditor() {
+  var container = document.getElementById('products-list');
+  var html = '';
+  for (var i = 0; i < state.products.length; i++) {
+    var p = state.products[i];
+    html += '<div class="product-edit-card">' +
+      '<div style="display:flex; justify-content:space-between; margin-bottom:10px;">' +
+        '<strong>Product #' + p.id + '</strong>' +
+        '<button class="btn btn-danger btn-sm" onclick="removeProduct(' + p.id + ')">Remove</button>' +
+      '</div>' +
+      '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">' +
+        '<input class="input" value="' + p.name + '" onchange="updateProduct(' + p.id + ', \'name\', this.value)">' +
+        '<input class="input" value="' + p.price + '" onchange="updateProduct(' + p.id + ', \'price\', this.value)">' +
+      '</div>' +
+      '<input class="input" value="' + p.promo + '" style="margin-bottom:10px;" onchange="updateProduct(' + p.id + ', \'promo\', this.value)">' +
+      '<input class="input" value="' + p.link + '" onchange="updateProduct(' + p.id + ', \'link\', this.value)">' +
+    '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function addProduct() {
+  var newId = Date.now();
+  state.products.push({ id: newId, name: 'New Product', price: '$0.00', promo: 'Special Offer', link: 'https://peox.tech' });
+  renderProductEditor();
+  updateProductDropdown();
+}
+
+function removeProduct(id) {
+  state.products = state.products.filter(function(p) { return p.id !== id; });
+  renderProductEditor();
+  updateProductDropdown();
+}
+
+function updateProduct(id, field, val) {
+  var p = state.products.find(function(item) { return item.id === id; });
+  if (p) p[field] = val;
+  updateProductDropdown();
+}
+
+function openLogoutModal() {
+  document.getElementById('logout-modal').classList.add('active');
+}
+
+function closeLogoutModal() {
+  document.getElementById('logout-modal').classList.remove('active');
+}
+
+function confirmLogout() {
+  closeLogoutModal();
+  state.identity = null;
+  state.name = '';
+  state.city = '';
+  showPage('page-lang');
+}
 </script>
 </body>
 </html>
