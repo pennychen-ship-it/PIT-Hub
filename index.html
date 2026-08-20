@@ -187,7 +187,7 @@
   </div>
 </div>
 
-<!-- 3. VISITOR WIZARD STEP 1 (UNTOUCHED) -->
+<!-- 3. VISITOR WIZARD STEP 1 -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
@@ -220,7 +220,7 @@
   </div>
 </div>
 
-<!-- 4. VISITOR WIZARD STEP 2 (UNTOUCHED) -->
+<!-- 4. VISITOR WIZARD STEP 2 -->
 <div id="page-survey" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
@@ -280,7 +280,7 @@
   </div>
 </div>
 
-<!-- 6. MY PROFILE (MODIFIED FOR PIT TEAM BACKGROUND & NICKNAME REMOVAL) -->
+<!-- 6. MY PROFILE -->
 <div id="page-profile" class="page">
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
@@ -333,7 +333,7 @@
       <div class="label" id="label-profile-city">City / Location</div>
       <input class="input" id="profile-city" style="margin-bottom: 20px;">
 
-      <!-- PIT Team Custom Background Section (1 Change Per Week Limit) -->
+      <!-- PIT Team Custom Background Section -->
       <div id="team-bg-section" style="display: none; margin-top: 10px; padding-top: 16px; border-top: 1px dashed var(--border);">
         <div class="label">Custom Background (1 Change / Week)</div>
         <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;" id="bg-cooldown-notice">
@@ -666,29 +666,33 @@ function getAvatarHTML(avatarKey, customUrl) {
 
 async function fetchCloudComments() {
   if (!supabase) return;
-  const { data, error } = await supabase.from('comments').select('*').order('created_at', { ascending: false });
-  if (!error && data && data.length > 0) {
-    state.activeComments = data.map(item => ({
-      id: item.id,
-      avatar: item.avatar || 'A',
-      customAvatarUrl: item.custom_avatar_url || null,
-      name: item.name || 'Anonymous',
-      city: item.city || 'Earth',
-      sentences: [item.content],
-      timestamp: new Date(item.created_at).getTime(),
-      isTeamReply: item.is_team_reply || false,
-      productId: item.product_id || null,
-      replies: item.replies || []
-    }));
-  }
+  try {
+    const { data, error } = await supabase.from('comments').select('*').order('created_at', { ascending: false });
+    if (!error && data && data.length > 0) {
+      state.activeComments = data.map(item => ({
+        id: item.id,
+        avatar: item.avatar || 'A',
+        customAvatarUrl: item.custom_avatar_url || null,
+        name: item.name || 'Anonymous',
+        city: item.city || 'Earth',
+        sentences: [item.content],
+        timestamp: new Date(item.created_at).getTime(),
+        isTeamReply: item.is_team_reply || false,
+        productId: item.product_id || null,
+        replies: item.replies || []
+      }));
+    }
+  } catch(err) {}
   renderComments();
 }
 
 async function listenRealtimeComments() {
   if (!supabase) return;
-  supabase.channel('public:comments').on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
-    fetchCloudComments();
-  }).subscribe();
+  try {
+    supabase.channel('public:comments').on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+      fetchCloudComments();
+    }).subscribe();
+  } catch(err) {}
 }
 
 function renderComments() {
@@ -782,55 +786,66 @@ async function sendReply(commentId) {
     if (!targetComment.replies) targetComment.replies = [];
     targetComment.replies.push({ name: state.name || 'Anonymous', content: val });
 
-    if (supabase) {
-      await supabase.from('comments').update({ replies: targetComment.replies }).eq('id', commentId);
-    }
+    try {
+      if (supabase) {
+        await supabase.from('comments').update({ replies: targetComment.replies }).eq('id', commentId);
+      }
+    } catch(err) {}
   }
 
   state.activeReplyId = null;
   renderComments();
 }
 
+// FIXED SUBMIT FEEDBACK LOGIC
 async function addComment() {
   var input = document.getElementById('new-comment');
+  var btn = document.getElementById('btn-submit-feedback');
   var val = input.value.trim();
   if (!val) return;
 
   var isTeam = (state.identity === 'team');
   var pSelect = document.getElementById('product-select');
   var pId = (isTeam && pSelect) ? parseInt(pSelect.value) || null : null;
-
   var avatarUrlToSave = isTeam ? PIT_TEAM_AVATAR_URL : state.customAvatarUrl;
 
-  var newObj = {
+  var commentObj = {
+    id: Date.now(),
     avatar: state.avatar,
-    custom_avatar_url: avatarUrlToSave,
+    customAvatarUrl: avatarUrlToSave,
     name: isTeam ? 'PIT Team' : (state.name || 'Anonymous'),
     city: state.city || 'Earth',
-    content: val,
-    is_team_reply: isTeam,
-    product_id: pId
+    sentences: [val],
+    timestamp: Date.now(),
+    isTeamReply: isTeam,
+    productId: pId,
+    replies: []
   };
 
-  if (supabase) {
-    await supabase.from('comments').insert([newObj]);
-  } else {
-    state.activeComments.unshift({
-      id: Date.now(),
-      avatar: state.avatar,
-      customAvatarUrl: avatarUrlUrlToSave,
-      name: isTeam ? 'PIT Team' : (state.name || 'Anonymous'),
-      city: state.city || 'Earth',
-      sentences: [val],
-      timestamp: Date.now(),
-      isTeamReply: isTeam,
-      productId: pId,
-      replies: []
-    });
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  try {
+    if (supabase) {
+      await supabase.from('comments').insert([{
+        avatar: state.avatar,
+        custom_avatar_url: avatarUrlToSave,
+        name: commentObj.name,
+        city: commentObj.city,
+        content: val,
+        is_team_reply: isTeam,
+        product_id: pId
+      }]);
+    }
+  } catch (err) {
+    console.warn("Supabase insert failed, using local storage:", err);
+  } finally {
+    state.activeComments.unshift(commentObj);
+    input.value = '';
+    btn.disabled = false;
+    btn.textContent = i18n[state.lang].btnSubmitFeedback;
     renderComments();
   }
-
-  input.value = '';
 }
 
 function openProfilePage() {
@@ -841,8 +856,8 @@ function openProfilePage() {
   if (state.identity === 'team') {
     state.customAvatarUrl = PIT_TEAM_AVATAR_URL;
     visitorAvatarSection.style.display = 'none';
-    visitorNameSection.style.display = 'none'; // Completely removed/hidden nickname field for PIT Team
-    teamBgSection.style.display = 'block';     // Show custom background option for PIT Team
+    visitorNameSection.style.display = 'none';
+    teamBgSection.style.display = 'block';
     updateBgNotice();
   } else {
     visitorAvatarSection.style.display = 'block';
