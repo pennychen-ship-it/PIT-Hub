@@ -303,7 +303,10 @@
         <button type="button" class="btn btn-sm" style="width: 100%; margin-bottom: 16px;" onclick="resetBackground()">Reset Default Background</button>
       </div>
 
-      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="saveProfile()">Save Changes</button>
+      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px; margin-bottom: 12px;" onclick="saveProfile()">Save Changes</button>
+      
+      <!-- Delete Account 按钮 -->
+      <button type="button" class="btn btn-danger btn-sm" style="width: 100%; text-align: center;" onclick="handleDeleteAccount()">Delete Account</button>
     </div>
   </div>
 </div>
@@ -386,7 +389,6 @@ var state = {
 
 var avatars = { A: '🤖', B: '👾', C: '🦾', D: '👽' };
 
-/* Session Handling */
 function saveUserSession() {
   var sessionData = {
     isLoggedIn: state.isLoggedIn,
@@ -470,18 +472,41 @@ function updateAuthStateUI() {
   }
 }
 
+/* 1. 点击 Log Out 确认弹窗与跳转 Sign In */
 function handleLogOut() {
-  state.isLoggedIn = false;
-  state.identity = null;
-  state.name = '';
-  state.city = '';
-  state.customAvatarUrl = null;
-  
-  localStorage.removeItem('pit_user_session');
+  var confirmLogout = confirm("Are you sure you want to log out?");
+  if (confirmLogout) {
+    state.isLoggedIn = false;
+    state.identity = null;
+    state.name = '';
+    state.city = '';
+    state.customAvatarUrl = null;
+    
+    localStorage.removeItem('pit_user_session');
 
-  updateAuthStateUI();
-  renderComments();
-  showPage('page-home');
+    updateAuthStateUI();
+    renderComments();
+    startAuthFlow('signin'); // 跳转至选择身份/Sign In页面
+  }
+}
+
+/* Delete Account (注销账号) */
+function handleDeleteAccount() {
+  var confirmDelete = confirm("Are you sure you want to delete your account? This action cannot be undone.");
+  if (confirmDelete) {
+    state.isLoggedIn = false;
+    state.identity = null;
+    state.name = '';
+    state.city = '';
+    state.customAvatarUrl = null;
+    
+    localStorage.removeItem('pit_user_session');
+
+    alert("Account deleted successfully.");
+    updateAuthStateUI();
+    renderComments();
+    showPage('page-home');
+  }
 }
 
 function showPage(pageId) {
@@ -589,6 +614,22 @@ async function fetchCloudComments() {
   renderComments();
 }
 
+/* 2. 删除留言处理函数 */
+async function deleteComment(commentId) {
+  var confirmDel = confirm("Are you sure you want to delete this comment?");
+  if (!confirmDel) return;
+
+  state.activeComments = state.activeComments.filter(function(c) { return c.id !== commentId; });
+
+  try {
+    if (supabase) {
+      await supabase.from('comments').delete().eq('id', commentId);
+    }
+  } catch(err) {}
+
+  renderComments();
+}
+
 function renderComments() {
   var area = document.getElementById('comments-area');
   if(!area) return;
@@ -634,6 +675,7 @@ function renderComments() {
 
     var currentAvatarUrl = c.isTeamReply ? PIT_TEAM_AVATAR_URL : c.customAvatarUrl;
 
+    /* 包含 Delete 按钮的留言节点 */
     html += '<div class="comment">' +
       '<div style="display: flex; gap: 12px; align-items: flex-start;">' +
         getAvatarHTML(c.avatar, currentAvatarUrl) +
@@ -646,8 +688,9 @@ function renderComments() {
           '<div style="margin-top: 8px;">' + c.sentences.join('<br>') + '</div>' +
           productTag +
           repliesHTML +
-          '<div style="margin-top: 10px; text-align: right;">' +
+          '<div style="margin-top: 10px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">' +
             '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')">Reply</button>' +
+            '<button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">Delete</button>' +
           '</div>' +
           replyInputHTML +
         '</div>' +
@@ -850,11 +893,10 @@ function deleteProduct(productId) {
 /* 初始化逻辑 */
 applyBackground();
 updateProductDropdown();
-loadUserSession(); // 尝试恢复登录 Session
+loadUserSession();
 updateAuthStateUI();
 fetchCloudComments();
 
-// 核心：不论是否已登录，直接进入 Home 页面
 showPage('page-home');
 </script>
 </body>
