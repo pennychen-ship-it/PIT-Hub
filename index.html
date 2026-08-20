@@ -439,7 +439,6 @@ function showPage(pageId) {
 
 function selectLang(langKey) {
   state.lang = langKey;
-  // 添加安全校验，防止 multiLangComments 未定义导致报错卡死
   if (state.multiLangComments && state.multiLangComments[langKey]) {
     state.activeComments = Array.from(state.multiLangComments[langKey]);
   } else {
@@ -488,9 +487,9 @@ function selectIdentity(idType) {
   state.identity = idType;
   if (idType === 'team') {
     state.name = 'PIT Team';
-    state.city = 'Beijing'; // 1. Location 改为 Beijing
-    state.avatar = 'custom'; // 2. 不支持选默认头像，开启自定义头像
-    state.customAvatarUrl = 'https://i.postimg.cc/mD8Z8KxV/gear.jpg'; // 设置为齿轮图
+    state.city = 'Beijing';
+    state.avatar = 'custom';
+    state.customAvatarUrl = 'https://i.postimg.cc/mD8Z8KxV/gear.jpg';
     document.getElementById('home-badge').style.display = 'inline-block';
     document.getElementById('nav-team').style.display = 'inline-block';
     document.getElementById('nav-profile-team').style.display = 'inline-block';
@@ -652,32 +651,36 @@ function renderComments() {
       repliesHTML += '</div>';
     }
 
-    var replyBoxHTML = '';
+    var replyInputHTML = '';
     if (state.activeReplyId === c.id) {
-      replyBoxHTML = '<div style="margin-top:12px; display:flex; gap:8px;">' +
-        '<input class="input" id="reply-input-' + c.id + '" placeholder="Reply..." style="font-size:13px;">' +
-        '<button type="button" class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">Send</button>' +
-      '</div>';
+      replyInputHTML = '<div style="margin-top: 12px; display: flex; gap: 8px;">' +
+        '<input class="input" id="reply-input-' + c.id + '" placeholder="Write a reply..." style="font-size: 13px;">' +
+        '<button type="button" class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">Reply</button>' +
+        '</div>';
     }
+
     html += '<div class="comment">' +
-      '<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">' +
+      '<div style="display: flex; gap: 12px; align-items: flex-start;">' +
         getAvatarHTML(c.avatar, c.customAvatarUrl) +
-        '<div>' +
-          '<div style="font-weight:600; font-size:14px;">' + c.name + (c.isTeamReply ? ' <span class="team-badge">TEAM</span>' : '') + '</div>' +
-          '<div class="comment-meta">' + c.city + ' • ' + dateStr + '</div>' +
+        '<div style="flex: 1;">' +
+          '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+            '<div><strong>' + c.name + '</strong> <span style="color: var(--text-dim); font-size: 12px;">(' + c.city + ')</span>' + 
+            (c.isTeamReply ? ' <span class="team-badge">TEAM</span>' : '') + '</div>' +
+            '<div class="comment-meta">' + dateStr + '</div>' +
+          '</div>' +
+          '<div style="margin-top: 8px;">' + c.sentences.join('<br>') + '</div>' +
+          productTag +
+          repliesHTML +
+          '<div style="margin-top: 10px; text-align: right;">' +
+            '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')">Reply</button>' +
+          '</div>' +
+          replyInputHTML +
         '</div>' +
-      '</div>' +
-      '<div class="comment-sentence">' + c.sentences.join('<br>') + '</div>' +
-      productTag +
-      repliesHTML +
-      replyBoxHTML +
-      '<div style="margin-top:10px; display:flex; gap:10px;">' +
-        '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')">Reply</button>' +
       '</div>' +
     '</div>';
   }
 
-  area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages yet</div>';
+  area.innerHTML = html || '<div style="text-align: center; color: var(--text-dim); padding: 40px;">No messages found</div>';
 }
 
 function clearSearch() {
@@ -701,7 +704,7 @@ async function sendReply(commentId) {
   if (targetComment) {
     if (!targetComment.replies) targetComment.replies = [];
     targetComment.replies.push({ name: state.name || 'Anonymous', content: val });
-    
+
     if (supabase) {
       await supabase.from('comments').update({ replies: targetComment.replies }).eq('id', commentId);
     }
@@ -716,42 +719,20 @@ async function addComment() {
   var val = input.value.trim();
   if (!val) return;
 
-  var prodSelect = document.getElementById('product-select');
-  var pId = (state.identity === 'team' && prodSelect) ? parseInt(prodSelect.value) || null : null;
-
   var isTeam = (state.identity === 'team');
+  var pSelect = document.getElementById('product-select');
+  var pId = (isTeam && pSelect) ? parseInt(pSelect.value) || null : null;
 
   var newObj = {
-    avatar: isTeam ? 'custom' : state.avatar,
-    custom_avatar_url: isTeam ? 'https://i.imgur.com/example-gear-logo.png' : state.customAvatarUrl,
-    name: isTeam ? 'PIT Team' : (state.name || 'Anonymous'),
-    city: isTeam ? 'Beijing' : (state.city || 'Earth'), // 团队固定为 Beijing
+    avatar: state.avatar,
+    custom_avatar_url: state.customAvatarUrl,
+    name: state.name || 'Anonymous',
+    city: state.city || 'Earth',
     content: val,
     is_team_reply: isTeam,
-    product_id: pId,
-    replies: []
+    product_id: pId
   };
 
-  if (supabase) {
-    await supabase.from('comments').insert([newObj]);
-  } else {
-    state.activeComments.unshift({
-      id: Date.now(),
-      avatar: newObj.avatar,
-      customAvatarUrl: newObj.custom_avatar_url,
-      name: newObj.name,
-      city: newObj.city,
-      sentences: [val],
-      timestamp: Date.now(),
-      isTeamReply: isTeam,
-      productId: pId,
-      replies: []
-    });
-    renderComments();
-  }
-
-  input.value = '';
-}
   if (supabase) {
     await supabase.from('comments').insert([newObj]);
   } else {
@@ -763,14 +744,15 @@ async function addComment() {
       city: state.city || 'Earth',
       sentences: [val],
       timestamp: Date.now(),
-      isTeamReply: (state.identity === 'team'),
+      isTeamReply: isTeam,
       productId: pId,
       replies: []
     });
     renderComments();
   }
 
-  
+  input.value = '';
+}
 
 function openProfilePage() {
   document.getElementById('profile-name').value = state.name;
@@ -779,7 +761,7 @@ function openProfilePage() {
   var avatarSection = document.getElementById('avatar-select-section');
   if (avatarSection) {
     if (state.identity === 'team') {
-      avatarSection.style.display = 'none'; // PIT Team 不支持自定义/切换头像
+      avatarSection.style.display = 'none';
     } else {
       avatarSection.style.display = 'block';
     }
