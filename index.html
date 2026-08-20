@@ -129,8 +129,8 @@
     cursor: pointer; font-weight: 500; transition: all 0.15s; margin-top: 8px;
   }
   .avatar-preview-box {
-    width: 60px; height: 60px; border-radius: 50%; border: 2px dashed var(--primary);
-    margin: 10px auto 0 auto; display: flex; align-items: center; justify-content: center;
+    width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--primary);
+    margin: 12px auto 0 auto; display: flex; align-items: center; justify-content: center;
     overflow: hidden; background: var(--bg-elevated);
   }
   .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
@@ -138,6 +138,12 @@
     display: inline-block; background: var(--primary-light); color: var(--primary);
     font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
   }
+  .lang-switch-pills { display: flex; gap: 6px; margin-bottom: 16px; justify-content: center; }
+  .lang-pill {
+    padding: 4px 10px; border: 1px solid var(--border); background: var(--bg-card);
+    font-size: 12px; border-radius: 6px; cursor: pointer; font-weight: 500;
+  }
+  .lang-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
 </style>
 </head>
 <body>
@@ -158,7 +164,7 @@
   </div>
 </div>
 
-<!-- 2. IDENTITY SELECTION (AUTH FLOW START) -->
+<!-- 2. IDENTITY SELECTION -->
 <div id="page-identity" class="page center" style="padding: 40px 20px;">
   <div style="text-align: center; max-width: 420px; width: 100%;">
     <div class="splash-logo" style="margin-bottom: 12px; font-size: 26px;">PIT HUB</div>
@@ -175,7 +181,7 @@
   </div>
 </div>
 
-<!-- 3. VISITOR WIZARD STEP 1: INFO -->
+<!-- 3. VISITOR WIZARD STEP 1 -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
@@ -185,16 +191,16 @@
     <div class="card">
       <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
-        <div class="avatar-select selected" onclick="pickAvatar('A', this)">🤖</div>
-        <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
-        <div class="avatar-select" onclick="pickAvatar('C', this)">🦾</div>
-        <div class="avatar-select" onclick="pickAvatar('D', this)">👽</div>
+        <div class="avatar-select selected" onclick="pickAvatar('A', this, 'visitor')">🤖</div>
+        <div class="avatar-select" onclick="pickAvatar('B', this, 'visitor')">👾</div>
+        <div class="avatar-select" onclick="pickAvatar('C', this, 'visitor')">🦾</div>
+        <div class="avatar-select" onclick="pickAvatar('D', this, 'visitor')">👽</div>
       </div>
       
       <div style="text-align: center; margin-bottom: 20px;">
         <label class="file-upload-btn">
           📁 <span id="btn-upload-text">Upload photo from computer</span>
-          <input type="file" onchange="handleFileUpload(event)" accept="image/*" style="display: none;">
+          <input type="file" onchange="handleFileUpload(event, 'visitor')" accept="image/*" style="display: none;">
         </label>
         <div id="visitor-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
       </div>
@@ -208,7 +214,7 @@
   </div>
 </div>
 
-<!-- 4. VISITOR WIZARD STEP 2: SURVEY -->
+<!-- 4. VISITOR WIZARD STEP 2 -->
 <div id="page-survey" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
@@ -230,7 +236,7 @@
   </div>
 </div>
 
-<!-- 5. HOME / COMMUNITY HALL -->
+<!-- 5. HOME -->
 <div id="page-home" class="page">
   <div class="header">
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -239,13 +245,9 @@
     </div>
     <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link active" onclick="showPage('page-home')">Home</span>
-      
-      <!-- LOGGED IN NAVIGATION -->
       <span class="nav-link auth-logged-in" style="display:none;" onclick="openProfilePage()">My Info</span>
       <span class="nav-link auth-logged-in" id="nav-team" style="display:none;" onclick="openTeamPage()">Edit Panel</span>
       <span class="nav-auth-btn logout auth-logged-in" style="display:none;" onclick="handleLogOut()">Log Out</span>
-      
-      <!-- LOGGED OUT NAVIGATION -->
       <span class="nav-auth-btn signin auth-logged-out" onclick="startAuthFlow('signin')">Sign In</span>
       <span class="nav-auth-btn create auth-logged-out" onclick="startAuthFlow('create')">Create Account</span>
     </div>
@@ -272,7 +274,7 @@
   </div>
 </div>
 
-<!-- 6. MY PROFILE -->
+<!-- 6. MY PROFILE (WITH SYSTEM LANGUAGE SYSTEM & TEAM AVATAR LOCK) -->
 <div id="page-profile" class="page">
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
@@ -284,27 +286,41 @@
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
-    <div id="profile-title" style="font-size: 20px; margin-bottom: 24px; color: var(--text); font-weight: 700;">My Information</div>
+    <div id="profile-title" style="font-size: 20px; margin-bottom: 12px; color: var(--text); font-weight: 700;">My Information</div>
+    
+    <!-- System Language Selector in My Info -->
+    <div class="lang-switch-pills">
+      <span class="lang-pill" id="pill-zh-HK" onclick="switchSystemLang('zh-HK')">繁體中文</span>
+      <span class="lang-pill" id="pill-zh-CN" onclick="switchSystemLang('zh-CN')">简体中文</span>
+      <span class="lang-pill" id="pill-en" onclick="switchSystemLang('en')">English</span>
+    </div>
+
     <div class="card">
-      <div class="label">Avatar</div>
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
-        <div class="avatar-select" onclick="pickAvatar('A', this)">🤖</div>
-        <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
-        <div class="avatar-select" onclick="pickAvatar('C', this)">🦾</div>
-        <div class="avatar-select" onclick="pickAvatar('D', this)">👽</div>
-      </div>
+      <div class="label" id="label-profile-avatar">Avatar</div>
       
-      <div style="text-align: center; margin-bottom: 20px;">
-        <label class="file-upload-btn">
-          📁 <span>Upload new photo</span>
-          <input type="file" onchange="handleFileUpload(event)" accept="image/*" style="display: none;">
-        </label>
-        <div id="profile-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
+      <!-- Visitor Avatar Choice -->
+      <div id="visitor-avatar-section">
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
+          <div class="avatar-select" onclick="pickAvatar('A', this, 'profile')">🤖</div>
+          <div class="avatar-select" onclick="pickAvatar('B', this, 'profile')">👾</div>
+          <div class="avatar-select" onclick="pickAvatar('C', this, 'profile')">🦾</div>
+          <div class="avatar-select" onclick="pickAvatar('D', this, 'profile')">👽</div>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+          <label class="file-upload-btn">
+            📁 <span id="label-profile-upload">Upload photo from computer</span>
+            <input type="file" onchange="handleFileUpload(event, 'profile')" accept="image/*" style="display: none;">
+          </label>
+        </div>
       </div>
 
-      <div class="label">Name / Nickname</div>
+      <!-- Live Avatar Box -->
+      <div id="profile-avatar-preview" class="avatar-preview-box" style="margin-bottom: 20px;"></div>
+
+      <div class="label" id="label-profile-name">Name / Nickname</div>
       <input class="input" id="profile-name" style="margin-bottom: 14px;">
-      <div class="label">City / Location</div>
+      <div class="label" id="label-profile-city">City / Location</div>
       <input class="input" id="profile-city" style="margin-bottom: 20px;">
       <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile" onclick="saveProfile()">Save Changes</button>
     </div>
@@ -341,6 +357,9 @@ const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
 var supabase = null;
 
+// Constant image URL for PIT Team (Penny Chen PBOX Image)
+const PIT_TEAM_AVATAR_URL = "https://i.postimg.cc/44C5Lmg9/pbox-penny.jpg"; 
+
 try {
   if (window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 } catch(e) {}
@@ -361,7 +380,7 @@ var state = {
   ],
   activeComments: [
     { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-    { id: 102, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Welcome aboard! Let us know if you need help.'], timestamp: Date.now() - 3600000, isTeamReply: true, productId: 1, replies: [] }
+    { id: 102, avatar: 'CUSTOM', customAvatarUrl: PIT_TEAM_AVATAR_URL, name: 'PIT Team', city: 'Peox HQ', sentences: ['Welcome aboard! Let us know if you need help.'], timestamp: Date.now() - 3600000, isTeamReply: true, productId: 1, replies: [] }
   ]
 };
 
@@ -419,6 +438,7 @@ function handleLogOut() {
   state.identity = null;
   state.name = '';
   state.city = '';
+  state.customAvatarUrl = null;
   document.getElementById('home-badge').style.display = 'none';
   document.getElementById('team-product-select').style.display = 'none';
   updateAuthStateUI();
@@ -436,6 +456,11 @@ function selectLang(langKey) {
   state.lang = langKey;
   updateTexts();
   startAuthFlow('signin');
+}
+
+function switchSystemLang(langKey) {
+  state.lang = langKey;
+  updateTexts();
 }
 
 function startAuthFlow(action) {
@@ -465,6 +490,17 @@ function updateTexts() {
   document.getElementById('new-comment').placeholder = l.commentPlaceholder;
   document.getElementById('btn-submit-feedback').textContent = l.btnSubmitFeedback;
   document.getElementById('btn-upload-text').textContent = l.uploadText;
+  if(document.getElementById('label-profile-upload')) document.getElementById('label-profile-upload').textContent = l.uploadText;
+  if(document.getElementById('label-profile-avatar')) document.getElementById('label-profile-avatar').textContent = l.labelAvatar;
+  if(document.getElementById('label-profile-name')) document.getElementById('label-profile-name').textContent = l.labelName;
+  if(document.getElementById('label-profile-city')) document.getElementById('label-profile-city').textContent = l.labelCity;
+  
+  // Highlight active language pill
+  var pills = document.querySelectorAll('.lang-pill');
+  for(var i=0; i<pills.length; i++) pills[i].classList.remove('active');
+  var activePill = document.getElementById('pill-' + state.lang);
+  if(activePill) activePill.classList.add('active');
+
   updateProductDropdown();
 }
 
@@ -473,9 +509,9 @@ function selectIdentity(idType) {
   if (idType === 'team') {
     state.isLoggedIn = true;
     state.name = 'PIT Team';
-    state.city = 'Beijing';
-    state.avatar = 'custom';
-    state.customAvatarUrl = 'https://i.postimg.cc/mD8Z8KxV/gear.jpg';
+    state.city = 'Peox HQ';
+    state.avatar = 'CUSTOM';
+    state.customAvatarUrl = PIT_TEAM_AVATAR_URL;
     document.getElementById('home-badge').style.display = 'inline-block';
     document.getElementById('team-product-select').style.display = 'block';
     updateAuthStateUI();
@@ -487,25 +523,35 @@ function selectIdentity(idType) {
   }
 }
 
-function pickAvatar(key, el) {
+function pickAvatar(key, el, context) {
   var parent = el.parentNode;
   var nodes = parent.querySelectorAll('.avatar-select');
   for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
   if (el) el.classList.add('selected');
   state.avatar = key;
+  state.customAvatarUrl = null;
+  updateAvatarPreview(context);
 }
 
-function handleFileUpload(e) {
+function handleFileUpload(e, context) {
   var file = e.target.files[0];
   if (file) {
     var reader = new FileReader();
     reader.onload = function(evt) { 
       state.customAvatarUrl = evt.target.result; 
       state.avatar = 'CUSTOM';
-      alert('Photo uploaded!'); 
+      updateAvatarPreview(context);
     };
     reader.readAsDataURL(file);
   }
+}
+
+function updateAvatarPreview(context) {
+  var previewBox = document.getElementById(context === 'visitor' ? 'visitor-avatar-preview' : 'profile-avatar-preview');
+  if (!previewBox) return;
+  
+  previewBox.style.display = 'flex';
+  previewBox.innerHTML = getAvatarHTML(state.avatar, state.customAvatarUrl);
 }
 
 function submitVisitorInfo() {
@@ -600,9 +646,12 @@ function renderComments() {
         '</div>';
     }
 
+    // Force PIT Team Avatar picture if comment belongs to team
+    var currentAvatarUrl = c.isTeamReply ? PIT_TEAM_AVATAR_URL : c.customAvatarUrl;
+
     html += '<div class="comment">' +
       '<div style="display: flex; gap: 12px; align-items: flex-start;">' +
-        getAvatarHTML(c.avatar, c.customAvatarUrl) +
+        getAvatarHTML(c.avatar, currentAvatarUrl) +
         '<div style="flex: 1;">' +
           '<div style="display: flex; justify-content: space-between; align-items: center;">' +
             '<div><strong>' + c.name + '</strong> <span style="color: var(--text-dim); font-size: 12px;">(' + c.city + ')</span>' + 
@@ -664,9 +713,11 @@ async function addComment() {
   var pSelect = document.getElementById('product-select');
   var pId = (isTeam && pSelect) ? parseInt(pSelect.value) || null : null;
 
+  var avatarUrlToSave = isTeam ? PIT_TEAM_AVATAR_URL : state.customAvatarUrl;
+
   var newObj = {
     avatar: state.avatar,
-    custom_avatar_url: state.customAvatarUrl,
+    custom_avatar_url: avatarUrlToSave,
     name: state.name || 'Anonymous',
     city: state.city || 'Earth',
     content: val,
@@ -680,7 +731,7 @@ async function addComment() {
     state.activeComments.unshift({
       id: Date.now(),
       avatar: state.avatar,
-      customAvatarUrl: state.customAvatarUrl,
+      customAvatarUrl: avatarUrlToSave,
       name: state.name || 'Anonymous',
       city: state.city || 'Earth',
       sentences: [val],
@@ -698,14 +749,26 @@ async function addComment() {
 function openProfilePage() {
   document.getElementById('profile-name').value = state.name;
   document.getElementById('profile-city').value = state.city;
+  
+  var visitorSection = document.getElementById('visitor-avatar-section');
+  if (state.identity === 'team') {
+    state.customAvatarUrl = PIT_TEAM_AVATAR_URL;
+    visitorSection.style.display = 'none';
+  } else {
+    visitorSection.style.display = 'block';
+  }
+
+  updateAvatarPreview('profile');
+  updateTexts();
   showPage('page-profile');
 }
 
 function saveProfile() {
   state.name = document.getElementById('profile-name').value.trim();
   state.city = document.getElementById('profile-city').value.trim();
-  alert('Saved!');
+  alert('Profile updated successfully!');
   showPage('page-home');
+  renderComments();
 }
 
 function openTeamPage() {
