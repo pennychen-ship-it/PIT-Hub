@@ -65,7 +65,6 @@
   }
   .nav-link:hover, .nav-link.active { color: var(--primary); background: var(--primary-light); }
   
-  /* 包含 Log Out 和下方提示语的包裹容器 */
   .logout-wrapper {
     display: flex;
     flex-direction: column;
@@ -150,11 +149,15 @@
     background: #fff; border-radius: 12px; width: 100%; max-width: 450px;
     padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
   }
+  .lang-select {
+    padding: 4px 8px; font-size: 12px; border-radius: 6px; cursor: pointer;
+    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
+  }
 </style>
 </head>
 <body>
 
-<!-- 1. HOME (默认页面) -->
+<!-- 1. HOME -->
 <div id="page-home" class="page active">
   <div class="header">
     <div style="display: flex; align-items: center; gap: 10px;">
@@ -162,26 +165,29 @@
       <span id="home-badge" class="team-badge" style="display: none;">TEAM</span>
     </div>
     <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-      <span class="nav-link active" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link auth-logged-in" style="display:none;" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link auth-logged-in" id="nav-team" style="display:none;" onclick="openTeamPage()">Edit Panel</span>
+      <select class="lang-select" onchange="changeLanguage(this.value)">
+        <option value="en" selected>🌐 English</option>
+        <option value="zh">🌐 中文</option>
+      </select>
+      <span class="nav-link active" data-i18n="home" onclick="showPage('page-home')">Home</span>
+      <span class="nav-link auth-logged-in" data-i18n="myInfo" style="display:none;" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link auth-logged-in" id="nav-team" data-i18n="editPanel" style="display:none;" onclick="openTeamPage()">Edit Panel</span>
       
-      <!-- Log Out 包含 Delete Account 提示词 -->
       <div class="logout-wrapper auth-logged-in" style="display:none;">
-        <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
-        <span class="logout-subtext">Delete Account</span>
+        <span class="nav-auth-btn logout" data-i18n="logOut" onclick="handleLogOut()">Log Out</span>
+        <span class="logout-subtext" data-i18n="deleteAccount">Delete Account</span>
       </div>
 
-      <span class="nav-auth-btn signin auth-logged-out" onclick="startAuthFlow('signin')">Sign In</span>
-      <span class="nav-auth-btn create auth-logged-out" onclick="startAuthFlow('create')">Create Account</span>
+      <span class="nav-auth-btn signin auth-logged-out" data-i18n="signIn" onclick="startAuthFlow('signin')">Sign In</span>
+      <span class="nav-auth-btn create auth-logged-out" data-i18n="createAccount" onclick="startAuthFlow('create')">Create Account</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
     <div class="search-bar">
       <input class="input" id="search-keyword" placeholder="Search keywords..." style="flex: 1;">
       <input class="input" id="search-date" type="date" style="width: 150px; font-size: 13px; color: var(--text-dim);">
-      <button type="button" class="btn btn-sm" onclick="renderComments()">Search</button>
-      <button type="button" class="btn btn-sm" onclick="clearSearch()">Clear</button>
+      <button type="button" class="btn btn-sm" data-i18n="searchBtn" onclick="renderComments()">Search</button>
+      <button type="button" class="btn btn-sm" data-i18n="clearBtn" onclick="clearSearch()">Clear</button>
     </div>
     
     <div id="comments-area" class="scroll"></div>
@@ -189,7 +195,7 @@
     <div id="comment-input-area" style="margin-top: 24px;">
       <div style="display: flex; gap: 10px; margin-bottom: 10px;">
         <input class="input" id="new-comment" placeholder="Write a message..." style="flex: 1;">
-        <button type="button" class="btn btn-primary" id="btn-submit-feedback" onclick="addComment()">submit feedback</button>
+        <button type="button" class="btn btn-primary" id="btn-submit-feedback" data-i18n="submitFeedback" onclick="addComment()">submit feedback</button>
       </div>
       <div id="team-product-select" style="display: none;">
         <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);"></select>
@@ -205,7 +211,7 @@
     <div style="margin-bottom: 24px;">
       <span class="wizard-step-badge" id="identity-mode-badge">Authenticating</span>
     </div>
-    <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim); font-weight: 500;">Select your identity</div>
+    <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim); font-weight: 500;" data-i18n="selectIdentity">Select your identity</div>
     <button type="button" class="btn btn-primary" onclick="selectIdentity('team')" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 15px;">
       PIT Team (No Wizard)
     </button>
@@ -213,7 +219,7 @@
       Visitor (With Wizard)
     </button>
     <div style="margin-top: 20px;">
-      <button type="button" class="btn btn-sm" onclick="showPage('page-home')">← Back to Home</button>
+      <button type="button" class="btn btn-sm" data-i18n="backHome" onclick="showPage('page-home')">← Back to Home</button>
     </div>
   </div>
 </div>
@@ -226,7 +232,7 @@
       <span class="wizard-step-badge">Visitor Wizard • Step 1 of 2</span>
     </div>
     <div class="card">
-      <div class="label">Choose Preset Avatar or Upload Photo</div>
+      <div class="label" data-i18n="chooseAvatar">Choose Preset Avatar or Upload Photo</div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
         <div class="avatar-select selected" onclick="pickAvatar('A', this, 'visitor')">🤖</div>
         <div class="avatar-select" onclick="pickAvatar('B', this, 'visitor')">👾</div>
@@ -236,17 +242,17 @@
       
       <div style="text-align: center; margin-bottom: 20px;">
         <label class="file-upload-btn">
-          📁 <span>Upload photo from computer</span>
+          📁 <span data-i18n="uploadPhoto">Upload photo from computer</span>
           <input type="file" onchange="handleFileUpload(event, 'visitor')" accept="image/*" style="display: none;">
         </label>
         <div id="visitor-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
       </div>
 
-      <div class="label" style="margin-top: 4px;">Name / Nickname</div>
+      <div class="label" style="margin-top: 4px;" data-i18n="nameLabel">Name / Nickname</div>
       <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
-      <div class="label">City / Location</div>
+      <div class="label" data-i18n="cityLabel">City / Location</div>
       <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
-      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="submitVisitorInfo()">Next Step →</button>
+      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" data-i18n="nextStep" onclick="submitVisitorInfo()">Next Step →</button>
     </div>
   </div>
 </div>
@@ -259,7 +265,7 @@
       <span class="wizard-step-badge">Visitor Wizard • Step 2 of 2</span>
     </div>
 
-    <div style="text-align: center; margin-bottom: 24px; color: var(--text); font-size: 16px; font-weight: 600;">How did you hear about PIT?</div>
+    <div style="text-align: center; margin-bottom: 24px; color: var(--text); font-size: 16px; font-weight: 600;" data-i18n="surveyTitle">How did you hear about PIT?</div>
     <div class="card">
       <div class="radio-group">
         <label><input type="radio" name="survey" value="social" checked> <span>Social Media</span></label>
@@ -268,7 +274,7 @@
         <label><input type="radio" name="survey" value="event"> <span>Tech Event / Conference</span></label>
         <label><input type="radio" name="survey" value="other"> <span>Other</span></label>
       </div>
-      <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" onclick="submitSurvey()">Complete & Enter</button>
+      <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" data-i18n="completeBtn" onclick="submitSurvey()">Complete & Enter</button>
     </div>
   </div>
 </div>
@@ -278,21 +284,25 @@
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
     <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-      <span class="nav-link" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link active" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
+      <select class="lang-select" onchange="changeLanguage(this.value)">
+        <option value="en" selected>🌐 English</option>
+        <option value="zh">🌐 中文</option>
+      </select>
+      <span class="nav-link" data-i18n="home" onclick="showPage('page-home')">Home</span>
+      <span class="nav-link active" data-i18n="myInfo" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link" id="nav-profile-team" data-i18n="editPanel" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
       
       <div class="logout-wrapper">
-        <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
-        <span class="logout-subtext">Delete Account</span>
+        <span class="nav-auth-btn logout" data-i18n="logOut" onclick="handleLogOut()">Log Out</span>
+        <span class="logout-subtext" data-i18n="deleteAccount">Delete Account</span>
       </div>
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
-    <div style="font-size: 20px; margin-bottom: 12px; color: var(--text); font-weight: 700;">My Information</div>
+    <div style="font-size: 20px; margin-bottom: 12px; color: var(--text); font-weight: 700;" data-i18n="myInformation">My Information</div>
 
     <div class="card">
-      <div class="label">Avatar</div>
+      <div class="label" data-i18n="avatarLabel">Avatar</div>
       
       <div id="visitor-avatar-section">
         <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
@@ -304,7 +314,7 @@
         
         <div style="text-align: center; margin-bottom: 20px;">
           <label class="file-upload-btn">
-            📁 <span>Upload photo from computer</span>
+            📁 <span data-i18n="uploadPhoto">Upload photo from computer</span>
             <input type="file" onchange="handleFileUpload(event, 'profile')" accept="image/*" style="display: none;">
           </label>
         </div>
@@ -313,23 +323,23 @@
       <div id="profile-avatar-preview" class="avatar-preview-box" style="margin-bottom: 20px;"></div>
 
       <div id="visitor-name-section">
-        <div class="label">Name / Nickname</div>
+        <div class="label" data-i18n="nameLabel">Name / Nickname</div>
         <input class="input" id="profile-name" style="margin-bottom: 14px;">
       </div>
 
-      <div class="label">City / Location</div>
+      <div class="label" data-i18n="cityLabel">City / Location</div>
       <input class="input" id="profile-city" style="margin-bottom: 20px;">
 
       <div id="team-bg-section" style="display: none; margin-top: 10px; padding-top: 16px; border-top: 1px dashed var(--border);">
-        <div class="label">Custom Background</div>
+        <div class="label" data-i18n="customBg">Custom Background</div>
         <label class="file-upload-btn" style="width: 100%; text-align: center; margin-bottom: 10px;">
-          🖼️ <span>Upload Background Image</span>
+          🖼️ <span data-i18n="uploadBg">Upload Background Image</span>
           <input type="file" id="bg-file-input" onchange="handleBgUpload(event)" accept="image/*" style="display: none;">
         </label>
-        <button type="button" class="btn btn-sm" style="width: 100%; margin-bottom: 16px;" onclick="resetBackground()">Reset Default Background</button>
+        <button type="button" class="btn btn-sm" style="width: 100%; margin-bottom: 16px;" data-i18n="resetBg" onclick="resetBackground()">Reset Default Background</button>
       </div>
 
-      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="saveProfile()">Save Changes</button>
+      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" data-i18n="saveChanges" onclick="saveProfile()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -342,20 +352,24 @@
       <span class="team-badge">TEAM ONLY</span>
     </div>
     <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-      <span class="nav-link" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link active">Edit Panel</span>
+      <select class="lang-select" onchange="changeLanguage(this.value)">
+        <option value="en" selected>🌐 English</option>
+        <option value="zh">🌐 中文</option>
+      </select>
+      <span class="nav-link" data-i18n="home" onclick="showPage('page-home')">Home</span>
+      <span class="nav-link" data-i18n="myInfo" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link active" data-i18n="editPanel">Edit Panel</span>
       
       <div class="logout-wrapper">
-        <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
-        <span class="logout-subtext">Delete Account</span>
+        <span class="nav-auth-btn logout" data-i18n="logOut" onclick="handleLogOut()">Log Out</span>
+        <span class="logout-subtext" data-i18n="deleteAccount">Delete Account</span>
       </div>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-      <div style="font-size: 17px; font-weight: 700; color: var(--text);">Product Management</div>
-      <button type="button" class="btn btn-primary btn-sm" onclick="openAddProductModal()">+ Add Product</button>
+      <div style="font-size: 17px; font-weight: 700; color: var(--text);" data-i18n="prodMgmt">Product Management</div>
+      <button type="button" class="btn btn-primary btn-sm" data-i18n="addProdBtn" onclick="openAddProductModal()">+ Add Product</button>
     </div>
     <div id="products-list"></div>
   </div>
@@ -364,19 +378,19 @@
 <!-- MODAL -->
 <div class="modal-overlay" id="product-modal">
   <div class="modal-box">
-    <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Add New Product</div>
-    <div class="label">Product Name</div>
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;" data-i18n="addNewProd">Add New Product</div>
+    <div class="label" data-i18n="prodName">Product Name</div>
     <input class="input" id="pm-name" placeholder="e.g. Neural Link v2.0" style="margin-bottom: 12px;">
-    <div class="label">Price</div>
+    <div class="label" data-i18n="prodPrice">Price</div>
     <input class="input" id="pm-price" placeholder="e.g. $299.00" style="margin-bottom: 12px;">
-    <div class="label">Description / Promo Badge</div>
+    <div class="label" data-i18n="prodDesc">Description / Promo Badge</div>
     <input class="input" id="pm-promo" placeholder="e.g. 20% OFF or Free Shipping" style="margin-bottom: 12px;">
-    <div class="label">Product URL / Link</div>
+    <div class="label" data-i18n="prodUrl">Product URL / Link</div>
     <input class="input" id="pm-link" placeholder="e.g. https://peox.tech/product" style="margin-bottom: 20px;">
 
     <div style="display: flex; gap: 10px; justify-content: flex-end;">
-      <button type="button" class="btn btn-sm" onclick="closeAddProductModal()">Cancel</button>
-      <button type="button" class="btn btn-primary btn-sm" onclick="saveProductModal()">Save Product</button>
+      <button type="button" class="btn btn-sm" data-i18n="cancelBtn" onclick="closeAddProductModal()">Cancel</button>
+      <button type="button" class="btn btn-primary btn-sm" data-i18n="saveProdBtn" onclick="saveProductModal()">Save Product</button>
     </div>
   </div>
 </div>
@@ -393,6 +407,110 @@ const PIT_TEAM_AVATAR_URL = "https://i.postimg.cc/44C5Lmg9/pbox-penny.jpg";
 try {
   if (window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 } catch(e) {}
+
+// Language Translations Object
+const i18n = {
+  en: {
+    home: "Home",
+    myInfo: "My Info",
+    editPanel: "Edit Panel",
+    logOut: "Log Out",
+    deleteAccount: "Delete Account",
+    signIn: "Sign In",
+    createAccount: "Create Account",
+    searchPlaceholder: "Search keywords...",
+    searchBtn: "Search",
+    clearBtn: "Clear",
+    submitFeedback: "submit feedback",
+    writeMessage: "Write a message...",
+    selectIdentity: "Select your identity",
+    backHome: "← Back to Home",
+    chooseAvatar: "Choose Preset Avatar or Upload Photo",
+    uploadPhoto: "Upload photo from computer",
+    nameLabel: "Name / Nickname",
+    cityLabel: "City / Location",
+    nextStep: "Next Step →",
+    surveyTitle: "How did you hear about PIT?",
+    completeBtn: "Complete & Enter",
+    myInformation: "My Information",
+    avatarLabel: "Avatar",
+    customBg: "Custom Background",
+    uploadBg: "Upload Background Image",
+    resetBg: "Reset Default Background",
+    saveChanges: "Save Changes",
+    prodMgmt: "Product Management",
+    addProdBtn: "+ Add Product",
+    addNewProd: "Add New Product",
+    prodName: "Product Name",
+    prodPrice: "Price",
+    prodDesc: "Description / Promo Badge",
+    prodUrl: "Product URL / Link",
+    cancelBtn: "Cancel",
+    saveProdBtn: "Save Product"
+  },
+  zh: {
+    home: "首页",
+    myInfo: "个人信息",
+    editPanel: "编辑面板",
+    logOut: "退出登录",
+    deleteAccount: "注销账号",
+    signIn: "登录",
+    createAccount: "注册账号",
+    searchPlaceholder: "搜索关键词...",
+    searchBtn: "搜索",
+    clearBtn: "清空",
+    submitFeedback: "提交反馈",
+    writeMessage: "编写留言...",
+    selectIdentity: "选择你的身份",
+    backHome: "← 返回首页",
+    chooseAvatar: "选择预设头像或上传照片",
+    uploadPhoto: "从电脑上传照片",
+    nameLabel: "姓名 / 昵称",
+    cityLabel: "城市 / 位置",
+    nextStep: "下一步 →",
+    surveyTitle: "你是如何了解 PIT 的？",
+    completeBtn: "完成并进入",
+    myInformation: "我的个人信息",
+    avatarLabel: "头像",
+    customBg: "自定义背景",
+    uploadBg: "上传背景图片",
+    resetBg: "重置默认背景",
+    saveChanges: "保存修改",
+    prodMgmt: "产品管理",
+    addProdBtn: "+ 添加产品",
+    addNewProd: "添加新产品",
+    prodName: "产品名称",
+    prodPrice: "价格",
+    prodDesc: "描述 / 促销标签",
+    prodUrl: "产品链接",
+    cancelBtn: "取消",
+    saveProdBtn: "保存产品"
+  }
+};
+
+let currentLang = 'en';
+
+function changeLanguage(lang) {
+  currentLang = lang;
+  
+  // Sync all language dropdowns across pages
+  document.querySelectorAll('.lang-select').forEach(sel => sel.value = lang);
+
+  // Update elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang] && i18n[lang][key]) {
+      el.textContent = i18n[lang][key];
+    }
+  });
+
+  // Dynamic input placeholders
+  const searchInput = document.getElementById('search-keyword');
+  if (searchInput) searchInput.placeholder = i18n[lang].searchPlaceholder;
+
+  const msgInput = document.getElementById('new-comment');
+  if (msgInput) msgInput.placeholder = i18n[lang].writeMessage;
+}
 
 var state = {
   isLoggedIn: false,
@@ -499,9 +617,10 @@ function updateAuthStateUI() {
   }
 }
 
-/* Log Out 即 Delete Account 的逻辑 */
 function handleLogOut() {
-  var confirmLogout = confirm("Are you sure you want to log out? (Note: Logging out will delete your account session).");
+  var confirmLogout = confirm(currentLang === 'zh' 
+    ? "确定要退出登录吗？（注：退出登录将删除当前登录账号会话）" 
+    : "Are you sure you want to log out? (Note: Logging out will delete your account session).");
   if (confirmLogout) {
     state.isLoggedIn = false;
     state.identity = null;
@@ -509,12 +628,11 @@ function handleLogOut() {
     state.city = '';
     state.customAvatarUrl = null;
     
-    // 清空本地保存的登录数据（账号销毁）
     localStorage.removeItem('pit_user_session');
 
     updateAuthStateUI();
     renderComments();
-    startAuthFlow('signin'); // 提示确认后跳转到登录/身份选取面板
+    startAuthFlow('signin');
   }
 }
 
@@ -528,7 +646,7 @@ function showPage(pageId) {
 function startAuthFlow(action) {
   state.authAction = action;
   var badge = document.getElementById('identity-mode-badge');
-  if (badge) badge.textContent = action === 'signin' ? 'Sign In' : 'Create Account';
+  if (badge) badge.textContent = action === 'signin' ? i18n[currentLang].signIn : i18n[currentLang].createAccount;
   showPage('page-identity');
 }
 
@@ -582,7 +700,7 @@ function updateAvatarPreview(context) {
 function submitVisitorInfo() {
   var name = document.getElementById('visitor-name').value.trim();
   var city = document.getElementById('visitor-city').value.trim();
-  if (!name || !city) return alert('Please enter name and city');
+  if (!name || !city) return alert(currentLang === 'zh' ? '请填写姓名和城市' : 'Please enter name and city');
   state.name = name;
   state.city = city;
   showPage('page-survey');
@@ -623,9 +741,8 @@ async function fetchCloudComments() {
   renderComments();
 }
 
-/* 删除留言处理 */
 async function deleteComment(commentId) {
-  var confirmDel = confirm("Are you sure you want to delete this comment?");
+  var confirmDel = confirm(currentLang === 'zh' ? "确定要删除这条留言吗？" : "Are you sure you want to delete this comment?");
   if (!confirmDel) return;
 
   state.activeComments = state.activeComments.filter(function(c) { return c.id !== commentId; });
@@ -677,8 +794,8 @@ function renderComments() {
     var replyInputHTML = '';
     if (state.activeReplyId === c.id) {
       replyInputHTML = '<div style="margin-top: 12px; display: flex; gap: 8px;">' +
-        '<input class="input" id="reply-input-' + c.id + '" placeholder="Write a reply..." style="font-size: 13px;">' +
-        '<button type="button" class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">Reply</button>' +
+        '<input class="input" id="reply-input-' + c.id + '" placeholder="' + (currentLang === 'zh' ? '输入回复内容...' : 'Write a reply...') + '" style="font-size: 13px;">' +
+        '<button type="button" class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">' + (currentLang === 'zh' ? '回复' : 'Reply') + '</button>' +
         '</div>';
     }
 
@@ -697,8 +814,8 @@ function renderComments() {
           productTag +
           repliesHTML +
           '<div style="margin-top: 10px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">' +
-            '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')">Reply</button>' +
-            '<button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">Delete</button>' +
+            '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')">' + (currentLang === 'zh' ? '回复' : 'Reply') + '</button>' +
+            '<button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">' + (currentLang === 'zh' ? '删除' : 'Delete') + '</button>' +
           '</div>' +
           replyInputHTML +
         '</div>' +
@@ -706,7 +823,7 @@ function renderComments() {
     '</div>';
   }
 
-  area.innerHTML = html || '<div style="text-align: center; color: var(--text-dim); padding: 40px;">No messages found</div>';
+  area.innerHTML = html || '<div style="text-align: center; color: var(--text-dim); padding: 40px;">' + (currentLang === 'zh' ? '未找到留言' : 'No messages found') + '</div>';
 }
 
 function clearSearch() {
@@ -766,7 +883,7 @@ async function addComment() {
     replies: []
   };
 
-  btn.textContent = 'Sending...';
+  btn.textContent = currentLang === 'zh' ? '发送中...' : 'Sending...';
   btn.disabled = true;
 
   try {
@@ -785,7 +902,7 @@ async function addComment() {
     state.activeComments.unshift(commentObj);
     input.value = '';
     btn.disabled = false;
-    btn.textContent = 'submit feedback';
+    btn.textContent = i18n[currentLang].submitFeedback;
     renderComments();
   }
 }
@@ -818,7 +935,7 @@ function saveProfile() {
   }
   state.city = document.getElementById('profile-city').value.trim();
   saveUserSession();
-  alert('Profile updated successfully!');
+  alert(currentLang === 'zh' ? '个人信息更新成功！' : 'Profile updated successfully!');
   showPage('page-home');
   renderComments();
 }
@@ -831,7 +948,7 @@ function openTeamPage() {
 function updateProductDropdown() {
   var select = document.getElementById('product-select');
   if(!select) return;
-  select.innerHTML = '<option value="">-- Attach product (optional) --</option>';
+  select.innerHTML = '<option value="">-- ' + (currentLang === 'zh' ? '关联产品（可选）' : 'Attach product (optional)') + ' --</option>';
   for (var i = 0; i < state.products.length; i++) {
     var p = state.products[i];
     select.innerHTML += '<option value="' + p.id + '">' + p.name + ' (' + p.price + ')</option>';
@@ -849,7 +966,7 @@ function renderTeamProducts() {
       '<div style="font-size:14px; font-weight:600; color:var(--primary); margin-bottom:4px;">' + p.price + '</div>' +
       (p.promo ? '<div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">' + p.promo + '</div>' : '') +
       '<a href="' + p.link + '" target="_blank" style="font-size:12px; color:var(--primary); text-decoration:underline;">' + p.link + '</a>' +
-      '<button type="button" class="btn btn-danger btn-sm" style="position:absolute; top:20px; right:20px;" onclick="deleteProduct(' + p.id + ')">Delete</button>' +
+      '<button type="button" class="btn btn-danger btn-sm" style="position:absolute; top:20px; right:20px;" onclick="deleteProduct(' + p.id + ')">' + (currentLang === 'zh' ? '删除' : 'Delete') + '</button>' +
     '</div>';
   }
   list.innerHTML = html;
@@ -874,7 +991,7 @@ async function saveProductModal() {
   var link = document.getElementById('pm-link').value.trim();
 
   if (!name || !price) {
-    alert('Please enter a product name and price.');
+    alert(currentLang === 'zh' ? '请输入产品名称和价格。' : 'Please enter a product name and price.');
     return;
   }
 
@@ -898,12 +1015,13 @@ function deleteProduct(productId) {
   renderTeamProducts();
 }
 
-/* 初始化逻辑 */
+/* Initialization */
 applyBackground();
 updateProductDropdown();
 loadUserSession();
 updateAuthStateUI();
 fetchCloudComments();
+changeLanguage('en');
 
 showPage('page-home');
 </script>
