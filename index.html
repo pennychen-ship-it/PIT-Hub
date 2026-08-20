@@ -90,7 +90,6 @@
     background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--primary);
     padding: 22px; margin-bottom: 24px; border-radius: 0 12px 12px 0; box-shadow: var(--shadow);
   }
-  .comment-sentence { margin-bottom: 12px; line-height: 1.8; color: var(--text); font-size: 15px; }
   .comment-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
   .reply-list {
     margin-top: 16px; padding-left: 20px; border-left: 2px solid var(--border);
@@ -145,6 +144,10 @@
     overflow: hidden; background: var(--bg-elevated);
   }
   .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+  .auth-switch-btns {
+    display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;
+  }
+  .auth-switch-btns button { flex: 1; }
 </style>
 </head>
 <body>
@@ -179,11 +182,19 @@
   </div>
 </div>
 
-<!-- 3. VISITOR INFO -->
+<!-- 3. VISITOR INFO / SIGN IN & CREATE ACCOUNT -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
+    
+    <!-- Sign In / Create Account 切换按钮 (在 Avatar 上方) -->
+    <div class="auth-switch-btns">
+      <button type="button" class="btn btn-primary" id="btn-tab-signin" onclick="switchAuthTab('signin')">Sign In</button>
+      <button type="button" class="btn" id="btn-tab-create" onclick="switchAuthTab('create')">Create Account</button>
+    </div>
+
     <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your virtual identity</div>
+    
     <div class="card">
       <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
       <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="visitor-avatar-picker">
@@ -360,6 +371,7 @@ try {
 var state = {
   lang: 'en',
   identity: null,
+  authMode: 'signin',
   avatar: 'A',
   customAvatarUrl: null,
   name: '',
@@ -393,7 +405,7 @@ var state = {
 var i18n = {
   'en': {
     identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
-    visitorTitle: 'Create your virtual identity', labelAvatar: 'Choose Preset Avatar or Upload Photo',
+    visitorTitle: 'Sign In to your account', labelAvatar: 'Choose Preset Avatar or Upload Photo',
     labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
     surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
     btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
@@ -404,7 +416,7 @@ var i18n = {
   },
   'zh-CN': {
     identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
-    visitorTitle: '创建您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
+    visitorTitle: '登录您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
     labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
     surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
     btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
@@ -415,7 +427,7 @@ var i18n = {
   },
   'zh-HK': {
     identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
-    visitorTitle: '創建您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
+    visitorTitle: '登入您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
     labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
     surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
     btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
@@ -450,6 +462,23 @@ function selectLang(langKey) {
   }
   
   showPage('page-identity');
+}
+
+function switchAuthTab(mode) {
+  state.authMode = mode;
+  var btnSignIn = document.getElementById('btn-tab-signin');
+  var btnCreate = document.getElementById('btn-tab-create');
+  var title = document.getElementById('visitor-title');
+
+  if (mode === 'signin') {
+    btnSignIn.className = 'btn btn-primary';
+    btnCreate.className = 'btn';
+    if(title) title.textContent = state.lang === 'zh-CN' ? '登录您的虚拟身份' : (state.lang === 'zh-HK' ? '登入您的虛擬身份' : 'Sign In to your account');
+  } else {
+    btnSignIn.className = 'btn';
+    btnCreate.className = 'btn btn-primary';
+    if(title) title.textContent = state.lang === 'zh-CN' ? '创建新的虚拟身份' : (state.lang === 'zh-HK' ? '創建新的虛擬身份' : 'Create your virtual identity');
+  }
 }
 
 function updateTexts() {
@@ -502,6 +531,7 @@ function selectIdentity(idType) {
     document.getElementById('nav-team').style.display = 'none';
     document.getElementById('nav-profile-team').style.display = 'none';
     document.getElementById('team-product-select').style.display = 'none';
+    switchAuthTab('signin');
     showPage('page-visitor');
   }
 }
@@ -757,15 +787,6 @@ async function addComment() {
 function openProfilePage() {
   document.getElementById('profile-name').value = state.name;
   document.getElementById('profile-city').value = state.city;
-
-  var avatarSection = document.getElementById('avatar-select-section');
-  if (avatarSection) {
-    if (state.identity === 'team') {
-      avatarSection.style.display = 'none';
-    } else {
-      avatarSection.style.display = 'block';
-    }
-  }
   showPage('page-profile');
 }
 
@@ -828,7 +849,8 @@ function closeLogoutModal() {
 
 function confirmLogout() {
   closeLogoutModal();
-  showPage('page-lang');
+  switchAuthTab('signin');
+  showPage('page-visitor');
 }
 </script>
 </body>
