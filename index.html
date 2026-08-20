@@ -16,10 +16,7 @@
     --text: #1e293b;
     --text-dim: #64748b;
     --danger: #ef4444;
-    --warning: #f59e0b;
-    --success: #10b981;
-    --success-light: #ecfdf5;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
     --shadow-md: 0 4px 6px rgba(0,0,0,0.06);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -71,8 +68,9 @@
   .nav-auth-btn { font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
   .nav-auth-btn.signin { color: var(--primary); background: var(--primary-light); }
   .nav-auth-btn.create { color: #fff; background: var(--primary); }
+  .nav-auth-btn.logout { color: var(--danger); background: #fef2f2; }
   .team-badge {
-    display: inline-block; background: var(--success-light); color: var(--success);
+    display: inline-block; background: #ecfdf5; color: #10b981;
     border: 1px solid #a7f3d0; padding: 2px 10px; font-size: 11px; margin-left: 8px;
     border-radius: 999px; font-weight: 600;
   }
@@ -107,17 +105,6 @@
     background: var(--primary-light); border: 1px solid #bfdbfe; color: var(--primary);
     padding: 6px 12px; font-size: 12px; margin-top: 10px; cursor: pointer;
     border-radius: 6px; font-weight: 500; transition: all 0.15s;
-  }
-  .product-tag:hover { background: #dbeafe; }
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(15,23,42,0.5);
-    display: none; align-items: center; justify-content: center; z-index: 1000;
-    backdrop-filter: blur(4px);
-  }
-  .modal-overlay.active { display: flex !important; }
-  .modal {
-    background: var(--bg-card); border: 1px solid var(--border); padding: 28px;
-    max-width: 400px; width: 90%; border-radius: 14px; box-shadow: var(--shadow-md);
   }
   .search-bar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
   .search-bar input { flex: 1; min-width: 140px; }
@@ -195,12 +182,9 @@
     <div style="text-align: center; margin-bottom: 20px;">
       <span class="wizard-step-badge">Visitor Wizard • Step 1 of 2</span>
     </div>
-    
-    <div id="visitor-title" style="text-align: center; margin-bottom: 20px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Set up your profile</div>
-    
     <div class="card">
       <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="visitor-avatar-picker">
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
         <div class="avatar-select selected" onclick="pickAvatar('A', this)">🤖</div>
         <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
         <div class="avatar-select" onclick="pickAvatar('C', this)">🦾</div>
@@ -255,10 +239,15 @@
     </div>
     <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link active" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link" id="nav-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
-      <span class="nav-auth-btn signin" onclick="startAuthFlow('signin')">Sign In</span>
-      <span class="nav-auth-btn create" onclick="startAuthFlow('create')">Create Account</span>
+      
+      <!-- LOGGED IN NAVIGATION -->
+      <span class="nav-link auth-logged-in" style="display:none;" onclick="openProfilePage()">My Info</span>
+      <span class="nav-link auth-logged-in" id="nav-team" style="display:none;" onclick="openTeamPage()">Edit Panel</span>
+      <span class="nav-auth-btn logout auth-logged-in" style="display:none;" onclick="handleLogOut()">Log Out</span>
+      
+      <!-- LOGGED OUT NAVIGATION -->
+      <span class="nav-auth-btn signin auth-logged-out" onclick="startAuthFlow('signin')">Sign In</span>
+      <span class="nav-auth-btn create auth-logged-out" onclick="startAuthFlow('create')">Create Account</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
@@ -277,9 +266,7 @@
         <button type="button" class="btn btn-primary" id="btn-submit-feedback" onclick="addComment()">submit feedback</button>
       </div>
       <div id="team-product-select" style="display: none;">
-        <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);">
-          <option value="">-- Attach product (optional) --</option>
-        </select>
+        <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);"></select>
       </div>
     </div>
   </div>
@@ -293,15 +280,14 @@
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link active" onclick="openProfilePage()">My Info</span>
       <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
-      <span class="nav-auth-btn signin" onclick="startAuthFlow('signin')">Sign In</span>
-      <span class="nav-auth-btn create" onclick="startAuthFlow('create')">Create Account</span>
+      <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
     <div id="profile-title" style="font-size: 20px; margin-bottom: 24px; color: var(--text); font-weight: 700;">My Information</div>
     <div class="card">
       <div class="label">Avatar</div>
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;" id="profile-avatars">
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
         <div class="avatar-select" onclick="pickAvatar('A', this)">🤖</div>
         <div class="avatar-select" onclick="pickAvatar('B', this)">👾</div>
         <div class="avatar-select" onclick="pickAvatar('C', this)">🦾</div>
@@ -336,8 +322,7 @@
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link" onclick="openProfilePage()">My Info</span>
       <span class="nav-link active">Edit Panel</span>
-      <span class="nav-auth-btn signin" onclick="startAuthFlow('signin')">Sign In</span>
-      <span class="nav-auth-btn create" onclick="startAuthFlow('create')">Create Account</span>
+      <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
@@ -349,7 +334,6 @@
   </div>
 </div>
 
-<!-- Supabase SDK Client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -358,14 +342,11 @@ const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
 var supabase = null;
 
 try {
-  if (window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-} catch(e) {
-  console.log("Supabase Init Error:", e);
-}
+  if (window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {}
 
 var state = {
+  isLoggedIn: false,
   lang: 'en',
   identity: null,
   authAction: 'signin',
@@ -375,75 +356,84 @@ var state = {
   city: '',
   activeReplyId: null,
   products: [
-    { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF for students', link: 'https://peox.tech/neural-link' },
-    { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free global shipping', link: 'https://peox.tech/cyberdeck' },
-    { id: 3, name: 'Quantum Chip Q-7', price: '$4,999.00', promo: 'Pre-order now & save $500', link: 'https://peox.tech/q7' }
+    { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF', link: 'https://peox.tech/neural-link' },
+    { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free shipping', link: 'https://peox.tech/cyberdeck' }
   ],
-  multiLangComments: {
-    'en': [
-      { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.', 'The labs are amazing!'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-      { id: 102, avatar: 'D', customAvatarUrl: null, name: 'CyberSam', city: 'Shenzhen', sentences: ['Does Quantum Chip Q-7 support custom SDKs?'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Yes! Full SDK access is included natively.'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-    ],
-    'zh-CN': [
-      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹行者', city: '北京', sentences: ['刚刚报名了高级 AI 课程。', '实验环境真的太棒了！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-      { id: 102, avatar: 'D', customAvatarUrl: null, name: '赛博极客', city: '深圳', sentences: ['请问 Quantum Chip Q-7 支持自定义 SDK 吗？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 团队', city: 'Peox 总部', sentences: ['当然支持！已原生提供完整 SDK 接口。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-    ],
-    'zh-HK': [
-      { id: 101, avatar: 'B', customAvatarUrl: null, name: '霓虹漫步者', city: '香港', sentences: ['剛剛報名咗高級 AI 課程。', '實驗室效果真係正！'], timestamp: Date.now() - 86400000 * 2, isTeamReply: false, replies: [] },
-      { id: 102, avatar: 'D', customAvatarUrl: null, name: '極客阿森', city: '廣州', sentences: ['請問 Quantum Chip Q-7 支唔支援自定義 SDK？'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-      { id: 103, avatar: 'A', customAvatarUrl: null, name: 'PIT 團隊', city: 'Peox 總部', sentences: ['當然支援！已經原生提供完整 SDK 介面。'], timestamp: Date.now() - 3600000 * 6, isTeamReply: true, productId: 3, replies: [] }
-    ]
-  },
-  activeComments: []
+  activeComments: [
+    { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
+    { id: 102, avatar: 'A', customAvatarUrl: null, name: 'PIT Team', city: 'Peox HQ', sentences: ['Welcome aboard! Let us know if you need help.'], timestamp: Date.now() - 3600000, isTeamReply: true, productId: 1, replies: [] }
+  ]
 };
 
 var i18n = {
   'en': {
-    identityTitle: 'Select your identity to continue', btnTeam: 'PIT Team (Direct Entry)', btnVisitor: 'Visitor (Guided Wizard)',
+    identityTitle: 'Select your identity to continue', btnTeam: 'PIT Team (No Wizard)', btnVisitor: 'Visitor (With Wizard)',
     labelAvatar: 'Choose Preset Avatar or Upload Photo', labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Next Step →',
     surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
     btnSubmit: 'Complete & Enter', profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
-    searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
-    attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
+    searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', attachProduct: '-- Attach product (optional) --',
+    btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
   },
   'zh-CN': {
     identityTitle: '选择您的身份以继续', btnTeam: 'PIT 团队 (无 Wizard)', btnVisitor: '访客 (含 Wizard 引导)',
     labelAvatar: '选择预设头像或上传照片', labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '下一步 →',
     surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
     btnSubmit: '完成并进入', profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
-    searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
-    attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
+    searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', attachProduct: '-- 附加产品（可选）--',
+    btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
   },
   'zh-HK': {
     identityTitle: '選擇您的身份以繼續', btnTeam: 'PIT 團隊 (無 Wizard)', btnVisitor: '訪客 (含 Wizard 引導)',
     labelAvatar: '選擇預設頭像或上傳照片', labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '下一步 →',
     surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
     btnSubmit: '完成並進入', profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
-    searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
-    attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
+    searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', attachProduct: '-- 附加產品（可選）--',
+    btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
   }
 };
 
 var avatars = { A: '🤖', B: '👾', C: '🦾', D: '👽' };
 
+function updateAuthStateUI() {
+  var loggedInEls = document.querySelectorAll('.auth-logged-in');
+  var loggedOutEls = document.querySelectorAll('.auth-logged-out');
+
+  for (var i = 0; i < loggedInEls.length; i++) {
+    loggedInEls[i].style.display = state.isLoggedIn ? 'inline-block' : 'none';
+  }
+  for (var j = 0; j < loggedOutEls.length; j++) {
+    loggedOutEls[j].style.display = state.isLoggedIn ? 'none' : 'inline-block';
+  }
+
+  if (state.isLoggedIn && state.identity === 'team') {
+    document.getElementById('nav-team').style.display = 'inline-block';
+    if(document.getElementById('nav-profile-team')) document.getElementById('nav-profile-team').style.display = 'inline-block';
+  } else {
+    document.getElementById('nav-team').style.display = 'none';
+    if(document.getElementById('nav-profile-team')) document.getElementById('nav-profile-team').style.display = 'none';
+  }
+}
+
+function handleLogOut() {
+  state.isLoggedIn = false;
+  state.identity = null;
+  state.name = '';
+  state.city = '';
+  document.getElementById('home-badge').style.display = 'none';
+  document.getElementById('team-product-select').style.display = 'none';
+  updateAuthStateUI();
+  showPage('page-home');
+}
+
 function showPage(pageId) {
   var pages = document.querySelectorAll('.page');
-  for (var i = 0; i < pages.length; i++) {
-    pages[i].classList.remove('active');
-  }
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
   var target = document.getElementById(pageId);
   if (target) target.classList.add('active');
 }
 
 function selectLang(langKey) {
   state.lang = langKey;
-  if (state.multiLangComments && state.multiLangComments[langKey]) {
-    state.activeComments = Array.from(state.multiLangComments[langKey]);
-  } else {
-    state.activeComments = state.activeComments || [];
-  }
   updateTexts();
   startAuthFlow('signin');
 }
@@ -451,9 +441,7 @@ function selectLang(langKey) {
 function startAuthFlow(action) {
   state.authAction = action;
   var badge = document.getElementById('identity-mode-badge');
-  if (badge) {
-    badge.textContent = action === 'signin' ? 'Sign In Flow' : 'Create Account Flow';
-  }
+  if (badge) badge.textContent = action === 'signin' ? 'Sign In' : 'Create Account';
   showPage('page-identity');
 }
 
@@ -477,33 +465,24 @@ function updateTexts() {
   document.getElementById('new-comment').placeholder = l.commentPlaceholder;
   document.getElementById('btn-submit-feedback').textContent = l.btnSubmitFeedback;
   document.getElementById('btn-upload-text').textContent = l.uploadText;
-
-  var opts = document.querySelectorAll('#survey-options label span');
-  for (var i = 0; i < l.surveyOptions.length; i++) {
-    if (opts[i]) opts[i].textContent = l.surveyOptions[i];
-  }
   updateProductDropdown();
 }
 
 function selectIdentity(idType) {
   state.identity = idType;
   if (idType === 'team') {
+    state.isLoggedIn = true;
     state.name = 'PIT Team';
     state.city = 'Beijing';
     state.avatar = 'custom';
     state.customAvatarUrl = 'https://i.postimg.cc/mD8Z8KxV/gear.jpg';
     document.getElementById('home-badge').style.display = 'inline-block';
-    document.getElementById('nav-team').style.display = 'inline-block';
-    document.getElementById('nav-profile-team').style.display = 'inline-block';
     document.getElementById('team-product-select').style.display = 'block';
+    updateAuthStateUI();
     fetchCloudComments();
     listenRealtimeComments();
     showPage('page-home');
   } else {
-    document.getElementById('home-badge').style.display = 'none';
-    document.getElementById('nav-team').style.display = 'none';
-    document.getElementById('nav-profile-team').style.display = 'none';
-    document.getElementById('team-product-select').style.display = 'none';
     showPage('page-visitor');
   }
 }
@@ -512,13 +491,8 @@ function pickAvatar(key, el) {
   var parent = el.parentNode;
   var nodes = parent.querySelectorAll('.avatar-select');
   for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
-  
   if (el) el.classList.add('selected');
   state.avatar = key;
-  if (key !== 'CUSTOM') {
-    state.customAvatarUrl = null;
-    hideAvatarPreviews();
-  }
 }
 
 function handleFileUpload(e) {
@@ -528,36 +502,9 @@ function handleFileUpload(e) {
     reader.onload = function(evt) { 
       state.customAvatarUrl = evt.target.result; 
       state.avatar = 'CUSTOM';
-      
-      var page = e.target.closest('.page');
-      if (page) {
-        var nodes = page.querySelectorAll('.avatar-select');
-        for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
-      }
-      
-      updateAvatarPreviews(state.customAvatarUrl);
-      alert('Photo uploaded successfully!'); 
+      alert('Photo uploaded!'); 
     };
     reader.readAsDataURL(file);
-  }
-}
-
-function updateAvatarPreviews(url) {
-  var boxes = ['visitor-avatar-preview', 'profile-avatar-preview'];
-  for (var i = 0; i < boxes.length; i++) {
-    var box = document.getElementById(boxes[i]);
-    if (box) {
-      box.innerHTML = '<img src="' + url + '">';
-      box.style.display = 'flex';
-    }
-  }
-}
-
-function hideAvatarPreviews() {
-  var boxes = ['visitor-avatar-preview', 'profile-avatar-preview'];
-  for (var i = 0; i < boxes.length; i++) {
-    var box = document.getElementById(boxes[i]);
-    if (box) box.style.display = 'none';
   }
 }
 
@@ -571,27 +518,23 @@ function submitVisitorInfo() {
 }
 
 function submitSurvey() {
+  state.isLoggedIn = true;
+  updateAuthStateUI();
   fetchCloudComments();
   listenRealtimeComments();
   showPage('page-home');
 }
 
 function getAvatarHTML(avatarKey, customUrl) {
-  if (customUrl) {
-    return '<img src="' + customUrl + '" class="avatar-img">';
-  }
+  if (customUrl) return '<img src="' + customUrl + '" class="avatar-img">';
   return '<div class="avatar-img">' + (avatars[avatarKey] || '🤖') + '</div>';
 }
 
 async function fetchCloudComments() {
   if (!supabase) return;
-  const { data, error } = await supabase
-    .from('comments')
-    .select('*')
-    .order('created_at', { ascending: false });
-
+  const { data, error } = await supabase.from('comments').select('*').order('created_at', { ascending: false });
   if (!error && data && data.length > 0) {
-    const cloudComments = data.map(item => ({
+    state.activeComments = data.map(item => ({
       id: item.id,
       avatar: item.avatar || 'A',
       customAvatarUrl: item.custom_avatar_url || null,
@@ -603,19 +546,15 @@ async function fetchCloudComments() {
       productId: item.product_id || null,
       replies: item.replies || []
     }));
-    state.activeComments = cloudComments;
   }
   renderComments();
 }
 
 async function listenRealtimeComments() {
   if (!supabase) return;
-  supabase
-    .channel('public:comments')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
-      fetchCloudComments();
-    })
-    .subscribe();
+  supabase.channel('public:comments').on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+    fetchCloudComments();
+  }).subscribe();
 }
 
 function renderComments() {
@@ -765,7 +704,7 @@ function openProfilePage() {
 function saveProfile() {
   state.name = document.getElementById('profile-name').value.trim();
   state.city = document.getElementById('profile-city').value.trim();
-  alert('Profile saved!');
+  alert('Saved!');
   showPage('page-home');
 }
 
@@ -810,6 +749,9 @@ function addProduct() {
     renderTeamProducts();
   }
 }
+
+// Initial Render
+renderComments();
 </script>
 </body>
 </html>
