@@ -607,7 +607,7 @@ async function fetchCloudComments() {
   renderComments();
 }
 
-function listenRealtimeComments() {
+async function listenRealtimeComments() {
   if (!supabase) return;
   supabase
     .channel('public:comments')
