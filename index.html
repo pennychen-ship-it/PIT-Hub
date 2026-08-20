@@ -24,6 +24,10 @@
     background: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     min-height: 100vh; line-height: 1.6;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: background-image 0.3s ease;
   }
   .page { display: none !important; min-height: 100vh; }
   .page.active { display: flex !important; flex-direction: column; }
@@ -48,15 +52,16 @@
   }
   .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
   .card {
-    background: var(--bg-card); border: 1px solid var(--border);
-    padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow);
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
+    border: 1px solid var(--border); padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow);
   }
   .label {
     color: var(--text-dim); font-size: 12px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
   }
   .header {
-    background: var(--bg-card); border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
     padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
     position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
   }
@@ -88,7 +93,8 @@
   .avatar-select:hover { border-color: var(--primary); transform: scale(1.05); }
   .avatar-select.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); background: var(--primary-light); }
   .comment {
-    background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--primary);
+    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
+    border: 1px solid var(--border); border-left: 4px solid var(--primary);
     padding: 22px; margin-bottom: 24px; border-radius: 0 12px 12px 0; box-shadow: var(--shadow);
   }
   .comment-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
@@ -181,7 +187,7 @@
   </div>
 </div>
 
-<!-- 3. VISITOR WIZARD STEP 1 -->
+<!-- 3. VISITOR WIZARD STEP 1 (UNTOUCHED) -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
@@ -214,7 +220,7 @@
   </div>
 </div>
 
-<!-- 4. VISITOR WIZARD STEP 2 -->
+<!-- 4. VISITOR WIZARD STEP 2 (UNTOUCHED) -->
 <div id="page-survey" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
     <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
@@ -274,7 +280,7 @@
   </div>
 </div>
 
-<!-- 6. MY PROFILE (WITH SYSTEM LANGUAGE SYSTEM & TEAM AVATAR LOCK) -->
+<!-- 6. MY PROFILE (MODIFIED FOR PIT TEAM BACKGROUND & NICKNAME REMOVAL) -->
 <div id="page-profile" class="page">
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
@@ -288,7 +294,7 @@
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
     <div id="profile-title" style="font-size: 20px; margin-bottom: 12px; color: var(--text); font-weight: 700;">My Information</div>
     
-    <!-- System Language Selector in My Info -->
+    <!-- System Language Selector -->
     <div class="lang-switch-pills">
       <span class="lang-pill" id="pill-zh-HK" onclick="switchSystemLang('zh-HK')">繁體中文</span>
       <span class="lang-pill" id="pill-zh-CN" onclick="switchSystemLang('zh-CN')">简体中文</span>
@@ -318,10 +324,28 @@
       <!-- Live Avatar Box -->
       <div id="profile-avatar-preview" class="avatar-preview-box" style="margin-bottom: 20px;"></div>
 
-      <div class="label" id="label-profile-name">Name / Nickname</div>
-      <input class="input" id="profile-name" style="margin-bottom: 14px;">
+      <!-- Visitor Only Name Block -->
+      <div id="visitor-name-section">
+        <div class="label" id="label-profile-name">Name / Nickname</div>
+        <input class="input" id="profile-name" style="margin-bottom: 14px;">
+      </div>
+
       <div class="label" id="label-profile-city">City / Location</div>
       <input class="input" id="profile-city" style="margin-bottom: 20px;">
+
+      <!-- PIT Team Custom Background Section (1 Change Per Week Limit) -->
+      <div id="team-bg-section" style="display: none; margin-top: 10px; padding-top: 16px; border-top: 1px dashed var(--border);">
+        <div class="label">Custom Background (1 Change / Week)</div>
+        <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;" id="bg-cooldown-notice">
+          Upload or select background image for PIT Hub.
+        </div>
+        <label class="file-upload-btn" style="width: 100%; text-align: center; margin-bottom: 10px;">
+          🖼️ <span>Upload Background Image</span>
+          <input type="file" id="bg-file-input" onchange="handleBgUpload(event)" accept="image/*" style="display: none;">
+        </label>
+        <button type="button" class="btn btn-sm" style="width: 100%; margin-bottom: 16px;" onclick="resetBackground()">Reset Default Background</button>
+      </div>
+
       <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-save-profile" onclick="saveProfile()">Save Changes</button>
     </div>
   </div>
@@ -357,8 +381,8 @@ const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
 var supabase = null;
 
-// Constant image URL for PIT Team (Penny Chen PBOX Image)
 const PIT_TEAM_AVATAR_URL = "https://i.postimg.cc/44C5Lmg9/pbox-penny.jpg"; 
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 try {
   if (window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -373,6 +397,8 @@ var state = {
   customAvatarUrl: null,
   name: '',
   city: '',
+  bgUrl: localStorage.getItem('pit_bg_url') || null,
+  lastBgChange: parseInt(localStorage.getItem('pit_last_bg_change') || '0'),
   activeReplyId: null,
   products: [
     { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF', link: 'https://peox.tech/neural-link' },
@@ -412,6 +438,69 @@ var i18n = {
 };
 
 var avatars = { A: '🤖', B: '👾', C: '🦾', D: '👽' };
+
+function applyBackground() {
+  if (state.bgUrl) {
+    document.body.style.backgroundImage = 'url("' + state.bgUrl + '")';
+  } else {
+    document.body.style.backgroundImage = 'none';
+  }
+}
+
+function canChangeBg() {
+  var now = Date.now();
+  return (now - state.lastBgChange) >= ONE_WEEK_MS;
+}
+
+function handleBgUpload(e) {
+  if (!canChangeBg()) {
+    var remainingDays = Math.ceil((ONE_WEEK_MS - (Date.now() - state.lastBgChange)) / (1000 * 60 * 60 * 24));
+    alert('Background can only be changed once a week! Please wait ' + remainingDays + ' more day(s).');
+    e.target.value = '';
+    return;
+  }
+
+  var file = e.target.files[0];
+  if (file) {
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      state.bgUrl = evt.target.result;
+      state.lastBgChange = Date.now();
+      localStorage.setItem('pit_bg_url', state.bgUrl);
+      localStorage.setItem('pit_last_bg_change', state.lastBgChange.toString());
+      applyBackground();
+      updateBgNotice();
+      alert('Background updated successfully!');
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function resetBackground() {
+  if (!canChangeBg()) {
+    var remainingDays = Math.ceil((ONE_WEEK_MS - (Date.now() - state.lastBgChange)) / (1000 * 60 * 60 * 24));
+    alert('Background can only be changed once a week! Please wait ' + remainingDays + ' more day(s).');
+    return;
+  }
+  state.bgUrl = null;
+  state.lastBgChange = Date.now();
+  localStorage.removeItem('pit_bg_url');
+  localStorage.setItem('pit_last_bg_change', state.lastBgChange.toString());
+  applyBackground();
+  updateBgNotice();
+  alert('Background reset to default.');
+}
+
+function updateBgNotice() {
+  var notice = document.getElementById('bg-cooldown-notice');
+  if (!notice) return;
+  if (!canChangeBg()) {
+    var remainingDays = Math.ceil((ONE_WEEK_MS - (Date.now() - state.lastBgChange)) / (1000 * 60 * 60 * 24));
+    notice.innerHTML = '<span style="color:var(--danger)">🔒 Cooldown active: You can change background again in ' + remainingDays + ' day(s).</span>';
+  } else {
+    notice.innerHTML = '<span style="color:#10b981">✓ Available: You can change the background now.</span>';
+  }
+}
 
 function updateAuthStateUI() {
   var loggedInEls = document.querySelectorAll('.auth-logged-in');
@@ -495,7 +584,6 @@ function updateTexts() {
   if(document.getElementById('label-profile-name')) document.getElementById('label-profile-name').textContent = l.labelName;
   if(document.getElementById('label-profile-city')) document.getElementById('label-profile-city').textContent = l.labelCity;
   
-  // Highlight active language pill
   var pills = document.querySelectorAll('.lang-pill');
   for(var i=0; i<pills.length; i++) pills[i].classList.remove('active');
   var activePill = document.getElementById('pill-' + state.lang);
@@ -646,7 +734,6 @@ function renderComments() {
         '</div>';
     }
 
-    // Force PIT Team Avatar picture if comment belongs to team
     var currentAvatarUrl = c.isTeamReply ? PIT_TEAM_AVATAR_URL : c.customAvatarUrl;
 
     html += '<div class="comment">' +
@@ -718,7 +805,7 @@ async function addComment() {
   var newObj = {
     avatar: state.avatar,
     custom_avatar_url: avatarUrlToSave,
-    name: state.name || 'Anonymous',
+    name: isTeam ? 'PIT Team' : (state.name || 'Anonymous'),
     city: state.city || 'Earth',
     content: val,
     is_team_reply: isTeam,
@@ -731,8 +818,8 @@ async function addComment() {
     state.activeComments.unshift({
       id: Date.now(),
       avatar: state.avatar,
-      customAvatarUrl: avatarUrlToSave,
-      name: state.name || 'Anonymous',
+      customAvatarUrl: avatarUrlUrlToSave,
+      name: isTeam ? 'PIT Team' : (state.name || 'Anonymous'),
       city: state.city || 'Earth',
       sentences: [val],
       timestamp: Date.now(),
@@ -747,24 +834,33 @@ async function addComment() {
 }
 
 function openProfilePage() {
-  document.getElementById('profile-name').value = state.name;
-  document.getElementById('profile-city').value = state.city;
-  
-  var visitorSection = document.getElementById('visitor-avatar-section');
+  var visitorAvatarSection = document.getElementById('visitor-avatar-section');
+  var visitorNameSection = document.getElementById('visitor-name-section');
+  var teamBgSection = document.getElementById('team-bg-section');
+
   if (state.identity === 'team') {
     state.customAvatarUrl = PIT_TEAM_AVATAR_URL;
-    visitorSection.style.display = 'none';
+    visitorAvatarSection.style.display = 'none';
+    visitorNameSection.style.display = 'none'; // Completely removed/hidden nickname field for PIT Team
+    teamBgSection.style.display = 'block';     // Show custom background option for PIT Team
+    updateBgNotice();
   } else {
-    visitorSection.style.display = 'block';
+    visitorAvatarSection.style.display = 'block';
+    visitorNameSection.style.display = 'block';
+    teamBgSection.style.display = 'none';
+    document.getElementById('profile-name').value = state.name;
   }
 
+  document.getElementById('profile-city').value = state.city;
   updateAvatarPreview('profile');
   updateTexts();
   showPage('page-profile');
 }
 
 function saveProfile() {
-  state.name = document.getElementById('profile-name').value.trim();
+  if (state.identity !== 'team') {
+    state.name = document.getElementById('profile-name').value.trim();
+  }
   state.city = document.getElementById('profile-city').value.trim();
   alert('Profile updated successfully!');
   showPage('page-home');
@@ -813,7 +909,8 @@ function addProduct() {
   }
 }
 
-// Initial Render
+// Initial Setup
+applyBackground();
 renderComments();
 </script>
 </body>
