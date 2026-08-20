@@ -473,6 +473,39 @@ var i18n = {
 
 var avatars = { A: '🤖', B: '👾', C: '🦾', D: '👽' };
 
+/* LOCAL STORAGE SESSION PERSISTENCE */
+function saveUserSession() {
+  var sessionData = {
+    isLoggedIn: state.isLoggedIn,
+    identity: state.identity,
+    name: state.name,
+    city: state.city,
+    avatar: state.avatar,
+    customAvatarUrl: state.customAvatarUrl,
+    lang: state.lang
+  };
+  localStorage.setItem('pit_user_session', JSON.stringify(sessionData));
+}
+
+function loadUserSession() {
+  var raw = localStorage.getItem('pit_user_session');
+  if (!raw) return false;
+  try {
+    var session = JSON.parse(raw);
+    if (session && session.isLoggedIn) {
+      state.isLoggedIn = session.isLoggedIn;
+      state.identity = session.identity;
+      state.name = session.name || '';
+      state.city = session.city || '';
+      state.avatar = session.avatar || 'A';
+      state.customAvatarUrl = session.customAvatarUrl || null;
+      if (session.lang) state.lang = session.lang;
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
 function applyBackground() {
   if (state.bgUrl) {
     document.body.style.backgroundImage = 'url("' + state.bgUrl + '")';
@@ -522,9 +555,13 @@ function updateAuthStateUI() {
   }
 
   if (state.isLoggedIn && state.identity === 'team') {
+    document.getElementById('home-badge').style.display = 'inline-block';
+    document.getElementById('team-product-select').style.display = 'block';
     document.getElementById('nav-team').style.display = 'inline-block';
     if(document.getElementById('nav-profile-team')) document.getElementById('nav-profile-team').style.display = 'inline-block';
   } else {
+    document.getElementById('home-badge').style.display = 'none';
+    document.getElementById('team-product-select').style.display = 'none';
     document.getElementById('nav-team').style.display = 'none';
     if(document.getElementById('nav-profile-team')) document.getElementById('nav-profile-team').style.display = 'none';
   }
@@ -537,9 +574,8 @@ function handleLogOut() {
   state.city = '';
   state.customAvatarUrl = null;
   
-  document.getElementById('home-badge').style.display = 'none';
-  document.getElementById('team-product-select').style.display = 'none';
-  
+  localStorage.removeItem('pit_user_session');
+
   updateAuthStateUI();
   renderComments();
   showPage('page-home');
@@ -560,6 +596,7 @@ function selectLang(langKey) {
 
 function switchSystemLang(langKey) {
   state.lang = langKey;
+  saveUserSession();
   updateTexts();
 }
 
@@ -611,8 +648,7 @@ function selectIdentity(idType) {
     state.city = 'Peox HQ';
     state.avatar = 'CUSTOM';
     state.customAvatarUrl = PIT_TEAM_AVATAR_URL;
-    document.getElementById('home-badge').style.display = 'inline-block';
-    document.getElementById('team-product-select').style.display = 'block';
+    saveUserSession();
     updateAuthStateUI();
     fetchCloudComments();
     listenRealtimeComments();
@@ -664,6 +700,7 @@ function submitVisitorInfo() {
 
 function submitSurvey() {
   state.isLoggedIn = true;
+  saveUserSession();
   updateAuthStateUI();
   fetchCloudComments();
   listenRealtimeComments();
@@ -887,6 +924,7 @@ function saveProfile() {
     state.name = document.getElementById('profile-name').value.trim();
   }
   state.city = document.getElementById('profile-city').value.trim();
+  saveUserSession();
   alert('Profile updated successfully!');
   showPage('page-home');
   renderComments();
@@ -970,10 +1008,22 @@ function deleteProduct(productId) {
   renderTeamProducts();
 }
 
-// Initial Setup
+// Initial Setup & Automatic Session Restoration
 applyBackground();
+updateTexts();
+
+var hasSession = loadUserSession();
+updateAuthStateUI();
 fetchCloudComments();
-renderComments();
+listenRealtimeComments();
+
+if (hasSession) {
+  // 保持登录，直接进入 Home 页
+  showPage('page-home');
+} else {
+  // 未登录或已 Log Out，进入语言选择/登录选择流程
+  showPage('page-lang');
+}
 </script>
 </body>
 </html>
