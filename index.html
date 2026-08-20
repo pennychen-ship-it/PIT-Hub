@@ -335,9 +335,9 @@
 
       <!-- PIT Team Custom Background Section -->
       <div id="team-bg-section" style="display: none; margin-top: 10px; padding-top: 16px; border-top: 1px dashed var(--border);">
-        <div class="label">Custom Background (1 Change / Week)</div>
+        <div class="label">Custom Background (Unlimited Changes)</div>
         <div style="font-size: 12px; color: var(--text-dim); margin-bottom: 10px;" id="bg-cooldown-notice">
-          Upload or select background image for PIT Hub.
+          Upload or select background image anytime.
         </div>
         <label class="file-upload-btn" style="width: 100%; text-align: center; margin-bottom: 10px;">
           🖼️ <span>Upload Background Image</span>
@@ -382,7 +382,6 @@ const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
 var supabase = null;
 
 const PIT_TEAM_AVATAR_URL = "https://i.postimg.cc/44C5Lmg9/pbox-penny.jpg"; 
-const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 try {
   if (window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -398,7 +397,6 @@ var state = {
   name: '',
   city: '',
   bgUrl: localStorage.getItem('pit_bg_url') || null,
-  lastBgChange: parseInt(localStorage.getItem('pit_last_bg_change') || '0'),
   activeReplyId: null,
   products: [
     { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF', link: 'https://peox.tech/neural-link' },
@@ -447,27 +445,13 @@ function applyBackground() {
   }
 }
 
-function canChangeBg() {
-  var now = Date.now();
-  return (now - state.lastBgChange) >= ONE_WEEK_MS;
-}
-
 function handleBgUpload(e) {
-  if (!canChangeBg()) {
-    var remainingDays = Math.ceil((ONE_WEEK_MS - (Date.now() - state.lastBgChange)) / (1000 * 60 * 60 * 24));
-    alert('Background can only be changed once a week! Please wait ' + remainingDays + ' more day(s).');
-    e.target.value = '';
-    return;
-  }
-
   var file = e.target.files[0];
   if (file) {
     var reader = new FileReader();
     reader.onload = function(evt) {
       state.bgUrl = evt.target.result;
-      state.lastBgChange = Date.now();
       localStorage.setItem('pit_bg_url', state.bgUrl);
-      localStorage.setItem('pit_last_bg_change', state.lastBgChange.toString());
       applyBackground();
       updateBgNotice();
       alert('Background updated successfully!');
@@ -477,15 +461,8 @@ function handleBgUpload(e) {
 }
 
 function resetBackground() {
-  if (!canChangeBg()) {
-    var remainingDays = Math.ceil((ONE_WEEK_MS - (Date.now() - state.lastBgChange)) / (1000 * 60 * 60 * 24));
-    alert('Background can only be changed once a week! Please wait ' + remainingDays + ' more day(s).');
-    return;
-  }
   state.bgUrl = null;
-  state.lastBgChange = Date.now();
   localStorage.removeItem('pit_bg_url');
-  localStorage.setItem('pit_last_bg_change', state.lastBgChange.toString());
   applyBackground();
   updateBgNotice();
   alert('Background reset to default.');
@@ -494,12 +471,7 @@ function resetBackground() {
 function updateBgNotice() {
   var notice = document.getElementById('bg-cooldown-notice');
   if (!notice) return;
-  if (!canChangeBg()) {
-    var remainingDays = Math.ceil((ONE_WEEK_MS - (Date.now() - state.lastBgChange)) / (1000 * 60 * 60 * 24));
-    notice.innerHTML = '<span style="color:var(--danger)">🔒 Cooldown active: You can change background again in ' + remainingDays + ' day(s).</span>';
-  } else {
-    notice.innerHTML = '<span style="color:#10b981">✓ Available: You can change the background now.</span>';
-  }
+  notice.innerHTML = '<span style="color:#10b981">✓ Infinite changes enabled: Change background anytime!</span>';
 }
 
 function updateAuthStateUI() {
@@ -522,15 +494,19 @@ function updateAuthStateUI() {
   }
 }
 
+// LOGOUT FUNCTION (PRESERVES ALL COMMENTS)
 function handleLogOut() {
   state.isLoggedIn = false;
   state.identity = null;
   state.name = '';
   state.city = '';
   state.customAvatarUrl = null;
+  
   document.getElementById('home-badge').style.display = 'none';
   document.getElementById('team-product-select').style.display = 'none';
+  
   updateAuthStateUI();
+  renderComments(); // 保留评论，重新渲染列表
   showPage('page-home');
 }
 
@@ -797,7 +773,6 @@ async function sendReply(commentId) {
   renderComments();
 }
 
-// FIXED SUBMIT FEEDBACK LOGIC
 async function addComment() {
   var input = document.getElementById('new-comment');
   var btn = document.getElementById('btn-submit-feedback');
@@ -926,6 +901,7 @@ function addProduct() {
 
 // Initial Setup
 applyBackground();
+fetchCloudComments();
 renderComments();
 </script>
 </body>
