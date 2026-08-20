@@ -439,8 +439,17 @@ function showPage(pageId) {
 
 function selectLang(langKey) {
   state.lang = langKey;
-  state.activeComments = Array.from(state.multiLangComments[langKey] || []);
-  updateTexts();
+  // 添加安全校验，防止 multiLangComments 未定义导致报错卡死
+  if (state.multiLangComments && state.multiLangComments[langKey]) {
+    state.activeComments = Array.from(state.multiLangComments[langKey]);
+  } else {
+    state.activeComments = state.activeComments || [];
+  }
+  
+  if (typeof updateTexts === 'function') {
+    updateTexts();
+  }
+  
   showPage('page-identity');
 }
 
