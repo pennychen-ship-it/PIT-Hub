@@ -68,6 +68,9 @@
     transition: all 0.15s; border-radius: 6px; font-weight: 500;
   }
   .nav-link:hover, .nav-link.active { color: var(--primary); background: var(--primary-light); }
+  .nav-auth-btn { font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
+  .nav-auth-btn.signin { color: var(--primary); background: var(--primary-light); }
+  .nav-auth-btn.create { color: #fff; background: var(--primary); }
   .team-badge {
     display: inline-block; background: var(--success-light); color: var(--success);
     border: 1px solid #a7f3d0; padding: 2px 10px; font-size: 11px; margin-left: 8px;
@@ -144,10 +147,10 @@
     overflow: hidden; background: var(--bg-elevated);
   }
   .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
-  .auth-switch-btns {
-    display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px;
+  .wizard-step-badge {
+    display: inline-block; background: var(--primary-light); color: var(--primary);
+    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
   }
-  .auth-switch-btns button { flex: 1; }
 </style>
 </head>
 <body>
@@ -168,32 +171,32 @@
   </div>
 </div>
 
-<!-- 2. IDENTITY SELECTION -->
+<!-- 2. IDENTITY SELECTION (AUTH FLOW START) -->
 <div id="page-identity" class="page center" style="padding: 40px 20px;">
   <div style="text-align: center; max-width: 420px; width: 100%;">
-    <div class="splash-logo" style="margin-bottom: 24px; font-size: 26px;">PIT HUB</div>
+    <div class="splash-logo" style="margin-bottom: 12px; font-size: 26px;">PIT HUB</div>
+    <div style="margin-bottom: 24px;">
+      <span class="wizard-step-badge" id="identity-mode-badge">Authenticating</span>
+    </div>
     <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim); font-weight: 500;">Select your identity</div>
     <button type="button" class="btn btn-primary" onclick="selectIdentity('team')" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 15px;">
-      <span id="btn-team">PIT Team</span>
+      <span id="btn-team">PIT Team (No Wizard)</span>
     </button>
     <button type="button" class="btn" onclick="selectIdentity('visitor')" style="width: 100%; padding: 16px; font-size: 15px;">
-      <span id="btn-visitor">Visitor</span>
+      <span id="btn-visitor">Visitor (With Wizard)</span>
     </button>
   </div>
 </div>
 
-<!-- 3. VISITOR INFO / SIGN IN & CREATE ACCOUNT -->
+<!-- 3. VISITOR WIZARD STEP 1: INFO -->
 <div id="page-visitor" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
-    <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
-    
-    <!-- Sign In / Create Account 切换按钮 (在 Avatar 上方) -->
-    <div class="auth-switch-btns">
-      <button type="button" class="btn btn-primary" id="btn-tab-signin" onclick="switchAuthTab('signin')">Sign In</button>
-      <button type="button" class="btn" id="btn-tab-create" onclick="switchAuthTab('create')">Create Account</button>
+    <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <span class="wizard-step-badge">Visitor Wizard • Step 1 of 2</span>
     </div>
-
-    <div id="visitor-title" style="text-align: center; margin-bottom: 24px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Create your virtual identity</div>
+    
+    <div id="visitor-title" style="text-align: center; margin-bottom: 20px; color: var(--text-dim); font-size: 14px; font-weight: 500;">Set up your profile</div>
     
     <div class="card">
       <div class="label" id="label-avatar">Choose Preset Avatar or Upload Photo</div>
@@ -216,15 +219,19 @@
       <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
       <div class="label" id="label-city">City / Location</div>
       <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
-      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next" onclick="submitVisitorInfo()">Continue</button>
+      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" id="btn-visitor-next" onclick="submitVisitorInfo()">Next Step →</button>
     </div>
   </div>
 </div>
 
-<!-- 4. SURVEY -->
+<!-- 4. VISITOR WIZARD STEP 2: SURVEY -->
 <div id="page-survey" class="page" style="padding: 40px 20px;">
   <div class="container" style="max-width: 460px;">
-    <div class="splash-logo" style="font-size: 22px; margin-bottom: 8px; text-align: center;">PIT HUB</div>
+    <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <span class="wizard-step-badge">Visitor Wizard • Step 2 of 2</span>
+    </div>
+
     <div id="survey-title" style="text-align: center; margin-bottom: 24px; color: var(--text); font-size: 16px; font-weight: 600;">How did you hear about PIT?</div>
     <div class="card">
       <div class="radio-group" id="survey-options">
@@ -234,7 +241,7 @@
         <label><input type="radio" name="survey" value="event"> <span>Tech Event / Conference</span></label>
         <label><input type="radio" name="survey" value="other"> <span>Other</span></label>
       </div>
-      <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" id="btn-survey-submit" onclick="submitSurvey()">Submit & Enter</button>
+      <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" id="btn-survey-submit" onclick="submitSurvey()">Complete & Enter</button>
     </div>
   </div>
 </div>
@@ -246,11 +253,12 @@
       <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
       <span id="home-badge" class="team-badge" style="display: none;">TEAM</span>
     </div>
-    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link active" onclick="showPage('page-home')">Home</span>
       <span class="nav-link" onclick="openProfilePage()">My Info</span>
       <span class="nav-link" id="nav-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
-      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
+      <span class="nav-auth-btn signin" onclick="startAuthFlow('signin')">Sign In</span>
+      <span class="nav-auth-btn create" onclick="startAuthFlow('create')">Create Account</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
@@ -281,11 +289,12 @@
 <div id="page-profile" class="page">
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
-    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link active" onclick="openProfilePage()">My Info</span>
       <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
-      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
+      <span class="nav-auth-btn signin" onclick="startAuthFlow('signin')">Sign In</span>
+      <span class="nav-auth-btn create" onclick="startAuthFlow('create')">Create Account</span>
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
@@ -323,11 +332,12 @@
       <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
       <span class="team-badge">TEAM ONLY</span>
     </div>
-    <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link" onclick="openProfilePage()">My Info</span>
       <span class="nav-link active">Edit Panel</span>
-      <span class="nav-link" onclick="openLogoutModal()">Log Out</span>
+      <span class="nav-auth-btn signin" onclick="startAuthFlow('signin')">Sign In</span>
+      <span class="nav-auth-btn create" onclick="startAuthFlow('create')">Create Account</span>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
@@ -339,23 +349,10 @@
   </div>
 </div>
 
-<!-- LOGOUT MODAL -->
-<div id="logout-modal" class="modal-overlay">
-  <div class="modal">
-    <div style="font-size: 17px; margin-bottom: 12px; color: var(--text); font-weight: 700;" id="txt-logout-title">Log Out?</div>
-    <div style="color: var(--text-dim); font-size: 14px; margin-bottom: 24px;" id="txt-logout-desc">Are you sure you want to log out?</div>
-    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-      <button type="button" class="btn" onclick="closeLogoutModal()">No</button>
-      <button type="button" class="btn btn-danger" onclick="confirmLogout()">Yes</button>
-    </div>
-  </div>
-</div>
-
 <!-- Supabase SDK Client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// Supabase Configuration
 const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
 var supabase = null;
@@ -371,7 +368,7 @@ try {
 var state = {
   lang: 'en',
   identity: null,
-  authMode: 'signin',
+  authAction: 'signin',
   avatar: 'A',
   customAvatarUrl: null,
   name: '',
@@ -404,35 +401,26 @@ var state = {
 
 var i18n = {
   'en': {
-    identityTitle: 'Select your identity', btnTeam: 'PIT Team', btnVisitor: 'Visitor',
-    visitorTitle: 'Sign In to your account', labelAvatar: 'Choose Preset Avatar or Upload Photo',
-    labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Continue',
+    identityTitle: 'Select your identity to continue', btnTeam: 'PIT Team (Direct Entry)', btnVisitor: 'Visitor (Guided Wizard)',
+    labelAvatar: 'Choose Preset Avatar or Upload Photo', labelName: 'Name / Nickname', labelCity: 'City / Location', btnContinue: 'Next Step →',
     surveyTitle: 'How did you hear about PIT?', surveyOptions: ['Social Media','Friend / Colleague','Search Engine','Tech Event / Conference','Other'],
-    btnSubmit: 'Submit & Enter', navHome: 'Home', navProfile: 'My Info', navTeam: 'Edit Panel', navLogout: 'Log Out',
-    profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
-    logoutTitle: 'Log Out?', logoutText: 'Are you sure you want to log out?', btnNo: 'No', btnYes: 'Yes',
+    btnSubmit: 'Complete & Enter', profileTitle: 'My Information', btnSave: 'Save Changes', productMgmt: 'Product Management', btnAddProduct: '+ Add Product',
     searchPlaceholder: 'Search keywords...', commentPlaceholder: 'Write a message...', teamReply: 'TEAM',
     attachProduct: '-- Attach product (optional) --', btnSubmitFeedback: 'submit feedback', uploadText: 'Upload photo from computer'
   },
   'zh-CN': {
-    identityTitle: '选择您的身份', btnTeam: 'PIT 团队', btnVisitor: '访客',
-    visitorTitle: '登录您的虚拟身份', labelAvatar: '选择预设头像或上传照片',
-    labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '继续',
+    identityTitle: '选择您的身份以继续', btnTeam: 'PIT 团队 (无 Wizard)', btnVisitor: '访客 (含 Wizard 引导)',
+    labelAvatar: '选择预设头像或上传照片', labelName: '名字 / 昵称', labelCity: '城市 / 位置', btnContinue: '下一步 →',
     surveyTitle: '您是通过什么渠道知道 PIT 的？', surveyOptions: ['社交媒体','朋友 / 同事','搜索引擎','技术活动 / 会议','其他'],
-    btnSubmit: '提交并进入', navHome: '首页', navProfile: '我的信息', navTeam: '编辑面板', navLogout: '退出登录',
-    profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
-    logoutTitle: '退出登录？', logoutText: '您确定要退出登录吗？', btnNo: '否', btnYes: '是',
+    btnSubmit: '完成并进入', profileTitle: '我的信息', btnSave: '保存更改', productMgmt: '产品管理', btnAddProduct: '+ 添加产品',
     searchPlaceholder: '搜索关键词...', commentPlaceholder: '输入消息...', teamReply: '团队',
     attachProduct: '-- 附加产品（可选）--', btnSubmitFeedback: '提交反馈 (submit feedback)', uploadText: '从电脑选择照片上传'
   },
   'zh-HK': {
-    identityTitle: '選擇您的身份', btnTeam: 'PIT 團隊', btnVisitor: '訪客',
-    visitorTitle: '登入您的虛擬身份', labelAvatar: '選擇預設頭像或上傳照片',
-    labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '繼續',
+    identityTitle: '選擇您的身份以繼續', btnTeam: 'PIT 團隊 (無 Wizard)', btnVisitor: '訪客 (含 Wizard 引導)',
+    labelAvatar: '選擇預設頭像或上傳照片', labelName: '名字 / 暱稱', labelCity: '城市 / 位置', btnContinue: '下一步 →',
     surveyTitle: '您是通過什麼渠道知道 PIT 的？', surveyOptions: ['社交媒體','朋友 / 同事','搜尋引擎','技術活動 / 會議','其他'],
-    btnSubmit: '提交並進入', navHome: '首頁', navProfile: '我的資訊', navTeam: '編輯面板', navLogout: '登出',
-    profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
-    logoutTitle: '登出？', logoutText: '您確定要登出嗎？', btnNo: '否', btnYes: '是',
+    btnSubmit: '完成並進入', profileTitle: '我的資訊', btnSave: '儲存變更', productMgmt: '產品管理', btnAddProduct: '+ 新增產品',
     searchPlaceholder: '搜尋關鍵詞...', commentPlaceholder: '輸入訊息...', teamReply: '團隊',
     attachProduct: '-- 附加產品（可選）--', btnSubmitFeedback: '提交反饋 (submit feedback)', uploadText: '從電腦選擇照片上傳'
   }
@@ -456,29 +444,17 @@ function selectLang(langKey) {
   } else {
     state.activeComments = state.activeComments || [];
   }
-  
-  if (typeof updateTexts === 'function') {
-    updateTexts();
-  }
-  
-  showPage('page-identity');
+  updateTexts();
+  startAuthFlow('signin');
 }
 
-function switchAuthTab(mode) {
-  state.authMode = mode;
-  var btnSignIn = document.getElementById('btn-tab-signin');
-  var btnCreate = document.getElementById('btn-tab-create');
-  var title = document.getElementById('visitor-title');
-
-  if (mode === 'signin') {
-    btnSignIn.className = 'btn btn-primary';
-    btnCreate.className = 'btn';
-    if(title) title.textContent = state.lang === 'zh-CN' ? '登录您的虚拟身份' : (state.lang === 'zh-HK' ? '登入您的虛擬身份' : 'Sign In to your account');
-  } else {
-    btnSignIn.className = 'btn';
-    btnCreate.className = 'btn btn-primary';
-    if(title) title.textContent = state.lang === 'zh-CN' ? '创建新的虚拟身份' : (state.lang === 'zh-HK' ? '創建新的虛擬身份' : 'Create your virtual identity');
+function startAuthFlow(action) {
+  state.authAction = action;
+  var badge = document.getElementById('identity-mode-badge');
+  if (badge) {
+    badge.textContent = action === 'signin' ? 'Sign In Flow' : 'Create Account Flow';
   }
+  showPage('page-identity');
 }
 
 function updateTexts() {
@@ -487,7 +463,6 @@ function updateTexts() {
   document.getElementById('identity-title').textContent = l.identityTitle;
   document.getElementById('btn-team').textContent = l.btnTeam;
   document.getElementById('btn-visitor').textContent = l.btnVisitor;
-  document.getElementById('visitor-title').textContent = l.visitorTitle;
   document.getElementById('label-avatar').textContent = l.labelAvatar;
   document.getElementById('label-name').textContent = l.labelName;
   document.getElementById('label-city').textContent = l.labelCity;
@@ -498,8 +473,6 @@ function updateTexts() {
   document.getElementById('btn-save-profile').textContent = l.btnSave;
   document.getElementById('txt-product-mgmt').textContent = l.productMgmt;
   document.getElementById('btn-add-product').textContent = l.btnAddProduct;
-  document.getElementById('txt-logout-title').textContent = l.logoutTitle;
-  document.getElementById('txt-logout-desc').textContent = l.logoutText;
   document.getElementById('search-keyword').placeholder = l.searchPlaceholder;
   document.getElementById('new-comment').placeholder = l.commentPlaceholder;
   document.getElementById('btn-submit-feedback').textContent = l.btnSubmitFeedback;
@@ -531,7 +504,6 @@ function selectIdentity(idType) {
     document.getElementById('nav-team').style.display = 'none';
     document.getElementById('nav-profile-team').style.display = 'none';
     document.getElementById('team-product-select').style.display = 'none';
-    switchAuthTab('signin');
     showPage('page-visitor');
   }
 }
@@ -837,20 +809,6 @@ function addProduct() {
     updateProductDropdown();
     renderTeamProducts();
   }
-}
-
-function openLogoutModal() {
-  document.getElementById('logout-modal').classList.add('active');
-}
-
-function closeLogoutModal() {
-  document.getElementById('logout-modal').classList.remove('active');
-}
-
-function confirmLogout() {
-  closeLogoutModal();
-  switchAuthTab('signin');
-  showPage('page-visitor');
 }
 </script>
 </body>
