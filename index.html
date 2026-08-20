@@ -119,7 +119,7 @@
   .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 8px; border-radius: 8px; }
   .radio-group label:hover { background: var(--bg-elevated); }
   .radio-group input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; }
-  .product-edit-card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; border-radius: 12px; box-shadow: var(--shadow); }
+  .product-edit-card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; border-radius: 12px; box-shadow: var(--shadow); position: relative; }
   .lang-btn {
     padding: 16px 32px; border: 1px solid var(--border); background: var(--bg-card);
     color: var(--text); cursor: pointer; font-size: 15px; margin: 8px;
@@ -150,6 +150,18 @@
     font-size: 12px; border-radius: 6px; cursor: pointer; font-weight: 500;
   }
   .lang-pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* Modal Styling */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: #fff; border-radius: 12px; width: 100%; max-width: 450px;
+    padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  }
 </style>
 </head>
 <body>
@@ -368,14 +380,36 @@
   <div class="container" style="padding: 24px 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
       <div style="font-size: 17px; font-weight: 700; color: var(--text);" id="txt-product-mgmt">Product Management</div>
-      <button type="button" class="btn btn-primary btn-sm" id="btn-add-product" onclick="addProduct()">+ Add Product</button>
+      <button type="button" class="btn btn-primary btn-sm" id="btn-add-product" onclick="openAddProductModal()">+ Add Product</button>
     </div>
     <div id="products-list"></div>
   </div>
 </div>
 
-<!-- 在文件的最后面，找到这两个 script 标签 -->
-<!-- 在文件的最后面，找到这两个 script 标签 -->
+<!-- ADD PRODUCT MODAL -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal-box">
+    <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Add New Product</div>
+    
+    <div class="label">Product Name</div>
+    <input class="input" id="pm-name" placeholder="e.g. Neural Link v2.0" style="margin-bottom: 12px;">
+
+    <div class="label">Price</div>
+    <input class="input" id="pm-price" placeholder="e.g. $299.00" style="margin-bottom: 12px;">
+
+    <div class="label">Description / Promo Badge</div>
+    <input class="input" id="pm-promo" placeholder="e.g. 20% OFF or Free Shipping" style="margin-bottom: 12px;">
+
+    <div class="label">Product URL / Link</div>
+    <input class="input" id="pm-link" placeholder="e.g. https://peox.tech/product" style="margin-bottom: 20px;">
+
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button type="button" class="btn btn-sm" onclick="closeAddProductModal()">Cancel</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="saveProductModal()">Save Product</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
@@ -496,7 +530,6 @@ function updateAuthStateUI() {
   }
 }
 
-// LOGOUT FUNCTION (PRESERVES ALL COMMENTS)
 function handleLogOut() {
   state.isLoggedIn = false;
   state.identity = null;
@@ -508,7 +541,7 @@ function handleLogOut() {
   document.getElementById('team-product-select').style.display = 'none';
   
   updateAuthStateUI();
-  renderComments(); // 保留评论，重新渲染列表
+  renderComments();
   showPage('page-home');
 }
 
@@ -882,23 +915,59 @@ function renderTeamProducts() {
   for (var i = 0; i < state.products.length; i++) {
     var p = state.products[i];
     html += '<div class="product-edit-card">' +
-      '<div style="font-weight:700; margin-bottom:6px;">' + p.name + '</div>' +
-      '<div style="font-size:13px; color:var(--text-dim);">' + p.price + ' • ' + p.promo + '</div>' +
-      '<a href="' + p.link + '" target="_blank" style="font-size:12px; color:var(--primary);">' + p.link + '</a>' +
+      '<div style="font-weight:700; margin-bottom:6px; font-size:16px;">' + p.name + '</div>' +
+      '<div style="font-size:14px; font-weight:600; color:var(--primary); margin-bottom:4px;">' + p.price + '</div>' +
+      (p.promo ? '<div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">' + p.promo + '</div>' : '') +
+      '<a href="' + p.link + '" target="_blank" style="font-size:12px; color:var(--primary); text-decoration:underline;">' + p.link + '</a>' +
+      '<button type="button" class="btn btn-danger btn-sm" style="position:absolute; top:20px; right:20px;" onclick="deleteProduct(' + p.id + ')">Delete</button>' +
     '</div>';
   }
   list.innerHTML = html;
 }
 
-function addProduct() {
-  var name = prompt('Product Name:');
-  var price = prompt('Price:');
-  var link = prompt('Link:');
-  if (name && price) {
-    state.products.push({ id: Date.now(), name: name, price: price, promo: '', link: link || '#' });
-    updateProductDropdown();
-    renderTeamProducts();
+/* MODAL & PRODUCT EDITING FUNCTIONS */
+function openAddProductModal() {
+  document.getElementById('pm-name').value = '';
+  document.getElementById('pm-price').value = '';
+  document.getElementById('pm-promo').value = '';
+  document.getElementById('pm-link').value = '';
+  document.getElementById('product-modal').classList.add('active');
+}
+
+function closeAddProductModal() {
+  document.getElementById('product-modal').classList.remove('active');
+}
+
+async function saveProductModal() {
+  var name = document.getElementById('pm-name').value.trim();
+  var price = document.getElementById('pm-price').value.trim();
+  var promo = document.getElementById('pm-promo').value.trim();
+  var link = document.getElementById('pm-link').value.trim();
+
+  if (!name || !price) {
+    alert('Please enter a product name and price.');
+    return;
   }
+
+  var newProduct = {
+    id: Date.now(),
+    name: name,
+    price: price,
+    promo: promo || '',
+    link: link || '#'
+  };
+
+  state.products.push(newProduct);
+  
+  updateProductDropdown();
+  renderTeamProducts();
+  closeAddProductModal();
+}
+
+function deleteProduct(productId) {
+  state.products = state.products.filter(function(p) { return p.id !== productId; });
+  updateProductDropdown();
+  renderTeamProducts();
 }
 
 // Initial Setup
