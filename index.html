@@ -374,14 +374,14 @@
   </div>
 </div>
 
+<!-- 在文件的最后面，找到这两个 script 标签 -->
+<!-- 在文件的最后面，找到这两个 script 标签 -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
+const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co"; // 填入你的真实 URL
+const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";          // 填入你的真实 Anon Key
 var supabase = null;
-
-const PIT_TEAM_AVATAR_URL = "https://i.postimg.cc/44C5Lmg9/pbox-penny.jpg"; 
 
 try {
   if (window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
