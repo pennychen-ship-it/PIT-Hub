@@ -479,8 +479,9 @@ function selectIdentity(idType) {
   state.identity = idType;
   if (idType === 'team') {
     state.name = 'PIT Team';
-    state.city = 'Peox HQ';
-    state.avatar = 'A';
+    state.city = 'Beijing'; // 1. Location 改为 Beijing
+    state.avatar = 'custom'; // 2. 不支持选默认头像，开启自定义头像
+    state.customAvatarUrl = 'https://i.postimg.cc/mD8Z8KxV/gear.jpg'; // 设置为齿轮图
     document.getElementById('home-badge').style.display = 'inline-block';
     document.getElementById('nav-team').style.display = 'inline-block';
     document.getElementById('nav-profile-team').style.display = 'inline-block';
@@ -709,17 +710,39 @@ async function addComment() {
   var prodSelect = document.getElementById('product-select');
   var pId = (state.identity === 'team' && prodSelect) ? parseInt(prodSelect.value) || null : null;
 
+  var isTeam = (state.identity === 'team');
+
   var newObj = {
-    avatar: state.avatar,
-    custom_avatar_url: state.customAvatarUrl,
-    name: state.name || 'Anonymous',
-    city: state.city || 'Earth',
+    avatar: isTeam ? 'custom' : state.avatar,
+    custom_avatar_url: isTeam ? 'https://i.imgur.com/example-gear-logo.png' : state.customAvatarUrl,
+    name: isTeam ? 'PIT Team' : (state.name || 'Anonymous'),
+    city: isTeam ? 'Beijing' : (state.city || 'Earth'), // 团队固定为 Beijing
     content: val,
-    is_team_reply: (state.identity === 'team'),
+    is_team_reply: isTeam,
     product_id: pId,
     replies: []
   };
 
+  if (supabase) {
+    await supabase.from('comments').insert([newObj]);
+  } else {
+    state.activeComments.unshift({
+      id: Date.now(),
+      avatar: newObj.avatar,
+      customAvatarUrl: newObj.custom_avatar_url,
+      name: newObj.name,
+      city: newObj.city,
+      sentences: [val],
+      timestamp: Date.now(),
+      isTeamReply: isTeam,
+      productId: pId,
+      replies: []
+    });
+    renderComments();
+  }
+
+  input.value = '';
+}
   if (supabase) {
     await supabase.from('comments').insert([newObj]);
   } else {
@@ -744,6 +767,15 @@ async function addComment() {
 function openProfilePage() {
   document.getElementById('profile-name').value = state.name;
   document.getElementById('profile-city').value = state.city;
+
+  var avatarSection = document.getElementById('avatar-select-section');
+  if (avatarSection) {
+    if (state.identity === 'team') {
+      avatarSection.style.display = 'none'; // PIT Team 不支持自定义/切换头像
+    } else {
+      avatarSection.style.display = 'block';
+    }
+  }
   showPage('page-profile');
 }
 
