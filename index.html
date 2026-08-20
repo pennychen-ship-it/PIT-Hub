@@ -64,10 +64,26 @@
     transition: all 0.15s; border-radius: 6px; font-weight: 500;
   }
   .nav-link:hover, .nav-link.active { color: var(--primary); background: var(--primary-light); }
+  
+  /* 包含 Log Out 和下方提示语的包裹容器 */
+  .logout-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .logout-subtext {
+    font-size: 10px;
+    color: var(--danger);
+    margin-top: 2px;
+    font-weight: 500;
+  }
+
   .nav-auth-btn { font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
   .nav-auth-btn.signin { color: var(--primary); background: var(--primary-light); }
   .nav-auth-btn.create { color: #fff; background: var(--primary); }
   .nav-auth-btn.logout { color: var(--danger); background: #fef2f2; }
+  
   .team-badge {
     display: inline-block; background: #ecfdf5; color: #10b981;
     border: 1px solid #a7f3d0; padding: 2px 10px; font-size: 11px; margin-left: 8px;
@@ -145,11 +161,17 @@
       <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
       <span id="home-badge" class="team-badge" style="display: none;">TEAM</span>
     </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link active" onclick="showPage('page-home')">Home</span>
       <span class="nav-link auth-logged-in" style="display:none;" onclick="openProfilePage()">My Info</span>
       <span class="nav-link auth-logged-in" id="nav-team" style="display:none;" onclick="openTeamPage()">Edit Panel</span>
-      <span class="nav-auth-btn logout auth-logged-in" style="display:none;" onclick="handleLogOut()">Log Out</span>
+      
+      <!-- Log Out 包含 Delete Account 提示词 -->
+      <div class="logout-wrapper auth-logged-in" style="display:none;">
+        <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
+        <span class="logout-subtext">Delete Account</span>
+      </div>
+
       <span class="nav-auth-btn signin auth-logged-out" onclick="startAuthFlow('signin')">Sign In</span>
       <span class="nav-auth-btn create auth-logged-out" onclick="startAuthFlow('create')">Create Account</span>
     </div>
@@ -255,11 +277,15 @@
 <div id="page-profile" class="page">
   <div class="header">
     <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link active" onclick="openProfilePage()">My Info</span>
       <span class="nav-link" id="nav-profile-team" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
-      <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
+      
+      <div class="logout-wrapper">
+        <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
+        <span class="logout-subtext">Delete Account</span>
+      </div>
     </div>
   </div>
   <div class="container" style="padding: 32px 20px; max-width: 460px;">
@@ -303,10 +329,7 @@
         <button type="button" class="btn btn-sm" style="width: 100%; margin-bottom: 16px;" onclick="resetBackground()">Reset Default Background</button>
       </div>
 
-      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px; margin-bottom: 12px;" onclick="saveProfile()">Save Changes</button>
-      
-      <!-- Delete Account 按钮 -->
-      <button type="button" class="btn btn-danger btn-sm" style="width: 100%; text-align: center;" onclick="handleDeleteAccount()">Delete Account</button>
+      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="saveProfile()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -318,11 +341,15 @@
       <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
       <span class="team-badge">TEAM ONLY</span>
     </div>
-    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
       <span class="nav-link" onclick="showPage('page-home')">Home</span>
       <span class="nav-link" onclick="openProfilePage()">My Info</span>
       <span class="nav-link active">Edit Panel</span>
-      <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
+      
+      <div class="logout-wrapper">
+        <span class="nav-auth-btn logout" onclick="handleLogOut()">Log Out</span>
+        <span class="logout-subtext">Delete Account</span>
+      </div>
     </div>
   </div>
   <div class="container" style="padding: 24px 20px;">
@@ -453,7 +480,7 @@ function updateAuthStateUI() {
   var loggedOutEls = document.querySelectorAll('.auth-logged-out');
 
   for (var i = 0; i < loggedInEls.length; i++) {
-    loggedInEls[i].style.display = state.isLoggedIn ? 'inline-block' : 'none';
+    loggedInEls[i].style.display = state.isLoggedIn ? 'flex' : 'none';
   }
   for (var j = 0; j < loggedOutEls.length; j++) {
     loggedOutEls[j].style.display = state.isLoggedIn ? 'none' : 'inline-block';
@@ -472,9 +499,9 @@ function updateAuthStateUI() {
   }
 }
 
-/* 1. 点击 Log Out 确认弹窗与跳转 Sign In */
+/* Log Out 即 Delete Account 的逻辑 */
 function handleLogOut() {
-  var confirmLogout = confirm("Are you sure you want to log out?");
+  var confirmLogout = confirm("Are you sure you want to log out? (Note: Logging out will delete your account session).");
   if (confirmLogout) {
     state.isLoggedIn = false;
     state.identity = null;
@@ -482,30 +509,12 @@ function handleLogOut() {
     state.city = '';
     state.customAvatarUrl = null;
     
+    // 清空本地保存的登录数据（账号销毁）
     localStorage.removeItem('pit_user_session');
 
     updateAuthStateUI();
     renderComments();
-    startAuthFlow('signin'); // 跳转至选择身份/Sign In页面
-  }
-}
-
-/* Delete Account (注销账号) */
-function handleDeleteAccount() {
-  var confirmDelete = confirm("Are you sure you want to delete your account? This action cannot be undone.");
-  if (confirmDelete) {
-    state.isLoggedIn = false;
-    state.identity = null;
-    state.name = '';
-    state.city = '';
-    state.customAvatarUrl = null;
-    
-    localStorage.removeItem('pit_user_session');
-
-    alert("Account deleted successfully.");
-    updateAuthStateUI();
-    renderComments();
-    showPage('page-home');
+    startAuthFlow('signin'); // 提示确认后跳转到登录/身份选取面板
   }
 }
 
@@ -614,7 +623,7 @@ async function fetchCloudComments() {
   renderComments();
 }
 
-/* 2. 删除留言处理函数 */
+/* 删除留言处理 */
 async function deleteComment(commentId) {
   var confirmDel = confirm("Are you sure you want to delete this comment?");
   if (!confirmDel) return;
@@ -675,7 +684,6 @@ function renderComments() {
 
     var currentAvatarUrl = c.isTeamReply ? PIT_TEAM_AVATAR_URL : c.customAvatarUrl;
 
-    /* 包含 Delete 按钮的留言节点 */
     html += '<div class="comment">' +
       '<div style="display: flex; gap: 12px; align-items: flex-start;">' +
         getAvatarHTML(c.avatar, currentAvatarUrl) +
