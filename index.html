@@ -649,71 +649,31 @@ function renderComments() {
         '<button type="button" class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">Send</button>' +
       '</div>';
     }
-
     html += '<div class="comment">' +
-      '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">' +
-        '<div style="display:flex; align-items:center; gap:12px;">' +
-          getAvatarHTML(c.avatar, c.customAvatarUrl) +
-          '<div>' +
-            '<strong>' + c.name + '</strong>' + (c.isTeamReply ? ' <span class="team-badge">' + i18n[state.lang].teamReply + '</span>' : '') +
-            '<div class="comment-meta">' + c.city + ' · ' + dateStr + '</div>' +
-          '</div>' +
-        '</div>' +
+      '<div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">' +
+        getAvatarHTML(c.avatar, c.customAvatarUrl) +
         '<div>' +
-          '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')" style="margin-right:6px;">💬 Reply</button>' +
-          '<button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">🗑️ Delete</button>' +
+          '<div style="font-weight:600; font-size:14px;">' + c.name + (c.isTeamReply ? ' <span class="team-badge">TEAM</span>' : '') + '</div>' +
+          '<div class="comment-meta">' + c.city + ' • ' + dateStr + '</div>' +
         '</div>' +
       '</div>' +
       '<div class="comment-sentence">' + c.sentences.join('<br>') + '</div>' +
-      productTag + repliesHTML + replyBoxHTML +
+      productTag +
+      repliesHTML +
+      replyBoxHTML +
+      '<div style="margin-top:10px; display:flex; gap:10px;">' +
+        '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')">Reply</button>' +
+      '</div>' +
     '</div>';
   }
-  area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages found</div>';
+
+  area.innerHTML = html || '<div style="color:var(--text-dim); text-align:center; padding:20px;">No messages yet</div>';
 }
 
-async function addComment() {
-  var val = document.getElementById('new-comment').value.trim();
-  if (!val) return;
-  var prodSelect = document.getElementById('product-select');
-  var selectedProdId = prodSelect ? parseInt(prodSelect.value) : null;
-
-  var newObj = {
-    avatar: state.avatar,
-    custom_avatar_url: state.customAvatarUrl,
-    name: state.name || 'Anonymous',
-    city: state.city || 'Unknown',
-    content: val,
-    is_team_reply: (state.identity === 'team'),
-    product_id: selectedProdId || null,
-    replies: []
-  };
-
-  if (supabase) {
-    const { error } = await supabase.from('comments').insert([newObj]);
-    if (error) {
-      console.error("Cloud push failed:", error);
-    } else {
-      fetchCloudComments();
-      document.getElementById('new-comment').value = '';
-      return;
-    }
-  }
-
-  // Local fallback
-  state.activeComments.unshift({
-    id: Date.now(),
-    avatar: newObj.avatar,
-    customAvatarUrl: newObj.custom_avatar_url,
-    name: newObj.name,
-    city: newObj.city,
-    sentences: [val],
-    timestamp: Date.now(),
-    isTeamReply: newObj.is_team_reply,
-    productId: newObj.product_id,
-    replies: []
-  });
+function clearSearch() {
+  document.getElementById('search-keyword').value = '';
+  document.getElementById('search-date').value = '';
   renderComments();
-  document.getElementById('new-comment').value = '';
 }
 
 function toggleReply(id) {
@@ -722,38 +682,63 @@ function toggleReply(id) {
 }
 
 async function sendReply(commentId) {
-  var inp = document.getElementById('reply-input-' + commentId);
-  if (!inp || !inp.value.trim()) return;
+  var input = document.getElementById('reply-input-' + commentId);
+  if (!input) return;
+  var val = input.value.trim();
+  if (!val) return;
 
-  var comment = state.activeComments.find(function(c) { return c.id === commentId; });
-  if (comment) {
-    var newReplies = (comment.replies || []).concat([{
-      name: state.name || 'Anonymous',
-      content: inp.value.trim(),
-      timestamp: Date.now()
-    }]);
-
+  var targetComment = state.activeComments.find(function(c) { return c.id === commentId; });
+  if (targetComment) {
+    if (!targetComment.replies) targetComment.replies = [];
+    targetComment.replies.push({ name: state.name || 'Anonymous', content: val });
+    
     if (supabase) {
-      await supabase.from('comments').update({ replies: newReplies }).eq('id', commentId);
+      await supabase.from('comments').update({ replies: targetComment.replies }).eq('id', commentId);
     }
-    comment.replies = newReplies;
   }
+
   state.activeReplyId = null;
   renderComments();
 }
 
-async function deleteComment(id) {
-  if (supabase) {
-    await supabase.from('comments').delete().eq('id', id);
-  }
-  state.activeComments = state.activeComments.filter(function(c) { return c.id !== id; });
-  renderComments();
-}
+async function addComment() {
+  var input = document.getElementById('new-comment');
+  var val = input.value.trim();
+  if (!val) return;
 
-function clearSearch() {
-  document.getElementById('search-keyword').value = '';
-  document.getElementById('search-date').value = '';
-  renderComments();
+  var prodSelect = document.getElementById('product-select');
+  var pId = (state.identity === 'team' && prodSelect) ? parseInt(prodSelect.value) || null : null;
+
+  var newObj = {
+    avatar: state.avatar,
+    custom_avatar_url: state.customAvatarUrl,
+    name: state.name || 'Anonymous',
+    city: state.city || 'Earth',
+    content: val,
+    is_team_reply: (state.identity === 'team'),
+    product_id: pId,
+    replies: []
+  };
+
+  if (supabase) {
+    await supabase.from('comments').insert([newObj]);
+  } else {
+    state.activeComments.unshift({
+      id: Date.now(),
+      avatar: state.avatar,
+      customAvatarUrl: state.customAvatarUrl,
+      name: state.name || 'Anonymous',
+      city: state.city || 'Earth',
+      sentences: [val],
+      timestamp: Date.now(),
+      isTeamReply: (state.identity === 'team'),
+      productId: pId,
+      replies: []
+    });
+    renderComments();
+  }
+
+  input.value = '';
 }
 
 function openProfilePage() {
@@ -767,64 +752,48 @@ function saveProfile() {
   state.city = document.getElementById('profile-city').value.trim();
   alert('Profile saved!');
   showPage('page-home');
-  renderComments();
 }
 
 function openTeamPage() {
-  renderProductEditor();
+  renderTeamProducts();
   showPage('page-team');
 }
 
 function updateProductDropdown() {
-  var sel = document.getElementById('product-select');
-  if (!sel) return;
+  var select = document.getElementById('product-select');
+  if(!select) return;
   var l = i18n[state.lang];
-  var opts = '<option value="">' + l.attachProduct + '</option>';
+  select.innerHTML = '<option value="">' + l.attachProduct + '</option>';
   for (var i = 0; i < state.products.length; i++) {
     var p = state.products[i];
-    opts += '<option value="' + p.id + '">' + p.name + ' (' + p.price + ')</option>';
+    select.innerHTML += '<option value="' + p.id + '">' + p.name + ' (' + p.price + ')</option>';
   }
-  sel.innerHTML = opts;
 }
 
-function renderProductEditor() {
-  var container = document.getElementById('products-list');
+function renderTeamProducts() {
+  var list = document.getElementById('products-list');
+  if (!list) return;
   var html = '';
   for (var i = 0; i < state.products.length; i++) {
     var p = state.products[i];
     html += '<div class="product-edit-card">' +
-      '<div style="display:flex; justify-content:space-between; margin-bottom:10px;">' +
-        '<strong>Product #' + p.id + '</strong>' +
-        '<button type="button" class="btn btn-danger btn-sm" onclick="removeProduct(' + p.id + ')">Remove</button>' +
-      '</div>' +
-      '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">' +
-        '<input class="input" value="' + p.name + '" onchange="updateProduct(' + p.id + ', \'name\', this.value)">' +
-        '<input class="input" value="' + p.price + '" onchange="updateProduct(' + p.id + ', \'price\', this.value)">' +
-      '</div>' +
-      '<input class="input" value="' + p.promo + '" style="margin-bottom:10px;" onchange="updateProduct(' + p.id + ', \'promo\', this.value)">' +
-      '<input class="input" value="' + p.link + '" onchange="updateProduct(' + p.id + ', \'link\', this.value)">' +
+      '<div style="font-weight:700; margin-bottom:6px;">' + p.name + '</div>' +
+      '<div style="font-size:13px; color:var(--text-dim);">' + p.price + ' • ' + p.promo + '</div>' +
+      '<a href="' + p.link + '" target="_blank" style="font-size:12px; color:var(--primary);">' + p.link + '</a>' +
     '</div>';
   }
-  container.innerHTML = html;
+  list.innerHTML = html;
 }
 
 function addProduct() {
-  var newId = Date.now();
-  state.products.push({ id: newId, name: 'New Product', price: '$0.00', promo: 'Special Offer', link: 'https://peox.tech' });
-  renderProductEditor();
-  updateProductDropdown();
-}
-
-function removeProduct(id) {
-  state.products = state.products.filter(function(p) { return p.id !== id; });
-  renderProductEditor();
-  updateProductDropdown();
-}
-
-function updateProduct(id, field, val) {
-  var p = state.products.find(function(item) { return item.id === id; });
-  if (p) p[field] = val;
-  updateProductDropdown();
+  var name = prompt('Product Name:');
+  var price = prompt('Price:');
+  var link = prompt('Link:');
+  if (name && price) {
+    state.products.push({ id: Date.now(), name: name, price: price, promo: '', link: link || '#' });
+    updateProductDropdown();
+    renderTeamProducts();
+  }
 }
 
 function openLogoutModal() {
@@ -837,16 +806,8 @@ function closeLogoutModal() {
 
 function confirmLogout() {
   closeLogoutModal();
-  state.identity = null;
-  state.name = '';
-  state.city = '';
   showPage('page-lang');
 }
-
-// 保证 DOM 准备好后再默认激活界面
-document.addEventListener("DOMContentLoaded", function() {
-  showPage('page-lang');
-});
 </script>
 </body>
 </html>
