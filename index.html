@@ -1,1110 +1,1334 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PIT Hub</title>
-<style>
-  :root {
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --primary-light: rgba(37,99,235,0.08);
-    --bg: #f0f7ff;
-    --bg-card: #ffffff;
-    --bg-elevated: #f8fafc;
-    --border: #e2e8f0;
-    --text: #1e293b;
-    --text-dim: #64748b;
-    --danger: #ef4444;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    background: var(--bg); color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    min-height: 100vh; line-height: 1.6;
-    background-size: cover; background-position: center; background-attachment: fixed;
-    transition: background-image 0.3s ease;
-  }
-  .page { display: none !important; min-height: 100vh; }
-  .page.active { display: flex !important; flex-direction: column; }
-  .container { max-width: 800px; margin: 0 auto; width: 100%; padding: 0 20px; }
-  .center { align-items: center; justify-content: center; }
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
-    padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500;
-    transition: all 0.15s; border-radius: 8px; font-family: inherit;
-  }
-  .btn:hover { background: var(--bg-elevated); border-color: #cbd5e1; }
-  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-  .btn-primary:hover { background: var(--primary-hover); }
-  .btn-danger { border-color: var(--danger); color: var(--danger); background: #fef2f2; }
-  .btn-danger:hover { background: #fee2e2; }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
-  .input {
-    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
-    padding: 10px 14px; font-size: 14px; width: 100%; outline: none;
-    transition: all 0.15s; border-radius: 8px; font-family: inherit;
-  }
-  .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-  .card {
-    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
-    border: 1px solid var(--border); padding: 24px; border-radius: 12px; margin-bottom: 20px; box-shadow: var(--shadow);
-  }
-  .label { color: var(--text-dim); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .header {
-    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border); padding: 14px 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
-  }
-  .nav-link {
-    color: var(--text-dim); font-size: 14px; padding: 6px 12px; cursor: pointer;
-    transition: all 0.15s; border-radius: 6px; font-weight: 500;
-  }
-  .nav-link:hover, .nav-link.active { color: var(--primary); background: var(--primary-light); }
-  
-  .logout-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  .logout-subtext {
-    font-size: 10px;
-    color: var(--danger);
-    margin-top: 2px;
-    font-weight: 500;
-  }
-
-  .nav-auth-btn { font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
-  .nav-auth-btn.signin { color: var(--primary); background: var(--primary-light); }
-  .nav-auth-btn.create { color: #fff; background: var(--primary); }
-  .nav-auth-btn.logout { color: var(--danger); background: #fef2f2; }
-  
-  .team-badge {
-    display: inline-block; background: #ecfdf5; color: #10b981;
-    border: 1px solid #a7f3d0; padding: 2px 10px; font-size: 11px; margin-left: 8px;
-    border-radius: 999px; font-weight: 600;
-  }
-  .avatar-img {
-    width: 44px; height: 44px; border-radius: 50%; object-fit: cover;
-    border: 1px solid var(--border); background: var(--bg-elevated);
-    display: inline-flex; align-items: center; justify-content: center; font-size: 22px;
-  }
-  .avatar-select {
-    width: 48px; height: 48px; border: 2px solid var(--border); border-radius: 50%;
-    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-    margin: 4px; transition: all 0.15s; background: var(--bg-elevated); font-size: 20px;
-  }
-  .avatar-select:hover { border-color: var(--primary); transform: scale(1.05); }
-  .avatar-select.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); background: var(--primary-light); }
-  .comment {
-    background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(8px);
-    border: 1px solid var(--border); border-left: 4px solid var(--primary);
-    padding: 22px; margin-bottom: 24px; border-radius: 0 12px 12px 0; box-shadow: var(--shadow);
-  }
-  .comment-meta { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-  .reply-list { margin-top: 16px; padding-left: 20px; border-left: 2px solid var(--border); display: flex; flex-direction: column; gap: 12px; }
-  .reply-item { background: var(--bg-elevated); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); font-size: 13.5px; }
-  .product-tag {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--primary-light); border: 1px solid #bfdbfe; color: var(--primary);
-    padding: 6px 12px; font-size: 12px; margin-top: 10px; cursor: pointer;
-    border-radius: 6px; font-weight: 500; transition: all 0.15s;
-  }
-  .search-bar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
-  .search-bar input { flex: 1; min-width: 140px; }
-  .scroll { max-height: 600px; overflow-y: auto; padding-right: 6px; }
-  .radio-group { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
-  .radio-group label { cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 8px; border-radius: 8px; }
-  .radio-group label:hover { background: var(--bg-elevated); }
-  .radio-group input[type="radio"] { accent-color: var(--primary); width: 16px; height: 16px; }
-  .product-edit-card { background: var(--bg-card); border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; border-radius: 12px; box-shadow: var(--shadow); position: relative; }
-  .splash-logo { font-size: 26px; font-weight: 700; color: var(--primary); letter-spacing: 1px; }
-  .file-upload-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 8px 14px; border: 1px dashed var(--primary); border-radius: 8px;
-    background: var(--primary-light); color: var(--primary); font-size: 13px;
-    cursor: pointer; font-weight: 500; margin-top: 8px;
-  }
-  .avatar-preview-box {
-    width: 70px; height: 70px; border-radius: 50%; border: 2px solid var(--primary);
-    margin: 12px auto 0 auto; display: flex; align-items: center; justify-content: center;
-    overflow: hidden; background: var(--bg-elevated);
-  }
-  .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
-  .wizard-step-badge {
-    display: inline-block; background: var(--primary-light); color: var(--primary);
-    font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
-  }
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-    display: none; align-items: center; justify-content: center; z-index: 1000;
-  }
-  .modal-overlay.active { display: flex; }
-  .modal-box {
-    background: #fff; border-radius: 12px; width: 100%; max-width: 450px;
-    padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-  }
-  .lang-select {
-    padding: 4px 8px; font-size: 12px; border-radius: 6px; cursor: pointer;
-    background: var(--bg-card); border: 1px solid var(--border); color: var(--text);
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIT - Product Review Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg-elevated: #12121a;
+            --card: #1a1a24;
+            --border: #2a2a3a;
+            --fg: #f0f0f5;
+            --muted: #8888a0;
+            --accent: #00d4aa;
+            --accent-dim: #00d4aa33;
+            --danger: #ff4466;
+            --warning: #ffaa00;
+        }
+ 
+        * {
+            box-sizing: border-box;
+        }
+ 
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+ 
+        h1, h2, h3, .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+ 
+        .bg-noise {
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+        }
+ 
+        .gradient-orb {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+ 
+        .orb-1 {
+            background: var(--accent);
+            top: -200px;
+            right: -200px;
+            animation: float 20s ease-in-out infinite;
+        }
+ 
+        .orb-2 {
+            background: #6644ff;
+            bottom: -300px;
+            left: -200px;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+ 
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(30px, 20px) scale(1.05); }
+        }
+ 
+        .page {
+            display: none;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+ 
+        .page.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+ 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+ 
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+ 
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-dim);
+        }
+ 
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+ 
+        .btn-secondary {
+            background: transparent;
+            color: var(--fg);
+            font-weight: 500;
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+ 
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+ 
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--fg);
+            font-size: 15px;
+            transition: all 0.2s ease;
+        }
+ 
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+ 
+        .input-field::placeholder {
+            color: var(--muted);
+        }
+ 
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+ 
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+ 
+        .product-card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--bg-elevated), var(--card));
+        }
+ 
+        .nav-link {
+            color: var(--muted);
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+ 
+        .nav-link:hover, .nav-link.active {
+            color: var(--fg);
+            background: var(--card);
+        }
+ 
+        .avatar-upload {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px dashed var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+ 
+        .avatar-upload:hover {
+            border-color: var(--accent);
+        }
+ 
+        .star-rating {
+            display: flex;
+            gap: 4px;
+        }
+ 
+        .star {
+            cursor: pointer;
+            color: var(--border);
+            transition: all 0.15s ease;
+        }
+ 
+        .star.filled, .star:hover {
+            color: var(--warning);
+        }
+ 
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+ 
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease;
+        }
+ 
+        .modal {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+ 
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+ 
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+ 
+        .secret-input {
+            position: relative;
+        }
+ 
+        .secret-hint {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 11px;
+            color: var(--muted);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+ 
+        .secret-input:focus-within .secret-hint {
+            opacity: 1;
+        }
+ 
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+ 
+        .stagger-1 { animation-delay: 0.1s; }
+        .stagger-2 { animation-delay: 0.2s; }
+        .stagger-3 { animation-delay: 0.3s; }
+        .stagger-4 { animation-delay: 0.4s; }
+ 
+        .slide-up {
+            animation: slideUp 0.6s ease forwards;
+            opacity: 0;
+        }
+ 
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+ 
+        .feedback-item {
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+ 
+        .feedback-item:hover {
+            border-left-color: var(--accent);
+            background: var(--bg-elevated);
+        }
+ 
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+ 
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+ 
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+ 
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--muted);
+        }
+    </style>
 </head>
 <body>
-
-<!-- 1. HOME -->
-<div id="page-home" class="page active">
-  <div class="header">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
-      <span id="home-badge" class="team-badge" style="display: none;">TEAM</span>
-    </div>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-      <select class="lang-select" onchange="changeLanguage(this.value)">
-        <option value="en" selected>🌐 English</option>
-        <option value="zh">🌐 简体中文</option>
-        <option value="yue">🌐 粵語</option>
-      </select>
-      <span class="nav-link active" data-i18n="home" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link auth-logged-in" data-i18n="myInfo" style="display:none;" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link auth-logged-in" id="nav-team" data-i18n="editPanel" style="display:none;" onclick="openTeamPage()">Edit Panel</span>
-      
-      <div class="logout-wrapper auth-logged-in" style="display:none;">
-        <span class="nav-auth-btn logout" data-i18n="logOut" onclick="handleLogOut()">Log Out</span>
-        <span class="logout-subtext" data-i18n="deleteAccount">Delete Account</span>
-      </div>
-
-      <span class="nav-auth-btn signin auth-logged-out" data-i18n="signIn" onclick="startAuthFlow('signin')">Sign In</span>
-      <span class="nav-auth-btn create auth-logged-out" data-i18n="createAccount" onclick="startAuthFlow('create')">Create Account</span>
-    </div>
-  </div>
-  <div class="container" style="padding: 24px 20px;">
-    <div class="search-bar">
-      <input class="input" id="search-keyword" placeholder="Search keywords..." style="flex: 1;">
-      <input class="input" id="search-date" type="date" style="width: 150px; font-size: 13px; color: var(--text-dim);">
-      <button type="button" class="btn btn-sm" data-i18n="searchBtn" onclick="renderComments()">Search</button>
-      <button type="button" class="btn btn-sm" data-i18n="clearBtn" onclick="clearSearch()">Clear</button>
-    </div>
-    
-    <div id="comments-area" class="scroll"></div>
-
-    <div id="comment-input-area" style="margin-top: 24px;">
-      <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-        <input class="input" id="new-comment" placeholder="Write a message..." style="flex: 1;">
-        <button type="button" class="btn btn-primary" id="btn-submit-feedback" data-i18n="submitFeedback" onclick="addComment()">submit feedback</button>
-      </div>
-      <div id="team-product-select" style="display: none;">
-        <select class="input" id="product-select" style="font-size: 13px; color: var(--text-dim);"></select>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 2. IDENTITY SELECTION -->
-<div id="page-identity" class="page center" style="padding: 40px 20px;">
-  <div style="text-align: center; max-width: 420px; width: 100%;">
-    <div class="splash-logo" style="margin-bottom: 12px;">PIT HUB</div>
-    <div style="margin-bottom: 24px;">
-      <span class="wizard-step-badge" id="identity-mode-badge">Authenticating</span>
-    </div>
-    <div id="identity-title" style="font-size: 16px; margin-bottom: 28px; color: var(--text-dim); font-weight: 500;" data-i18n="selectIdentity">Select your identity</div>
-    <button type="button" class="btn btn-primary" onclick="selectIdentity('team')" style="width: 100%; margin-bottom: 12px; padding: 16px; font-size: 15px;">
-      PIT Team (No Wizard)
-    </button>
-    <button type="button" class="btn" onclick="selectIdentity('visitor')" style="width: 100%; padding: 16px; font-size: 15px;">
-      Visitor (With Wizard)
-    </button>
-    <div style="margin-top: 20px;">
-      <button type="button" class="btn btn-sm" data-i18n="backHome" onclick="showPage('page-home')">← Back to Home</button>
-    </div>
-  </div>
-</div>
-
-<!-- 3. VISITOR WIZARD STEP 1 -->
-<div id="page-visitor" class="page" style="padding: 40px 20px;">
-  <div class="container" style="max-width: 460px;">
-    <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
-    <div style="text-align: center; margin-bottom: 20px;">
-      <span class="wizard-step-badge">Visitor Wizard • Step 1 of 2</span>
-    </div>
-    <div class="card">
-      <div class="label" data-i18n="chooseAvatar">Choose Preset Avatar or Upload Photo</div>
-      <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
-        <div class="avatar-select selected" onclick="pickAvatar('A', this, 'visitor')">🤖</div>
-        <div class="avatar-select" onclick="pickAvatar('B', this, 'visitor')">👾</div>
-        <div class="avatar-select" onclick="pickAvatar('C', this, 'visitor')">🦾</div>
-        <div class="avatar-select" onclick="pickAvatar('D', this, 'visitor')">👽</div>
-      </div>
-      
-      <div style="text-align: center; margin-bottom: 20px;">
-        <label class="file-upload-btn">
-          📁 <span data-i18n="uploadPhoto">Upload photo from computer</span>
-          <input type="file" onchange="handleFileUpload(event, 'visitor')" accept="image/*" style="display: none;">
-        </label>
-        <div id="visitor-avatar-preview" class="avatar-preview-box" style="display: none;"></div>
-      </div>
-
-      <div class="label" style="margin-top: 4px;" data-i18n="nameLabel">Name / Nickname</div>
-      <input class="input" id="visitor-name" placeholder="Enter your name" style="margin-bottom: 14px;">
-      <div class="label" data-i18n="cityLabel">City / Location</div>
-      <input class="input" id="visitor-city" placeholder="Enter your city" style="margin-bottom: 20px;">
-      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" data-i18n="nextStep" onclick="submitVisitorInfo()">Next Step →</button>
-    </div>
-  </div>
-</div>
-
-<!-- 4. VISITOR WIZARD STEP 2 -->
-<div id="page-survey" class="page" style="padding: 40px 20px;">
-  <div class="container" style="max-width: 460px;">
-    <div class="splash-logo" style="font-size: 22px; margin-bottom: 4px; text-align: center;">PIT HUB</div>
-    <div style="text-align: center; margin-bottom: 20px;">
-      <span class="wizard-step-badge">Visitor Wizard • Step 2 of 2</span>
-    </div>
-
-    <div style="text-align: center; margin-bottom: 24px; color: var(--text); font-size: 16px; font-weight: 600;" data-i18n="surveyTitle">How did you hear about PIT?</div>
-    <div class="card">
-      <div class="radio-group">
-        <label><input type="radio" name="survey" value="social" checked> <span>Social Media</span></label>
-        <label><input type="radio" name="survey" value="friend"> <span>Friend / Colleague</span></label>
-        <label><input type="radio" name="survey" value="search"> <span>Search Engine</span></label>
-        <label><input type="radio" name="survey" value="event"> <span>Tech Event / Conference</span></label>
-        <label><input type="radio" name="survey" value="other"> <span>Other</span></label>
-      </div>
-      <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 8px; padding: 12px;" data-i18n="completeBtn" onclick="submitSurvey()">Complete & Enter</button>
-    </div>
-  </div>
-</div>
-
-<!-- 5. MY PROFILE -->
-<div id="page-profile" class="page">
-  <div class="header">
-    <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-      <select class="lang-select" onchange="changeLanguage(this.value)">
-        <option value="en" selected>🌐 English</option>
-        <option value="zh">🌐 简体中文</option>
-        <option value="yue">🌐 粵語</option>
-      </select>
-      <span class="nav-link" data-i18n="home" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link active" data-i18n="myInfo" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link" id="nav-profile-team" data-i18n="editPanel" style="display: none;" onclick="openTeamPage()">Edit Panel</span>
-      
-      <div class="logout-wrapper">
-        <span class="nav-auth-btn logout" data-i18n="logOut" onclick="handleLogOut()">Log Out</span>
-        <span class="logout-subtext" data-i18n="deleteAccount">Delete Account</span>
-      </div>
-    </div>
-  </div>
-  <div class="container" style="padding: 32px 20px; max-width: 460px;">
-    <div style="font-size: 20px; margin-bottom: 12px; color: var(--text); font-weight: 700;" data-i18n="myInformation">My Information</div>
-
-    <div class="card">
-      <div class="label" data-i18n="avatarLabel">Avatar</div>
-      
-      <div id="visitor-avatar-section">
-        <div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 12px;">
-          <div class="avatar-select" onclick="pickAvatar('A', this, 'profile')">🤖</div>
-          <div class="avatar-select" onclick="pickAvatar('B', this, 'profile')">👾</div>
-          <div class="avatar-select" onclick="pickAvatar('C', this, 'profile')">🦾</div>
-          <div class="avatar-select" onclick="pickAvatar('D', this, 'profile')">👽</div>
+    <!-- Background Effects -->
+    <div class="bg-noise"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+ 
+    <!-- Login Page -->
+    <div id="loginPage" class="page active">
+        <div class="min-h-screen flex items-center justify-center p-6">
+            <div class="w-full max-w-md">
+                <!-- Logo -->
+                <div class="text-center mb-10 slide-up">
+                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-[#00d4aa] to-[#00a088] mb-6 shadow-lg shadow-[#00d4aa33]">
+                        <span class="font-display text-4xl font-bold text-[#0a0a0f]">PIT</span>
+                    </div>
+                    <h1 class="font-display text-3xl font-bold mb-2">Welcome Back</h1>
+                    <p class="text-[var(--muted)]">Sign in to access your account</p>
+                </div>
+ 
+                <!-- Login Form -->
+                <form id="loginForm" class="space-y-5 slide-up stagger-1">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-[var(--muted)]">Email Address</label>
+                        <input type="email" id="loginEmail" class="input-field" placeholder="you@example.com" required>
+                    </div>
+                    
+                    <div class="secret-input">
+                        <label class="block text-sm font-medium mb-2 text-[var(--muted)]">Password</label>
+                        <input type="password" id="loginPassword" class="input-field pr-24" placeholder="Enter your password" required>
+                        <span class="secret-hint">Admin? Try "admin123"</span>
+                    </div>
+ 
+                    <button type="submit" class="btn-primary w-full mt-6">Sign In</button>
+                </form>
+ 
+                <p class="text-center mt-8 text-[var(--muted)] text-sm slide-up stagger-2">
+                    Don't have an account? 
+                    <button onclick="showRegister()" class="text-[var(--accent)] hover:underline">Create one</button>
+                </p>
+            </div>
         </div>
-        
-        <div style="text-align: center; margin-bottom: 20px;">
-          <label class="file-upload-btn">
-            📁 <span data-i18n="uploadPhoto">Upload photo from computer</span>
-            <input type="file" onchange="handleFileUpload(event, 'profile')" accept="image/*" style="display: none;">
-          </label>
+    </div>
+ 
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal-overlay">
+        <div class="modal p-8">
+            <h2 class="font-display text-2xl font-bold mb-6">Create Account</h2>
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nickname</label>
+                    <input type="text" id="regNickname" class="input-field" placeholder="Your nickname" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email</label>
+                    <input type="email" id="regEmail" class="input-field" placeholder="you@example.com" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="regPassword" class="input-field" placeholder="Create a password" required>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="hideRegister()" class="btn-secondary flex-1">Cancel</button>
+                    <button type="submit" class="btn-primary flex-1">Sign Up</button>
+                </div>
+            </form>
         </div>
-      </div>
-
-      <div id="profile-avatar-preview" class="avatar-preview-box" style="margin-bottom: 20px;"></div>
-
-      <div id="visitor-name-section">
-        <div class="label" data-i18n="nameLabel">Name / Nickname</div>
-        <input class="input" id="profile-name" style="margin-bottom: 14px;">
-      </div>
-
-      <div class="label" data-i18n="cityLabel">City / Location</div>
-      <input class="input" id="profile-city" style="margin-bottom: 20px;">
-
-      <div id="team-bg-section" style="display: none; margin-top: 10px; padding-top: 16px; border-top: 1px dashed var(--border);">
-        <div class="label" data-i18n="customBg">Custom Background</div>
-        <label class="file-upload-btn" style="width: 100%; text-align: center; margin-bottom: 10px;">
-          🖼️ <span data-i18n="uploadBg">Upload Background Image</span>
-          <input type="file" id="bg-file-input" onchange="handleBgUpload(event)" accept="image/*" style="display: none;">
-        </label>
-        <button type="button" class="btn btn-sm" style="width: 100%; margin-bottom: 16px;" data-i18n="resetBg" onclick="resetBackground()">Reset Default Background</button>
-      </div>
-
-      <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" data-i18n="saveChanges" onclick="saveProfile()">Save Changes</button>
     </div>
-  </div>
-</div>
-
-<!-- 6. TEAM EDIT PANEL -->
-<div id="page-team" class="page">
-  <div class="header">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <span style="font-weight: 700; font-size: 17px; color: var(--primary);">PIT HUB</span>
-      <span class="team-badge">TEAM ONLY</span>
+ 
+    <!-- Main App -->
+    <div id="mainApp" class="page">
+        <!-- Header -->
+        <header class="sticky top-0 z-50 backdrop-blur-xl bg-[var(--bg)]/80 border-b border-[var(--border)]">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00d4aa] to-[#00a088] flex items-center justify-center">
+                        <span class="font-display font-bold text-[#0a0a0f]">P</span>
+                    </div>
+                    <span class="font-display text-xl font-bold">PIT</span>
+                </div>
+ 
+                <nav class="hidden md:flex items-center gap-2">
+                    <span class="nav-link active" data-page="home" onclick="showPage('home')">Products</span>
+                    <span class="nav-link" data-page="feedback" onclick="showPage('feedback')">Feedback</span>
+                </nav>
+ 
+                <div class="flex items-center gap-4">
+                    <!-- Language Selector -->
+                    <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-[var(--card)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                    </select>
+ 
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="userMenuBtn" onclick="toggleUserMenu()" class="flex items-center gap-2 p-2 rounded-lg hover:bg-[var(--card)] transition-colors">
+                            <div id="headerAvatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-[#00d4aa] to-[#6644ff] flex items-center justify-center text-sm font-bold"></div>
+                            <span id="headerName" class="hidden sm:block text-sm font-medium"></span>
+                            <svg class="w-4 h-4 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+ 
+                        <div id="userMenu" class="absolute right-0 top-full mt-2 w-56 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl py-2 hidden">
+                            <div class="px-4 py-3 border-b border-[var(--border)]">
+                                <p id="menuUserName" class="font-medium"></p>
+                                <p id="menuUserEmail" class="text-sm text-[var(--muted)]"></p>
+                            </div>
+                            <button onclick="showPage('settings')" class="w-full px-4 py-2 text-left hover:bg-[var(--bg-elevated)] flex items-center gap-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                Settings
+                            </button>
+                            <button onclick="logout()" class="w-full px-4 py-2 text-left hover:bg-[var(--bg-elevated)] text-[var(--danger)] flex items-center gap-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+ 
+        <!-- Home / Products Page -->
+        <div id="homeSection" class="section active">
+            <main class="max-w-7xl mx-auto px-6 py-10">
+                <!-- Hero -->
+                <div class="text-center mb-12">
+                    <h1 class="font-display text-4xl md:text-5xl font-bold mb-4" data-i18n="hero_title">Discover Amazing Products</h1>
+                    <p class="text-[var(--muted)] text-lg max-w-2xl mx-auto" data-i18n="hero_subtitle">Read honest reviews and share your experiences with the community</p>
+                </div>
+ 
+                <!-- Products Grid -->
+                <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Products will be rendered here -->
+                </div>
+            </main>
+        </div>
+ 
+        <!-- Feedback Page -->
+        <div id="feedbackSection" class="section" style="display:none;">
+            <main class="max-w-4xl mx-auto px-6 py-10">
+                <div class="flex items-center justify-between mb-8">
+                    <h1 class="font-display text-3xl font-bold" data-i18n="feedback_title">Community Feedback</h1>
+                    <button onclick="openFeedbackModal()" class="btn-primary flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span data-i18n="submit_feedback">Submit Feedback</span>
+                    </button>
+                </div>
+ 
+                <div id="feedbackList" class="space-y-4">
+                    <!-- Feedback will be rendered here -->
+                </div>
+            </main>
+        </div>
+ 
+        <!-- Settings Page -->
+        <div id="settingsSection" class="section" style="display:none;">
+            <main class="max-w-2xl mx-auto px-6 py-10">
+                <h1 class="font-display text-3xl font-bold mb-8" data-i18n="settings_title">Account Settings</h1>
+ 
+                <div class="space-y-6">
+                    <!-- Avatar & Background -->
+                    <div class="card p-6">
+                        <h2 class="font-display text-xl font-semibold mb-6" data-i18n="appearance">Appearance</h2>
+                        
+                        <div class="flex flex-col sm:flex-row items-center gap-6">
+                            <div id="settingsAvatar" class="avatar-upload" onclick="document.getElementById('avatarInput').click()">
+                                <svg class="w-8 h-8 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                                <input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
+                            </div>
+                            
+                            <div class="flex-1 space-y-4 w-full">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2" data-i18n="nickname">Nickname</label>
+                                    <input type="text" id="settingsNickname" class="input-field" placeholder="Your nickname">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2" data-i18n="background_color">Background Color</label>
+                                    <div class="flex gap-2">
+                                        <input type="color" id="settingsBgColor" class="w-12 h-10 rounded cursor-pointer" value="#0a0a0f">
+                                        <input type="text" id="settingsBgColorText" class="input-field flex-1" value="#0a0a0f" onchange="document.getElementById('settingsBgColor').value = this.value; previewBackground()">
+                                    </div>
+                                </div>
+                                <button onclick="saveSettings()" class="btn-primary" data-i18n="save_changes">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Danger Zone -->
+                    <div class="card p-6 border-[var(--danger)]/30">
+                        <h2 class="font-display text-xl font-semibold mb-4 text-[var(--danger)]" data-i18n="danger_zone">Danger Zone</h2>
+                        <p class="text-[var(--muted)] mb-4" data-i18n="delete_warning">Once you delete your account, there is no going back. Please be certain.</p>
+                        <button onclick="confirmDeleteAccount()" class="bg-[var(--danger)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity" data-i18n="delete_account">Delete Account</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+ 
+        <!-- Admin Panel (Hidden) -->
+        <div id="adminSection" class="section" style="display:none;">
+            <main class="max-w-6xl mx-auto px-6 py-10">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 class="font-display text-3xl font-bold flex items-center gap-3">
+                            <svg class="w-8 h-8 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                            Admin Panel
+                        </h1>
+                        <p class="text-[var(--muted)]" data-i18n="admin_desc">Manage products and reviews</p>
+                    </div>
+                    <button onclick="showPage('home')" class="btn-secondary">Back to Site</button>
+                </div>
+ 
+                <!-- Add Product Form -->
+                <div class="card p-6 mb-8">
+                    <h2 class="font-display text-xl font-semibold mb-6" data-i18n="add_product">Add New Product</h2>
+                    <form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Product Name</label>
+                            <input type="text" id="prodName" class="input-field" placeholder="Product name" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Price ($)</label>
+                            <input type="number" id="prodPrice" class="input-field" placeholder="99.99" step="0.01" required>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium mb-2">Description</label>
+                            <textarea id="prodDesc" class="input-field" rows="3" placeholder="Product description..." required></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Product Link</label>
+                            <input type="url" id="prodLink" class="input-field" placeholder="https://...">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Image URL</label>
+                            <input type="url" id="prodImage" class="input-field" placeholder="https://...">
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="btn-primary">Add Product</button>
+                        </div>
+                    </form>
+                </div>
+ 
+                <!-- Products Management -->
+                <div class="card p-6">
+                    <h2 class="font-display text-xl font-semibold mb-6" data-i18n="manage_products">Manage Products</h2>
+                    <div id="adminProductsList" class="space-y-3">
+                        <!-- Admin product list -->
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: center;">
-      <select class="lang-select" onchange="changeLanguage(this.value)">
-        <option value="en" selected>🌐 English</option>
-        <option value="zh">🌐 简体中文</option>
-        <option value="yue">🌐 粵語</option>
-      </select>
-      <span class="nav-link" data-i18n="home" onclick="showPage('page-home')">Home</span>
-      <span class="nav-link" data-i18n="myInfo" onclick="openProfilePage()">My Info</span>
-      <span class="nav-link active" data-i18n="editPanel">Edit Panel</span>
-      
-      <div class="logout-wrapper">
-        <span class="nav-auth-btn logout" data-i18n="logOut" onclick="handleLogOut()">Log Out</span>
-        <span class="logout-subtext" data-i18n="deleteAccount">Delete Account</span>
-      </div>
+ 
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="modal-overlay">
+        <div class="modal max-w-2xl">
+            <div id="productModalContent">
+                <!-- Content rendered dynamically -->
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="container" style="padding: 24px 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-      <div style="font-size: 17px; font-weight: 700; color: var(--text);" data-i18n="prodMgmt">Product Management</div>
-      <button type="button" class="btn btn-primary btn-sm" data-i18n="addProdBtn" onclick="openAddProductModal()">+ Add Product</button>
+ 
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal-overlay">
+        <div class="modal p-6">
+            <h2 class="font-display text-2xl font-bold mb-6" data-i18n="submit_feedback">Submit Feedback</h2>
+            <form id="feedbackForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2" data-i18n="select_product">Select Product</label>
+                    <select id="feedbackProduct" class="input-field" required></select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Rating</label>
+                    <div id="feedbackStars" class="star-rating">
+                        <span class="star" data-rating="1" onclick="setRating(1)">&#9733;</span>
+                        <span class="star" data-rating="2" onclick="setRating(2)">&#9733;</span>
+                        <span class="star" data-rating="3" onclick="setRating(3)">&#9733;</span>
+                        <span class="star" data-rating="4" onclick="setRating(4)">&#9733;</span>
+                        <span class="star" data-rating="5" onclick="setRating(5)">&#9733;</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2" data-i18n="your_review">Your Review</label>
+                    <textarea id="feedbackText" class="input-field" rows="4" placeholder="Share your experience..." required></textarea>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeFeedbackModal()" class="btn-secondary flex-1" data-i18n="cancel">Cancel</button>
+                    <button type="submit" class="btn-primary flex-1" data-i18n="submit">Submit</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div id="products-list"></div>
-  </div>
-</div>
-
-<!-- MODAL -->
-<div class="modal-overlay" id="product-modal">
-  <div class="modal-box">
-    <div style="font-size: 18px; font-weight: 700; margin-bottom: 16px;" data-i18n="addNewProd">Add New Product</div>
-    <div class="label" data-i18n="prodName">Product Name</div>
-    <input class="input" id="pm-name" placeholder="e.g. Neural Link v2.0" style="margin-bottom: 12px;">
-    <div class="label" data-i18n="prodPrice">Price</div>
-    <input class="input" id="pm-price" placeholder="e.g. $299.00" style="margin-bottom: 12px;">
-    <div class="label" data-i18n="prodDesc">Description / Promo Badge</div>
-    <input class="input" id="pm-promo" placeholder="e.g. 20% OFF or Free Shipping" style="margin-bottom: 12px;">
-    <div class="label" data-i18n="prodUrl">Product URL / Link</div>
-    <input class="input" id="pm-link" placeholder="e.g. https://peox.tech/product" style="margin-bottom: 20px;">
-
-    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-      <button type="button" class="btn btn-sm" data-i18n="cancelBtn" onclick="closeAddProductModal()">Cancel</button>
-      <button type="button" class="btn btn-primary btn-sm" data-i18n="saveProdBtn" onclick="saveProductModal()">Save Product</button>
+ 
+    <!-- Reply Modal -->
+    <div id="replyModal" class="modal-overlay">
+        <div class="modal p-6">
+            <h2 class="font-display text-2xl font-bold mb-6" data-i18n="write_reply">Write a Reply</h2>
+            <form id="replyForm" class="space-y-4">
+                <input type="hidden" id="replyToId">
+                <div>
+                    <label class="block text-sm font-medium mb-2" data-i18n="your_reply">Your Reply</label>
+                    <textarea id="replyText" class="input-field" rows="3" placeholder="Type your reply..." required></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeReplyModal()" class="btn-secondary flex-1" data-i18n="cancel">Cancel</button>
+                    <button type="submit" class="btn-primary flex-1" data-i18n="submit">Submit</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const SUPABASE_URL = "https://zzcoetexcyadwgnicqig.supabase.co"; 
-const SUPABASE_ANON_KEY = "sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8";
-var supabase = null;
-
-const PIT_TEAM_AVATAR_URL = "https://i.postimg.cc/44C5Lmg9/pbox-penny.jpg"; 
-
-try {
-  if (window.supabase) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-} catch(e) {}
-
-// Multi-Language Translation Dictionary
-const i18n = {
-  en: {
-    home: "Home",
-    myInfo: "My Info",
-    editPanel: "Edit Panel",
-    logOut: "Log Out",
-    deleteAccount: "Delete Account",
-    signIn: "Sign In",
-    createAccount: "Create Account",
-    searchPlaceholder: "Search keywords...",
-    searchBtn: "Search",
-    clearBtn: "Clear",
-    submitFeedback: "submit feedback",
-    writeMessage: "Write a message...",
-    selectIdentity: "Select your identity",
-    backHome: "← Back to Home",
-    chooseAvatar: "Choose Preset Avatar or Upload Photo",
-    uploadPhoto: "Upload photo from computer",
-    nameLabel: "Name / Nickname",
-    cityLabel: "City / Location",
-    nextStep: "Next Step →",
-    surveyTitle: "How did you hear about PIT?",
-    completeBtn: "Complete & Enter",
-    myInformation: "My Information",
-    avatarLabel: "Avatar",
-    customBg: "Custom Background",
-    uploadBg: "Upload Background Image",
-    resetBg: "Reset Default Background",
-    saveChanges: "Save Changes",
-    prodMgmt: "Product Management",
-    addProdBtn: "+ Add Product",
-    addNewProd: "Add New Product",
-    prodName: "Product Name",
-    prodPrice: "Price",
-    prodDesc: "Description / Promo Badge",
-    prodUrl: "Product URL / Link",
-    cancelBtn: "Cancel",
-    saveProdBtn: "Save Product"
-  },
-  zh: {
-    home: "首页",
-    myInfo: "个人信息",
-    editPanel: "编辑面板",
-    logOut: "退出登录",
-    deleteAccount: "注销账号",
-    signIn: "登录",
-    createAccount: "注册账号",
-    searchPlaceholder: "搜索关键词...",
-    searchBtn: "搜索",
-    clearBtn: "清空",
-    submitFeedback: "提交反馈",
-    writeMessage: "编写留言...",
-    selectIdentity: "选择你的身份",
-    backHome: "← 返回首页",
-    chooseAvatar: "选择预设头像或上传照片",
-    uploadPhoto: "从电脑上传照片",
-    nameLabel: "姓名 / 昵称",
-    cityLabel: "城市 / 位置",
-    nextStep: "下一步 →",
-    surveyTitle: "你是如何了解 PIT 的？",
-    completeBtn: "完成并进入",
-    myInformation: "我的个人信息",
-    avatarLabel: "头像",
-    customBg: "自定义背景",
-    uploadBg: "上传背景图片",
-    resetBg: "重置默认背景",
-    saveChanges: "保存修改",
-    prodMgmt: "产品管理",
-    addProdBtn: "+ 添加产品",
-    addNewProd: "添加新产品",
-    prodName: "产品名称",
-    prodPrice: "价格",
-    prodDesc: "描述 / 促销标签",
-    prodUrl: "产品链接",
-    cancelBtn: "取消",
-    saveProdBtn: "保存产品"
-  },
-  yue: {
-    home: "主頁",
-    myInfo: "個人資料",
-    editPanel: "編輯面板",
-    logOut: "登出帳號",
-    deleteAccount: "註銷帳號",
-    signIn: "登入",
-    createAccount: "建立帳號",
-    searchPlaceholder: "搜尋關鍵字...",
-    searchBtn: "搜尋",
-    clearBtn: "清除",
-    submitFeedback: "提交反饋",
-    writeMessage: "寫低你嘅留言...",
-    selectIdentity: "選擇你嘅身份",
-    backHome: "← 返去主頁",
-    chooseAvatar: "選擇預設頭像或上載相片",
-    uploadPhoto: "喺電腦上載相片",
-    nameLabel: "名字 / 暱稱",
-    cityLabel: "城市 / 位置",
-    nextStep: "下一步 →",
-    surveyTitle: "你係點樣知道 PIT 嘅？",
-    completeBtn: "完成並進入",
-    myInformation: "我嘅個人資料",
-    avatarLabel: "頭像",
-    customBg: "自訂背景",
-    uploadBg: "上載背景圖片",
-    resetBg: "重置預設背景",
-    saveChanges: "儲存變更",
-    prodMgmt: "產品管理",
-    addProdBtn: "+ 新增產品",
-    addNewProd: "新增產品",
-    prodName: "產品名稱",
-    prodPrice: "價錢",
-    prodDesc: "描述 / 優惠標籤",
-    prodUrl: "產品連結",
-    cancelBtn: "取消",
-    saveProdBtn: "儲存產品"
-  }
-};
-
-let currentLang = 'en';
-
-function changeLanguage(lang) {
-  currentLang = lang;
-  
-  // Sync all dropdown selectors
-  document.querySelectorAll('.lang-select').forEach(sel => sel.value = lang);
-
-  // Update localized text
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    if (i18n[lang] && i18n[lang][key]) {
-      el.textContent = i18n[lang][key];
-    }
-  });
-
-  // Dynamic input placeholders
-  const searchInput = document.getElementById('search-keyword');
-  if (searchInput) searchInput.placeholder = i18n[lang].searchPlaceholder;
-
-  const msgInput = document.getElementById('new-comment');
-  if (msgInput) msgInput.placeholder = i18n[lang].writeMessage;
-
-  renderComments();
-}
-
-var state = {
-  isLoggedIn: false,
-  identity: null,
-  authAction: 'signin',
-  avatar: 'A',
-  customAvatarUrl: null,
-  name: '',
-  city: '',
-  bgUrl: localStorage.getItem('pit_bg_url') || null,
-  activeReplyId: null,
-  products: [
-    { id: 1, name: 'Neural Link v2.0', price: '$299.00', promo: '20% OFF', link: 'https://peox.tech/neural-link' },
-    { id: 2, name: 'CyberDeck Pro', price: '$1,299.00', promo: 'Free shipping', link: 'https://peox.tech/cyberdeck' }
-  ],
-  activeComments: [
-    { id: 101, avatar: 'B', customAvatarUrl: null, name: 'NeonWalker', city: 'Hong Kong', sentences: ['Just enrolled in the Advanced AI course.'], timestamp: Date.now() - 86400000, isTeamReply: false, replies: [] },
-    { id: 102, avatar: 'CUSTOM', customAvatarUrl: PIT_TEAM_AVATAR_URL, name: 'PIT Team', city: 'Peox HQ', sentences: ['Welcome aboard! Let us know if you need help.'], timestamp: Date.now() - 3600000, isTeamReply: true, productId: 1, replies: [] }
-  ]
-};
-
-var avatars = { A: '🤖', B: '👾', C: '🦾', D: '👽' };
-
-function saveUserSession() {
-  var sessionData = {
-    isLoggedIn: state.isLoggedIn,
-    identity: state.identity,
-    name: state.name,
-    city: state.city,
-    avatar: state.avatar,
-    customAvatarUrl: state.customAvatarUrl
-  };
-  localStorage.setItem('pit_user_session', JSON.stringify(sessionData));
-}
-
-function loadUserSession() {
-  var raw = localStorage.getItem('pit_user_session');
-  if (!raw) return false;
-  try {
-    var session = JSON.parse(raw);
-    if (session && session.isLoggedIn) {
-      state.isLoggedIn = session.isLoggedIn;
-      state.identity = session.identity;
-      state.name = session.name || '';
-      state.city = session.city || '';
-      state.avatar = session.avatar || 'A';
-      state.customAvatarUrl = session.customAvatarUrl || null;
-      return true;
-    }
-  } catch(e) {}
-  return false;
-}
-
-function applyBackground() {
-  if (state.bgUrl) {
-    document.body.style.backgroundImage = 'url("' + state.bgUrl + '")';
-  } else {
-    document.body.style.backgroundImage = 'none';
-  }
-}
-
-function handleBgUpload(e) {
-  var file = e.target.files[0];
-  if (file) {
-    var reader = new FileReader();
-    reader.onload = function(evt) {
-      state.bgUrl = evt.target.result;
-      localStorage.setItem('pit_bg_url', state.bgUrl);
-      applyBackground();
-      alert('Background updated!');
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-function resetBackground() {
-  state.bgUrl = null;
-  localStorage.removeItem('pit_bg_url');
-  applyBackground();
-  alert('Background reset.');
-}
-
-function updateAuthStateUI() {
-  var loggedInEls = document.querySelectorAll('.auth-logged-in');
-  var loggedOutEls = document.querySelectorAll('.auth-logged-out');
-
-  for (var i = 0; i < loggedInEls.length; i++) {
-    loggedInEls[i].style.display = state.isLoggedIn ? 'flex' : 'none';
-  }
-  for (var j = 0; j < loggedOutEls.length; j++) {
-    loggedOutEls[j].style.display = state.isLoggedIn ? 'none' : 'inline-block';
-  }
-
-  if (state.isLoggedIn && state.identity === 'team') {
-    document.getElementById('home-badge').style.display = 'inline-block';
-    document.getElementById('team-product-select').style.display = 'block';
-    document.getElementById('nav-team').style.display = 'inline-block';
-    if(document.getElementById('nav-profile-team')) document.getElementById('nav-profile-team').style.display = 'inline-block';
-  } else {
-    document.getElementById('home-badge').style.display = 'none';
-    document.getElementById('team-product-select').style.display = 'none';
-    document.getElementById('nav-team').style.display = 'none';
-    if(document.getElementById('nav-profile-team')) document.getElementById('nav-profile-team').style.display = 'none';
-  }
-}
-
-function handleLogOut() {
-  var msg = "Are you sure you want to log out?";
-  if (currentLang === 'zh') msg = "确定要退出登录吗？";
-  if (currentLang === 'yue') msg = "你確定要登出帳號嗎？";
-
-  if (confirm(msg)) {
-    state.isLoggedIn = false;
-    state.identity = null;
-    state.name = '';
-    state.city = '';
-    state.customAvatarUrl = null;
-    
-    localStorage.removeItem('pit_user_session');
-
-    updateAuthStateUI();
-    renderComments();
-    startAuthFlow('signin');
-  }
-}
-
-function showPage(pageId) {
-  var pages = document.querySelectorAll('.page');
-  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
-  var target = document.getElementById(pageId);
-  if (target) target.classList.add('active');
-}
-
-function startAuthFlow(action) {
-  state.authAction = action;
-  var badge = document.getElementById('identity-mode-badge');
-  if (badge) badge.textContent = action === 'signin' ? i18n[currentLang].signIn : i18n[currentLang].createAccount;
-  showPage('page-identity');
-}
-
-function selectIdentity(idType) {
-  state.identity = idType;
-  if (idType === 'team') {
-    state.isLoggedIn = true;
-    state.name = 'PIT Team';
-    state.city = 'Peox HQ';
-    state.avatar = 'CUSTOM';
-    state.customAvatarUrl = PIT_TEAM_AVATAR_URL;
-    saveUserSession();
-    updateAuthStateUI();
-    fetchCloudComments();
-    showPage('page-home');
-  } else {
-    showPage('page-visitor');
-  }
-}
-
-function pickAvatar(key, el, context) {
-  var parent = el.parentNode;
-  var nodes = parent.querySelectorAll('.avatar-select');
-  for (var i = 0; i < nodes.length; i++) nodes[i].classList.remove('selected');
-  if (el) el.classList.add('selected');
-  state.avatar = key;
-  state.customAvatarUrl = null;
-  updateAvatarPreview(context);
-}
-
-function handleFileUpload(e, context) {
-  var file = e.target.files[0];
-  if (file) {
-    var reader = new FileReader();
-    reader.onload = function(evt) { 
-      state.customAvatarUrl = evt.target.result; 
-      state.avatar = 'CUSTOM';
-      updateAvatarPreview(context);
-    };
-    reader.readAsDataURL(file);
-  }
-}
-
-function updateAvatarPreview(context) {
-  var previewBox = document.getElementById(context === 'visitor' ? 'visitor-avatar-preview' : 'profile-avatar-preview');
-  if (!previewBox) return;
-  previewBox.style.display = 'flex';
-  previewBox.innerHTML = getAvatarHTML(state.avatar, state.customAvatarUrl);
-}
-
-function submitVisitorInfo() {
-  var name = document.getElementById('visitor-name').value.trim();
-  var city = document.getElementById('visitor-city').value.trim();
-  if (!name || !city) {
-    var msg = 'Please enter name and city';
-    if (currentLang === 'zh') msg = '请填写姓名和城市';
-    if (currentLang === 'yue') msg = '請填寫名字同城市';
-    return alert(msg);
-  }
-  state.name = name;
-  state.city = city;
-  showPage('page-survey');
-}
-
-function submitSurvey() {
-  state.isLoggedIn = true;
-  saveUserSession();
-  updateAuthStateUI();
-  fetchCloudComments();
-  showPage('page-home');
-}
-
-function getAvatarHTML(avatarKey, customUrl) {
-  if (customUrl) return '<img src="' + customUrl + '" class="avatar-img">';
-  return '<div class="avatar-img">' + (avatars[avatarKey] || '🤖') + '</div>';
-}
-
-async function fetchCloudComments() {
-  if (!supabase) return;
-  try {
-    const { data, error } = await supabase.from('comments').select('*').order('created_at', { ascending: false });
-    if (!error && data && data.length > 0) {
-      state.activeComments = data.map(item => ({
-        id: item.id,
-        avatar: item.avatar || 'A',
-        customAvatarUrl: item.custom_avatar_url || null,
-        name: item.name || 'Anonymous',
-        city: item.city || 'Earth',
-        sentences: [item.content],
-        timestamp: new Date(item.created_at).getTime(),
-        isTeamReply: item.is_team_reply || false,
-        productId: item.product_id || null,
-        replies: item.replies || []
-      }));
-    }
-  } catch(err) {}
-  renderComments();
-}
-
-async function deleteComment(commentId) {
-  var msg = "Are you sure you want to delete this comment?";
-  if (currentLang === 'zh') msg = "确定要删除这条留言吗？";
-  if (currentLang === 'yue') msg = "你確定要刪除呢條留言嗎？";
-
-  if (!confirm(msg)) return;
-
-  state.activeComments = state.activeComments.filter(function(c) { return c.id !== commentId; });
-
-  try {
-    if (supabase) {
-      await supabase.from('comments').delete().eq('id', commentId);
-    }
-  } catch(err) {}
-
-  renderComments();
-}
-
-function renderComments() {
-  var area = document.getElementById('comments-area');
-  if(!area) return;
-  var keyword = document.getElementById('search-keyword').value.trim().toLowerCase();
-  var dateVal = document.getElementById('search-date').value;
-  var html = '';
-
-  var list = state.activeComments.filter(function(c) {
-    var matchKw = !keyword || c.sentences.join(' ').toLowerCase().indexOf(keyword) !== -1 || c.name.toLowerCase().indexOf(keyword) !== -1;
-    var matchDate = true;
-    if (dateVal) {
-      var d = new Date(c.timestamp).toISOString().split('T')[0];
-      matchDate = (d === dateVal);
-    }
-    return matchKw && matchDate;
-  });
-
-  list.sort(function(a, b) { return b.timestamp - a.timestamp; });
-
-  for (var i = 0; i < list.length; i++) {
-    var c = list[i];
-    var dateStr = new Date(c.timestamp).toLocaleDateString();
-    var product = state.products.find(function(p) { return p.id === c.productId; });
-    var productTag = product ? '<div class="product-tag" onclick="window.open(\'' + product.link + '\')">' + product.name + ' — ' + product.price + ' →</div>' : '';
-
-    var repliesHTML = '';
-    if (c.replies && c.replies.length > 0) {
-      repliesHTML += '<div class="reply-list">';
-      for (var r = 0; r < c.replies.length; r++) {
-        var rep = c.replies[r];
-        repliesHTML += '<div class="reply-item"><strong>' + rep.name + ': </strong>' + rep.content + '</div>';
-      }
-      repliesHTML += '</div>';
-    }
-
-    var replyPlaceholder = 'Write a reply...';
-    var replyBtnTxt = 'Reply';
-    var deleteBtnTxt = 'Delete';
-    if (currentLang === 'zh') { replyPlaceholder = '输入回复内容...'; replyBtnTxt = '回复'; deleteBtnTxt = '删除'; }
-    if (currentLang === 'yue') { replyPlaceholder = '寫低你嘅回覆...'; replyBtnTxt = '回覆'; deleteBtnTxt = '刪除'; }
-
-    var replyInputHTML = '';
-    if (state.activeReplyId === c.id) {
-      replyInputHTML = '<div style="margin-top: 12px; display: flex; gap: 8px;">' +
-        '<input class="input" id="reply-input-' + c.id + '" placeholder="' + replyPlaceholder + '" style="font-size: 13px;">' +
-        '<button type="button" class="btn btn-primary btn-sm" onclick="sendReply(' + c.id + ')">' + replyBtnTxt + '</button>' +
-        '</div>';
-    }
-
-    var currentAvatarUrl = c.isTeamReply ? PIT_TEAM_AVATAR_URL : c.customAvatarUrl;
-
-    html += '<div class="comment">' +
-      '<div style="display: flex; gap: 12px; align-items: flex-start;">' +
-        getAvatarHTML(c.avatar, currentAvatarUrl) +
-        '<div style="flex: 1;">' +
-          '<div style="display: flex; justify-content: space-between; align-items: center;">' +
-            '<div><strong>' + c.name + '</strong> <span style="color: var(--text-dim); font-size: 12px;">(' + c.city + ')</span>' + 
-            (c.isTeamReply ? ' <span class="team-badge">TEAM</span>' : '') + '</div>' +
-            '<div class="comment-meta">' + dateStr + '</div>' +
-          '</div>' +
-          '<div style="margin-top: 8px;">' + c.sentences.join('<br>') + '</div>' +
-          productTag +
-          repliesHTML +
-          '<div style="margin-top: 10px; text-align: right; display: flex; justify-content: flex-end; gap: 8px;">' +
-            '<button type="button" class="btn btn-sm" onclick="toggleReply(' + c.id + ')">' + replyBtnTxt + '</button>' +
-            '<button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(' + c.id + ')">' + deleteBtnTxt + '</button>' +
-          '</div>' +
-          replyInputHTML +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  }
-
-  var noMsg = 'No messages found';
-  if (currentLang === 'zh') noMsg = '未找到留言';
-  if (currentLang === 'yue') noMsg = '搵唔到留言';
-
-  area.innerHTML = html || '<div style="text-align: center; color: var(--text-dim); padding: 40px;">' + noMsg + '</div>';
-}
-
-function clearSearch() {
-  document.getElementById('search-keyword').value = '';
-  document.getElementById('search-date').value = '';
-  renderComments();
-}
-
-function toggleReply(id) {
-  state.activeReplyId = (state.activeReplyId === id) ? null : id;
-  renderComments();
-}
-
-async function sendReply(commentId) {
-  var input = document.getElementById('reply-input-' + commentId);
-  if (!input) return;
-  var val = input.value.trim();
-  if (!val) return;
-
-  var targetComment = state.activeComments.find(function(c) { return c.id === commentId; });
-  if (targetComment) {
-    if (!targetComment.replies) targetComment.replies = [];
-    targetComment.replies.push({ name: state.name || 'Anonymous', content: val });
-
-    try {
-      if (supabase) {
-        await supabase.from('comments').update({ replies: targetComment.replies }).eq('id', commentId);
-      }
-    } catch(err) {}
-  }
-
-  state.activeReplyId = null;
-  renderComments();
-}
-
-async function addComment() {
-  var input = document.getElementById('new-comment');
-  var btn = document.getElementById('btn-submit-feedback');
-  var val = input.value.trim();
-  if (!val) return;
-
-  var isTeam = (state.identity === 'team');
-  var pSelect = document.getElementById('product-select');
-  var pId = (isTeam && pSelect) ? parseInt(pSelect.value) || null : null;
-  var avatarUrlToSave = isTeam ? PIT_TEAM_AVATAR_URL : state.customAvatarUrl;
-
-  var commentObj = {
-    id: Date.now(),
-    avatar: state.avatar,
-    customAvatarUrl: avatarUrlToSave,
-    name: isTeam ? 'PIT Team' : (state.name || 'Anonymous'),
-    city: state.city || 'Earth',
-    sentences: [val],
-    timestamp: Date.now(),
-    isTeamReply: isTeam,
-    productId: pId,
-    replies: []
-  };
-
-  var sendingTxt = 'Sending...';
-  if (currentLang === 'zh') sendingTxt = '发送中...';
-  if (currentLang === 'yue') sendingTxt = '傳送中...';
-
-  btn.textContent = sendingTxt;
-  btn.disabled = true;
-
-  try {
-    if (supabase) {
-      await supabase.from('comments').insert([{
-        avatar: state.avatar,
-        custom_avatar_url: avatarUrlToSave,
-        name: commentObj.name,
-        city: commentObj.city,
-        content: val,
-        is_team_reply: isTeam,
-        product_id: pId
-      }]);
-    }
-  } catch (err) {} finally {
-    state.activeComments.unshift(commentObj);
-    input.value = '';
-    btn.disabled = false;
-    btn.textContent = i18n[currentLang].submitFeedback;
-    renderComments();
-  }
-}
-
-function openProfilePage() {
-  var visitorAvatarSection = document.getElementById('visitor-avatar-section');
-  var visitorNameSection = document.getElementById('visitor-name-section');
-  var teamBgSection = document.getElementById('team-bg-section');
-
-  if (state.identity === 'team') {
-    state.customAvatarUrl = PIT_TEAM_AVATAR_URL;
-    visitorAvatarSection.style.display = 'none';
-    visitorNameSection.style.display = 'none';
-    teamBgSection.style.display = 'block';
-  } else {
-    visitorAvatarSection.style.display = 'block';
-    visitorNameSection.style.display = 'block';
-    teamBgSection.style.display = 'none';
-    document.getElementById('profile-name').value = state.name;
-  }
-
-  document.getElementById('profile-city').value = state.city;
-  updateAvatarPreview('profile');
-  showPage('page-profile');
-}
-
-function saveProfile() {
-  if (state.identity !== 'team') {
-    state.name = document.getElementById('profile-name').value.trim();
-  }
-  state.city = document.getElementById('profile-city').value.trim();
-  saveUserSession();
-
-  var alertMsg = 'Profile updated successfully!';
-  if (currentLang === 'zh') alertMsg = '个人信息更新成功！';
-  if (currentLang === 'yue') alertMsg = '個人資料更新成功！';
-
-  alert(alertMsg);
-  showPage('page-home');
-  renderComments();
-}
-
-function openTeamPage() {
-  renderTeamProducts();
-  showPage('page-team');
-}
-
-function updateProductDropdown() {
-  var select = document.getElementById('product-select');
-  if(!select) return;
-
-  var optTxt = '-- Attach product (optional) --';
-  if (currentLang === 'zh') optTxt = '-- 关联产品（可选） --';
-  if (currentLang === 'yue') optTxt = '-- 關聯產品（可選） --';
-
-  select.innerHTML = '<option value="">' + optTxt + '</option>';
-  for (var i = 0; i < state.products.length; i++) {
-    var p = state.products[i];
-    select.innerHTML += '<option value="' + p.id + '">' + p.name + ' (' + p.price + ')</option>';
-  }
-}
-
-function renderTeamProducts() {
-  var list = document.getElementById('products-list');
-  if (!list) return;
-  var html = '';
-  var delTxt = currentLang === 'zh' ? '删除' : (currentLang === 'yue' ? '刪除' : 'Delete');
-
-  for (var i = 0; i < state.products.length; i++) {
-    var p = state.products[i];
-    html += '<div class="product-edit-card">' +
-      '<div style="font-weight:700; margin-bottom:6px; font-size:16px;">' + p.name + '</div>' +
-      '<div style="font-size:14px; font-weight:600; color:var(--primary); margin-bottom:4px;">' + p.price + '</div>' +
-      (p.promo ? '<div style="font-size:12px; color:var(--text-dim); margin-bottom:6px;">' + p.promo + '</div>' : '') +
-      '<a href="' + p.link + '" target="_blank" style="font-size:12px; color:var(--primary); text-decoration:underline;">' + p.link + '</a>' +
-      '<button type="button" class="btn btn-danger btn-sm" style="position:absolute; top:20px; right:20px;" onclick="deleteProduct(' + p.id + ')">' + delTxt + '</button>' +
-    '</div>';
-  }
-  list.innerHTML = html;
-}
-
-function openAddProductModal() {
-  document.getElementById('pm-name').value = '';
-  document.getElementById('pm-price').value = '';
-  document.getElementById('pm-promo').value = '';
-  document.getElementById('pm-link').value = '';
-  document.getElementById('product-modal').classList.add('active');
-}
-
-function closeAddProductModal() {
-  document.getElementById('product-modal').classList.remove('active');
-}
-
-async function saveProductModal() {
-  var name = document.getElementById('pm-name').value.trim();
-  var price = document.getElementById('pm-price').value.trim();
-  var promo = document.getElementById('pm-promo').value.trim();
-  var link = document.getElementById('pm-link').value.trim();
-
-  if (!name || !price) {
-    var msg = 'Please enter a product name and price.';
-    if (currentLang === 'zh') msg = '请输入产品名称和价格。';
-    if (currentLang === 'yue') msg = '請輸入產品名稱同價錢。';
-    alert(msg);
-    return;
-  }
-
-  var newProduct = {
-    id: Date.now(),
-    name: name,
-    price: price,
-    promo: promo || '',
-    link: link || '#'
-  };
-
-  state.products.push(newProduct);
-  updateProductDropdown();
-  renderTeamProducts();
-  closeAddProductModal();
-}
-
-function deleteProduct(productId) {
-  state.products = state.products.filter(function(p) { return p.id !== productId; });
-  updateProductDropdown();
-  renderTeamProducts();
-}
-
-/* Initialization */
-applyBackground();
-updateProductDropdown();
-loadUserSession();
-updateAuthStateUI();
-fetchCloudComments();
-changeLanguage('en');
-
-showPage('page-home');
-</script>
+ 
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+ 
+    <script>
+        // ==================== DATA STORE ====================
+        let currentUser = null;
+        let selectedRating = 0;
+ 
+        // Initialize data structures first
+        let products = [
+            { id: 1, name: 'Wireless Pro Headphones', price: 299.99, desc: 'Premium noise-cancelling headphones with 40-hour battery life.', link: '#', image: '', rating: 4.5, reviews: 128 },
+            { id: 2, name: 'Smart Watch Ultra', price: 449.00, desc: 'Advanced fitness tracking with GPS and health monitoring.', link: '#', image: '', rating: 4.8, reviews: 256 },
+            { id: 3, name: 'Mechanical Keyboard RGB', price: 159.99, desc: 'Cherry MX switches with per-key RGB lighting.', link: '#', image: '', rating: 4.3, reviews: 89 },
+            { id: 4, name: 'Portable SSD 2TB', price: 189.00, desc: 'Ultra-fast transfer speeds up to 2000MB/s.', link: '#', image: '', rating: 4.7, reviews: 167 },
+        ];
+ 
+        let feedbacks = [
+            { id: 1, productId: 1, userId: 1, userName: 'TechEnthusiast', userAvatar: '', rating: 5, text: 'Amazing sound quality! The noise cancellation is incredible for flights.', date: '2024-01-15', replies: [] },
+            { id: 2, productId: 2, userId: 2, userName: 'FitnessGuru', userAvatar: '', rating: 4, text: 'Great fitness tracker, but battery could be better.', date: '2024-01-14', replies: [{ id: 101, userName: 'BrandRep', text: 'Thanks for the feedback! We are working on improving battery life.', date: '2024-01-15' }] },
+            { id: 3, productId: 3, userId: 3, userName: 'GamerPro', userAvatar: '', rating: 5, text: 'Best keyboard I have ever used. The tactile feel is perfect!', date: '2024-01-13', replies: [] },
+        ];
+ 
+        let users = [
+            { id: 1, email: 'admin@pit.com', password: 'admin123', nickname: 'Admin', avatar: '', bgColor: '#0a0a0f', isAdmin: true },
+            { id: 2, email: 'user@test.com', password: 'user123', nickname: 'TestUser', avatar: '', bgColor: '#0a0a0f', isAdmin: false },
+        ];
+ 
+        const i18n = {
+            en: {
+                hero_title: 'Discover Amazing Products',
+                hero_subtitle: 'Read honest reviews and share your experiences with the community',
+                feedback_title: 'Community Feedback',
+                submit_feedback: 'Submit Feedback',
+                settings_title: 'Account Settings',
+                appearance: 'Appearance',
+                nickname: 'Nickname',
+                background_color: 'Background Color',
+                save_changes: 'Save Changes',
+                danger_zone: 'Danger Zone',
+                delete_warning: 'Once you delete your account, there is no going back. Please be certain.',
+                delete_account: 'Delete Account',
+                admin_desc: 'Manage products and reviews',
+                add_product: 'Add New Product',
+                manage_products: 'Manage Products',
+                select_product: 'Select Product',
+                your_review: 'Your Review',
+                cancel: 'Cancel',
+                submit: 'Submit',
+                write_reply: 'Write a Reply',
+                your_reply: 'Your Reply',
+                buy_now: 'Buy Now',
+                view_details: 'View Details',
+                reviews: 'reviews',
+                reply: 'Reply',
+                delete: 'Delete',
+                edit: 'Edit'
+            },
+            zh: {
+                hero_title: '发现精彩产品',
+                hero_subtitle: '阅读真实评价，与社区分享您的体验',
+                feedback_title: '社区反馈',
+                submit_feedback: '提交反馈',
+                settings_title: '账户设置',
+                appearance: '外观',
+                nickname: '昵称',
+                background_color: '背景颜色',
+                save_changes: '保存更改',
+                danger_zone: '危险区域',
+                delete_warning: '一旦删除账户，将无法恢复。请谨慎操作。',
+                delete_account: '删除账户',
+                admin_desc: '管理产品和评论',
+                add_product: '添加新产品',
+                manage_products: '管理产品',
+                select_product: '选择产品',
+                your_review: '您的评价',
+                cancel: '取消',
+                submit: '提交',
+                write_reply: '撰写回复',
+                your_reply: '您的回复',
+                buy_now: '立即购买',
+                view_details: '查看详情',
+                reviews: '条评价',
+                reply: '回复',
+                delete: '删除',
+                edit: '编辑'
+            },
+            es: {
+                hero_title: 'Descubre Productos Increíbles',
+                hero_subtitle: 'Lee reseñas honestas y comparte tus experiencias con la comunidad',
+                feedback_title: 'Comentarios de la Comunidad',
+                submit_feedback: 'Enviar Comentario',
+                settings_title: 'Configuración de Cuenta',
+                appearance: 'Apariencia',
+                nickname: 'Apodo',
+                background_color: 'Color de Fondo',
+                save_changes: 'Guardar Cambios',
+                danger_zone: 'Zona de Peligro',
+                delete_warning: 'Una vez que elimines tu cuenta, no hay vuelta atrás.',
+                delete_account: 'Eliminar Cuenta',
+                admin_desc: 'Administrar productos y reseñas',
+                add_product: 'Agregar Nuevo Producto',
+                manage_products: 'Administrar Productos',
+                select_product: 'Seleccionar Producto',
+                your_review: 'Tu Reseña',
+                cancel: 'Cancelar',
+                submit: 'Enviar',
+                write_reply: 'Escribir Respuesta',
+                your_reply: 'Tu Respuesta',
+                buy_now: 'Comprar Ahora',
+                view_details: 'Ver Detalles',
+                reviews: 'reseñas',
+                reply: 'Responder',
+                delete: 'Eliminar',
+                edit: 'Editar'
+            },
+            fr: {
+                hero_title: 'Découvrez des Produits Incroyables',
+                hero_subtitle: 'Lisez des avis honnêtes et partagez vos expériences avec la communauté',
+                feedback_title: 'Commentaires de la Communauté',
+                submit_feedback: 'Soumettre un Avis',
+                settings_title: 'Paramètres du Compte',
+                appearance: 'Apparence',
+                nickname: 'Surnom',
+                background_color: 'Couleur de Fond',
+                save_changes: 'Enregistrer les Modifications',
+                danger_zone: 'Zone de Danger',
+                delete_warning: 'Une fois votre compte supprimé, il n\'y a pas de retour en arrière.',
+                delete_account: 'Supprimer le Compte',
+                admin_desc: 'Gérer les produits et les avis',
+                add_product: 'Ajouter un Nouveau Produit',
+                manage_products: 'Gérer les Produits',
+                select_product: 'Sélectionner un Produit',
+                your_review: 'Votre Avis',
+                cancel: 'Annuler',
+                submit: 'Soumettre',
+                write_reply: 'Écrire une Réponse',
+                your_reply: 'Votre Réponse',
+                buy_now: 'Acheter Maintenant',
+                view_details: 'Voir les Détails',
+                reviews: 'avis',
+                reply: 'Répondre',
+                delete: 'Supprimer',
+                edit: 'Modifier'
+            }
+        };
+ 
+        let currentLang = 'en';
+ 
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            initEventListeners();
+            renderProducts();
+            renderFeedbacks();
+            
+            // Check for saved session
+            const savedUser = localStorage.getItem('pit_currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainApp();
+            }
+        });
+ 
+        function initEventListeners() {
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            document.getElementById('addProductForm').addEventListener('submit', handleAddProduct);
+            document.getElementById('feedbackForm').addEventListener('submit', handleSubmitFeedback);
+            document.getElementById('replyForm').handleSubmitReply = function(e) {
+                e.preventDefault();
+                handleReplySubmit();
+            };
+            document.getElementById('replyForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleReplySubmit();
+            });
+ 
+            // Close menus on outside click
+            document.addEventListener('click', function(e) {
+                const userMenu = document.getElementById('userMenu');
+                const userMenuBtn = document.getElementById('userMenuBtn');
+                if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+        }
+ 
+        // ==================== AUTH FUNCTIONS ====================
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+ 
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('pit_currentUser', JSON.stringify(user));
+                
+                if (user.isAdmin) {
+                    showToast('Welcome back, Admin!');
+                } else {
+                    showToast('Login successful!');
+                }
+                
+                showMainApp();
+            } else {
+                showToast('Invalid credentials');
+            }
+        }
+ 
+        function handleRegister(e) {
+            e.preventDefault();
+            const nickname = document.getElementById('regNickname').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+ 
+            if (users.find(u => u.email === email)) {
+                showToast('Email already exists');
+                return;
+            }
+ 
+            const newUser = {
+                id: users.length + 1,
+                email,
+                password,
+                nickname,
+                avatar: '',
+                bgColor: '#0a0a0f',
+                isAdmin: false
+            };
+ 
+            users.push(newUser);
+            currentUser = newUser;
+            localStorage.setItem('pit_currentUser', JSON.stringify(newUser));
+            
+            hideRegister();
+            showToast('Account created successfully!');
+            showMainApp();
+        }
+ 
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('pit_currentUser');
+            document.getElementById('loginPage').classList.add('active');
+            document.getElementById('mainApp').classList.remove('active');
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            showToast('Logged out successfully');
+        }
+ 
+        function showRegister() {
+            document.getElementById('registerModal').classList.add('active');
+        }
+ 
+        function hideRegister() {
+            document.getElementById('registerModal').classList.remove('active');
+        }
+ 
+        // ==================== NAVIGATION ====================
+        function showMainApp() {
+            document.getElementById('loginPage').classList.remove('active');
+            document.getElementById('mainApp').classList.add('active');
+            updateUserUI();
+            showPage(currentUser?.isAdmin ? 'admin' : 'home');
+        }
+ 
+        function showPage(page) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+ 
+            // Show selected section
+            if (page === 'home') {
+                document.getElementById('homeSection').style.display = 'block';
+                document.querySelector('[data-page="home"]')?.classList.add('active');
+            } else if (page === 'feedback') {
+                document.getElementById('feedbackSection').style.display = 'block';
+                document.querySelector('[data-page="feedback"]')?.classList.add('active');
+                renderFeedbacks();
+            } else if (page === 'settings') {
+                document.getElementById('settingsSection').style.display = 'block';
+                loadSettings();
+            } else if (page === 'admin') {
+                document.getElementById('adminSection').style.display = 'block';
+                renderAdminProducts();
+            }
+ 
+            // Close user menu
+            document.getElementById('userMenu').classList.add('hidden');
+        }
+ 
+        function toggleUserMenu() {
+            document.getElementById('userMenu').classList.toggle('hidden');
+        }
+ 
+        // ==================== UI UPDATES ====================
+        function updateUserUI() {
+            if (!currentUser) return;
+ 
+            const initial = currentUser.nickname.charAt(0).toUpperCase();
+            document.getElementById('headerAvatar').textContent = initial;
+            document.getElementById('headerAvatar').style.backgroundImage = currentUser.avatar ? `url(${currentUser.avatar})` : '';
+            document.getElementById('headerAvatar').style.backgroundSize = currentUser.avatar ? 'cover' : '';
+            document.getElementById('headerName').textContent = currentUser.nickname;
+            document.getElementById('menuUserName').textContent = currentUser.nickname;
+            document.getElementById('menuUserEmail').textContent = currentUser.email;
+ 
+            // Apply background color
+            document.body.style.backgroundColor = currentUser.bgColor || '#0a0a0f';
+        }
+ 
+        // ==================== PRODUCTS ====================
+        function renderProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = products.map((p, i) => `
+                <div class="card cursor-pointer slide-up stagger-${(i % 4) + 1}" onclick="openProductModal(${p.id})">
+                    <div class="product-card-img flex items-center justify-center">
+                        ${p.image 
+                            ? `<img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover">`
+                            : `<svg class="w-16 h-16 text-[var(--border)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`
+                        }
+                    </div>
+                    <div class="p-5">
+                        <h3 class="font-display font-semibold text-lg mb-2 line-clamp-1">${p.name}</h3>
+                        <p class="text-[var(--muted)] text-sm mb-4 line-clamp-2">${p.desc}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[var(--accent)] font-bold text-xl">$${p.price.toFixed(2)}</span>
+                            <div class="flex items-center gap-1 text-sm">
+                                <span class="text-[var(--warning)]">${'★'.repeat(Math.floor(p.rating))}</span>
+                                <span class="text-[var(--muted)]">(${p.reviews})</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+ 
+        function openProductModal(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+ 
+            const modal = document.getElementById('productModal');
+            const content = document.getElementById('productModalContent');
+            
+            const productFeedbacks = feedbacks.filter(f => f.productId === id);
+            
+            content.innerHTML = `
+                <div class="relative">
+                    <button onclick="closeProductModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center hover:bg-[var(--border)] transition-colors z-10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                    
+                    ${product.image 
+                        ? `<img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover">`
+                        : `<div class="w-full h-48 bg-gradient-to-br from-[var(--bg-elevated)] to-[var(--card)] flex items-center justify-center">
+                            <svg class="w-20 h-20 text-[var(--border)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                           </div>`
+                    }
+                    
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h2 class="font-display text-2xl font-bold mb-2">${product.name}</h2>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[var(--warning)]">${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}</span>
+                                    <span class="text-[var(--muted)]">(${product.reviews} ${i18n[currentLang].reviews})</span>
+                                </div>
+                            </div>
+                            <span class="text-[var(--accent)] font-bold text-2xl">$${product.price.toFixed(2)}</span>
+                        </div>
+                        
+                        <p class="text-[var(--muted)] mb-6">${product.desc}</p>
+                        
+                        <div class="flex gap-3 mb-8">
+                            ${product.link ? `<a href="${product.link}" target="_blank" class="btn-primary flex-1 text-center">${i18n[currentLang].buy_now}</a>` : ''}
+                            <button onclick="openFeedbackForProduct(${id})" class="btn-secondary flex-1">${i18n[currentLang].submit_feedback}</button>
+                        </div>
+                        
+                        <h3 class="font-display text-lg font-semibold mb-4">${i18n[currentLang].feedback_title}</h3>
+                        <div class="space-y-4 max-h-64 overflow-y-auto">
+                            ${productFeedbacks.length > 0 
+                                ? productFeedbacks.map(f => renderFeedbackItem(f)).join('')
+                                : '<p class="text-[var(--muted)] text-center py-4">No reviews yet. Be the first!</p>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+ 
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+ 
+        // ==================== FEEDBACK ====================
+        function renderFeedbacks() {
+            const list = document.getElementById('feedbackList');
+            list.innerHTML = feedbacks.map(f => renderFeedbackItem(f)).join('');
+        }
+ 
+        function renderFeedbackItem(f) {
+            const product = products.find(p => p.id === f.productId);
+            return `
+                <div class="feedback-item card p-5 rounded-xl">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#00d4aa] to-[#6644ff] flex items-center justify-center text-sm font-bold flex-shrink-0">
+                            ${f.userAvatar ? `<img src="${f.userAvatar}" class="w-full h-full rounded-full object-cover">` : f.userName.charAt(0)}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                <span class="font-semibold">${f.userName}</span>
+                                ${product ? `<span class="text-xs bg-[var(--accent-dim)] text-[var(--accent)] px-2 py-0.5 rounded-full">${product.name}</span>` : ''}
+                                <span class="text-[var(--muted)] text-sm">${f.date}</span>
+                            </div>
+                            <div class="text-[var(--warning)] text-sm mb-2">${'★'.repeat(f.rating)}${'☆'.repeat(5-f.rating)}</div>
+                            <p class="text-[var(--muted)]">${f.text}</p>
+                            
+                            ${f.replies && f.replies.length > 0 ? `
+                                <div class="mt-4 pl-4 border-l-2 border-[var(--border)] space-y-3">
+                                    ${f.replies.map(r => `
+                                        <div class="bg-[var(--bg-elevated)] p-3 rounded-lg">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-medium text-sm">${r.userName}</span>
+                                                <span class="text-[var(--muted)] text-xs">${r.date}</span>
+                                            </div>
+                                            <p class="text-sm text-[var(--muted)]">${r.text}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            
+                            <button onclick="openReplyModal(${f.id})" class="mt-3 text-sm text-[var(--accent)] hover:underline">${i18n[currentLang].reply}</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+ 
+        function openFeedbackModal() {
+            const select = document.getElementById('feedbackProduct');
+            select.innerHTML = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            resetStars();
+            document.getElementById('feedbackModal').classList.add('active');
+        }
+ 
+        function closeFeedbackModal() {
+            document.getElementById('feedbackModal').classList.remove('active');
+            document.getElementById('feedbackForm').reset();
+            resetStars();
+        }
+ 
+        function openFeedbackForProduct(productId) {
+            closeProductModal();
+            setTimeout(() => {
+                openFeedbackModal();
+                document.getElementById('feedbackProduct').value = productId;
+            }, 200);
+        }
+ 
+        function setRating(rating) {
+            selectedRating = rating;
+            document.querySelectorAll('#feedbackStars .star').forEach((star, i) => {
+                star.classList.toggle('filled', i < rating);
+            });
+        }
+ 
+        function resetStars() {
+            selectedRating = 0;
+            document.querySelectorAll('#feedbackStars .star').forEach(star => {
+                star.classList.remove('filled');
+            });
+        }
+ 
+        function handleSubmitFeedback(e) {
+            e.preventDefault();
+            
+            if (selectedRating === 0) {
+                showToast('Please select a rating');
+                return;
+            }
+ 
+            const newFeedback = {
+                id: feedbacks.length + 1,
+                productId: parseInt(document.getElementById('feedbackProduct').value),
+                userId: currentUser.id,
+                userName: currentUser.nickname,
+                userAvatar: currentUser.avatar,
+                rating: selectedRating,
+                text: document.getElementById('feedbackText').value,
+                date: new Date().toISOString().split('T')[0],
+                replies: []
+            };
+ 
+            feedbacks.unshift(newFeedback);
+            closeFeedbackModal();
+            renderFeedbacks();
+            showToast('Feedback submitted successfully!');
+        }
+ 
+        function openReplyModal(feedbackId) {
+            document.getElementById('replyToId').value = feedbackId;
+            document.getElementById('replyModal').classList.add('active');
+        }
+ 
+        function closeReplyModal() {
+            document.getElementById('replyModal').classList.remove('active');
+            document.getElementById('replyForm').reset();
+        }
+ 
+        function handleReplySubmit() {
+            const feedbackId = parseInt(document.getElementById('replyToId').value);
+            const replyText = document.getElementById('replyText').value;
+ 
+            const feedback = feedbacks.find(f => f.id === feedbackId);
+            if (feedback) {
+                if (!feedback.replies) feedback.replies = [];
+                feedback.replies.push({
+                    id: Date.now(),
+                    userName: currentUser.nickname,
+                    text: replyText,
+                    date: new Date().toISOString().split('T')[0]
+                });
+            }
+ 
+            closeReplyModal();
+            renderFeedbacks();
+            showToast('Reply submitted!');
+        }
+ 
+        // ==================== SETTINGS ====================
+        function loadSettings() {
+            if (!currentUser) return;
+            document.getElementById('settingsNickname').value = currentUser.nickname;
+            document.getElementById('settingsBgColor').value = currentUser.bgColor || '#0a0a0f';
+            document.getElementById('settingsBgColorText').value = currentUser.bgColor || '#0a0a0f';
+            
+            const avatarEl = document.getElementById('settingsAvatar');
+            if (currentUser.avatar) {
+                avatarEl.style.backgroundImage = `url(${currentUser.avatar})`;
+                avatarEl.innerHTML = '';
+            } else {
+                avatarEl.style.backgroundImage = '';
+                avatarEl.innerHTML = '<svg class="w-8 h-8 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>';
+            }
+        }
+ 
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentUser.avatar = e.target.result;
+                    localStorage.setItem('pit_currentUser', JSON.stringify(currentUser));
+                    
+                    // Update user in users array
+                    const userIndex = users.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        users[userIndex].avatar = e.target.result;
+                    }
+                    
+                    loadSettings();
+                    updateUserUI();
+                    showToast('Avatar updated!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+ 
+        function previewBackground() {
+            const color = document.getElementById('settingsBgColorText').value;
+            document.body.style.backgroundColor = color;
+        }
+ 
+        function saveSettings() {
+            if (!currentUser) return;
+            
+            currentUser.nickname = document.getElementById('settingsNickname').value;
+            currentUser.bgColor = document.getElementById('settingsBgColorText').value;
+            
+            localStorage.setItem('pit_currentUser', JSON.stringify(currentUser));
+            
+            // Update in users array
+            const userIndex = users.findIndex(u => u.id === currentUser.id);
+            if (userIndex !== -1) {
+                users[userIndex] = {...currentUser};
+            }
+            
+            updateUserUI();
+            showToast('Settings saved!');
+        }
+ 
+        function confirmDeleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                users = users.filter(u => u.id !== currentUser.id);
+                feedbacks = feedbacks.filter(f => f.userId !== currentUser.id);
+                logout();
+                showToast('Account deleted');
+            }
+        }
+ 
+        // ==================== ADMIN ====================
+        function renderAdminProducts() {
+            const list = document.getElementById('adminProductsList');
+            list.innerHTML = products.map(p => `
+                <div class="flex items-center justify-between p-4 bg-[var(--bg-elevated)] rounded-lg">
+                    <div class="flex-1 min-w-0 mr-4">
+                        <h4 class="font-semibold truncate">${p.name}</h4>
+                        <p class="text-[var(--muted)] text-sm">$${p.price.toFixed(2)} · ${p.reviews} reviews</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="deleteProduct(${p.id})" class="p-2 text-[var(--danger)] hover:bg-[var(--danger)]/10 rounded-lg transition-colors" title="Delete">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+ 
+        function handleAddProduct(e) {
+            e.preventDefault();
+            
+            const newProduct = {
+                id: products.length + 1,
+                name: document.getElementById('prodName').value,
+                price: parseFloat(document.getElementById('prodPrice').value),
+                desc: document.getElementById('prodDesc').value,
+                link: document.getElementById('prodLink').value,
+                image: document.getElementById('prodImage').value,
+                rating: 0,
+                reviews: 0
+            };
+ 
+            products.push(newProduct);
+            document.getElementById('addProductForm').reset();
+            renderAdminProducts();
+            renderProducts();
+            showToast('Product added successfully!');
+        }
+ 
+        function deleteProduct(id) {
+            if (confirm('Delete this product?')) {
+                products = products.filter(p => p.id !== id);
+                feedbacks = feedbacks.filter(f => f.productId !== id);
+                renderAdminProducts();
+                renderProducts();
+                showToast('Product deleted');
+            }
+        }
+ 
+        // ==================== LANGUAGE ====================
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[lang][key]) {
+                    el.textContent = i18n[lang][key];
+                }
+            });
+            showToast(`Language changed to ${lang.toUpperCase()}`);
+        }
+ 
+        // ==================== UTILITIES ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+ 
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
