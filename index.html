@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PIT Hub - Peox Institute of Technology</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -34,10 +35,8 @@
       transition: background 0.5s ease;
     }
 
-    /* 背景层 */
     .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; transition: var(--transition); }
     
-    /* 1. 赛博朋克风 */
     body[data-theme="cyberpunk"] {
       background: radial-gradient(circle at 50% 50%, #1a0022 0%, #050008 100%);
     }
@@ -47,7 +46,6 @@
       background-size: 40px 40px;
     }
 
-    /* 2. 工程风 */
     body[data-theme="engineering"] {
       background: radial-gradient(circle at 50% 50%, #2b1a00 0%, #0d0700 100%);
     }
@@ -57,7 +55,6 @@
       background-size: 25px 25px;
     }
 
-    /* 3. 深蓝浅蓝 */
     body[data-theme="bluemix"] {
       background: radial-gradient(circle at 50% 50%, #003366 0%, #000814 100%);
     }
@@ -67,7 +64,6 @@
       background-size: 50px 50px;
     }
 
-    /* 4. 简约风 */
     body[data-theme="minimal"] {
       background: #000000;
     }
@@ -83,7 +79,6 @@
 
     .app-container { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* Nav */
     .top-nav {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 32px; background: rgba(10, 10, 15, 0.85);
@@ -111,7 +106,6 @@
     .btn-danger:hover { background: rgba(255, 50, 50, 0.1); border-color: #ff5555; }
     .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
 
-    /* Page System */
     .page { display: none; flex: 1; padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
     .page.active { display: block; }
 
@@ -126,7 +120,6 @@
     }
     .card-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--neon-green); margin-bottom: 16px; }
 
-    /* Landing Hero */
     .landing-hero { text-align: center; padding: 60px 20px 40px; }
     .landing-hero h1 {
       font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem);
@@ -136,7 +129,6 @@
     .landing-hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 30px; }
     .landing-actions { display: flex; gap: 16px; justify-content: center; margin-bottom: 40px; }
 
-    /* Forms */
     .form-group { margin-bottom: 20px; }
     .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
     .form-input, .form-textarea, .form-select {
@@ -147,7 +139,6 @@
     .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
     .form-textarea { min-height: 100px; resize: vertical; }
 
-    /* Comments & Reply System */
     .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .hall-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-green); }
     .search-bar { display: flex; gap: 12px; flex: 1; max-width: 500px; }
@@ -179,7 +170,6 @@
     }
     .btn-delete:hover { opacity: 1; transform: scale(1.1); }
 
-    /* Nested Replies List */
     .replies-box {
       margin-top: 14px; padding-left: 16px; border-left: 2px solid rgba(0,255,157,0.2);
       display: flex; flex-direction: column; gap: 10px;
@@ -194,7 +184,6 @@
     .reply-input-box {
       display: none; margin-top: 12px; gap: 8px;
     }
-    .reply-input-box.active { display: flex; }
 
     .team-badge {
       font-size: 0.65rem; padding: 2px 8px; background: var(--neon-green);
@@ -206,7 +195,6 @@
       margin-top: 8px; text-decoration: none; color: var(--neon-blue); font-size: 0.85rem;
     }
 
-    /* Modal */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
       z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
@@ -239,6 +227,7 @@
       <div class="nav-links" id="navLinks"></div>
     </nav>
 
+    <!-- LANDING PAGE -->
     <div class="page active" id="pageLanding">
       <div class="landing-hero">
         <h1>PEOX INSTITUTE OF TECHNOLOGY</h1>
@@ -260,6 +249,7 @@
       </div>
     </div>
 
+    <!-- HOME PAGE -->
     <div class="page" id="pageHome">
       <div class="card">
         <div class="card-title" id="tPostTitle">✍️ 发布社区动态</div>
@@ -290,6 +280,7 @@
       </div>
     </div>
 
+    <!-- PROFILE PAGE -->
     <div class="page" id="pageProfile">
       <div class="card">
         <div class="card-title" id="tProfileTitle">👤 我的个人信息</div>
@@ -338,6 +329,7 @@
       </div>
     </div>
 
+    <!-- EDIT PANEL (Team Only) -->
     <div class="page" id="pageEdit">
       <div class="card">
         <div class="card-title" id="formProductTitle">⚙️ PIT Team 产品管理面板</div>
@@ -371,6 +363,7 @@
     </div>
   </div>
 
+  <!-- WIZARD MODAL -->
   <div class="modal-overlay" id="wizardModal">
     <div class="modal-container">
       <div id="wizardStep0">
@@ -420,6 +413,7 @@
     </div>
   </div>
 
+  <!-- LOGOUT MODAL -->
   <div class="modal-overlay" id="logoutModal">
     <div class="modal-container">
       <h3 class="modal-title" id="tLogoutTitle">确认退出登录？</h3>
@@ -623,12 +617,10 @@
         this.renderProducts();
         this.showPage(this.user ? 'home' : 'landing');
 
-        // 初始化 Supabase 实时订阅与云端数据加载
         this.listenCloudUpdates();
         this.loadCommentsFromCloud();
       }
 
-      // 从 Supabase 数据库拉取所有评论与回复
       async loadCommentsFromCloud() {
         const { data, error } = await supabaseClient
           .from('comments')
@@ -660,7 +652,6 @@
         this.renderComments();
       }
 
-      // 实时订阅数据库变动（多设备秒级同步）
       listenCloudUpdates() {
         supabaseClient
           .channel('public:comments')
@@ -897,7 +888,6 @@
         }
       }
 
-      // 上传动态至 Supabase 云端
       async createPost() {
         const content = document.getElementById('postContent').value;
         if (!content) return;
@@ -930,7 +920,6 @@
         }
       }
 
-      // 上传回复至 Supabase 云端
       async addReply(commentId) {
         const input = document.getElementById(`replyInput-${commentId}`);
         const content = input ? input.value : '';
@@ -953,7 +942,6 @@
         }
       }
 
-      // 从 Supabase 云端删除数据
       async deleteComment(id) {
         if (!confirm('确定要删除这条动态吗？')) return;
 
@@ -969,10 +957,17 @@
         }
       }
 
+      // Fixed: Explicitly toggle display style
       toggleReplyInput(id) {
         const box = document.getElementById(`replyBox-${id}`);
         if (box) {
-          box.classList.toggle('active');
+          if (box.style.display === 'flex') {
+            box.style.display = 'none';
+          } else {
+            box.style.display = 'flex';
+            const input = document.getElementById(`replyInput-${id}`);
+            if (input) input.focus();
+          }
         }
       }
 
@@ -1006,6 +1001,7 @@
                 <button class="btn btn-sm" onclick="app.toggleReplyInput(${c.id})">💬 回复 (${repliesList.length})</button>
               </div>
 
+              <!-- Nested Replies Block -->
               <div class="replies-box">
                 ${repliesList.map(r => `
                   <div class="reply-item">
@@ -1017,7 +1013,7 @@
                   </div>
                 `).join('')}
                 
-                <div class="reply-input-box" id="replyBox-${c.id}">
+                <div class="reply-input-box" id="replyBox-${c.id}" style="display: none; margin-top: 12px; gap: 8px;">
                   <input type="text" class="form-input" id="replyInput-${c.id}" placeholder="写下你的回复...">
                   <button class="btn btn-sm btn-primary" onclick="app.addReply(${c.id})">发送</button>
                 </div>
