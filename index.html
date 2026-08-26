@@ -74,11 +74,6 @@
     }
     body[data-theme="minimal"] .bg-grid { display: none; }
 
-    /* 5. 沙特克圣玛丽 (定制拱门大楼背景) */
-    body[data-theme="shattuck"] {
-      background: radial-gradient(circle at 50% 50%, #1c2d42 0%, #080d14 100%);
-    }
-
     .bg-custom { background-size: cover; background-position: center; opacity: 0.45; transition: opacity 0.5s; }
     .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.75) 90%); }
     .scanline {
@@ -115,7 +110,7 @@
     .btn-primary:hover { box-shadow: 0 0 25px rgba(0, 255, 157, 0.4); transform: translateY(-1px); }
     .btn-danger { border-color: rgba(255, 50, 50, 0.4); color: #ff5555; }
     .btn-danger:hover { background: rgba(255, 50, 50, 0.1); border-color: #ff5555; }
-    .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+    .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
 
     /* Page System */
     .page { display: none; flex: 1; padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
@@ -153,7 +148,7 @@
     .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
     .form-textarea { min-height: 100px; resize: vertical; }
 
-    /* Comments */
+    /* Comments & Reply System */
     .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .hall-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-green); }
     .search-bar { display: flex; gap: 12px; flex: 1; max-width: 500px; }
@@ -162,6 +157,7 @@
     .comment-item {
       background: var(--dark-card); border: 1px solid rgba(255,255,255,0.06);
       border-radius: var(--radius); padding: 20px; transition: var(--transition);
+      position: relative;
     }
     .comment-item.team-reply { border-left: 3px solid var(--neon-green); background: linear-gradient(90deg, rgba(0,255,157,0.05), transparent); }
     .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -174,8 +170,32 @@
     .comment-meta { flex: 1; }
     .comment-name { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
     .comment-city { font-size: 0.8rem; color: var(--text-secondary); }
-    .comment-time { font-size: 0.75rem; color: var(--text-secondary); }
-    .comment-body { color: var(--text-primary); line-height: 1.6; margin-bottom: 8px; }
+    .comment-time { font-size: 0.75rem; color: var(--text-secondary); margin-right: 10px; }
+    .comment-body { color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+
+    .comment-actions { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
+    .btn-delete {
+      position: absolute; top: 16px; right: 16px; background: transparent;
+      border: none; color: #ff5555; cursor: pointer; font-size: 1rem; opacity: 0.7; transition: var(--transition);
+    }
+    .btn-delete:hover { opacity: 1; transform: scale(1.1); }
+
+    /* Nested Replies List */
+    .replies-box {
+      margin-top: 14px; padding-left: 16px; border-left: 2px solid rgba(0,255,157,0.2);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .reply-item {
+      background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 8px;
+      font-size: 0.88rem; position: relative;
+    }
+    .reply-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 0.8rem; color: var(--text-secondary); }
+    .reply-user { font-weight: 600; color: var(--neon-blue); }
+
+    .reply-input-box {
+      display: none; margin-top: 12px; gap: 8px;
+    }
+    .reply-input-box.active { display: flex; }
 
     .team-badge {
       font-size: 0.65rem; padding: 2px 8px; background: var(--neon-green);
@@ -301,6 +321,16 @@
           <select class="form-select" id="profileThemeSelect" onchange="app.changeTheme(this.value)"></select>
         </div>
 
+        <!-- 从电脑上传背景图片 -->
+        <div class="form-group">
+          <label class="form-label">🖥️ 从电脑上传自定义背景图片</label>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <button class="btn btn-sm" onclick="document.getElementById('customBgFile').click()">🖼️ 选择电脑上的图片</button>
+            <input type="file" id="customBgFile" class="hidden" accept="image/*" onchange="app.handleBgUpload(event)">
+            <span id="bgUploadStatus" style="font-size:0.85rem;color:var(--text-secondary);">未选择图片</span>
+          </div>
+        </div>
+
         <button class="btn btn-primary" onclick="app.saveProfile()" id="btnSaveProfile">💾 保存设置</button>
       </div>
 
@@ -415,9 +445,6 @@
     const SUPABASE_KEY = 'sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 沙特克圣玛丽专属拱门背景图 URL (采用用户上传的图片)
-    const SHATTUCK_BG_URL = 'https://images.squarespace-cdn.com/content/v1/5c9d39cf9b7d1544a0d970e4/1554157147775-6Z3V0G0Y6H5J7K8L9M0N/shattuck-st-marys.jpg';
-
     const i18nDict = {
       'zh-CN': {
         subtitle: 'PIT Hub 赛博朋克公共社区大厅',
@@ -456,8 +483,7 @@
           cyberpunk: '赛博朋克风 (高强霓虹)',
           engineering: '工程风 (金黄网格)',
           bluemix: '深蓝浅蓝 (电光极光)',
-          minimal: '简约风 (纯黑高对比)',
-          shattuck: '沙特克圣玛丽 (拱门大楼)'
+          minimal: '简约风 (纯黑高对比)'
         }
       },
       'zh-HK': {
@@ -497,8 +523,7 @@
           cyberpunk: '賽博朋克風 (高強霓虹)',
           engineering: '工程風 (金黃網格)',
           bluemix: '深藍淺藍 (電光極光)',
-          minimal: '簡約風 (純黑高對比)',
-          shattuck: '沙特克聖瑪麗 (拱門大樓)'
+          minimal: '簡約風 (純黑高對比)'
         }
       },
       'zh-TW': {
@@ -538,8 +563,7 @@
           cyberpunk: '賽博朋克風 (高強霓虹)',
           engineering: '工程風 (金黃網格)',
           bluemix: '深藍淺藍 (電光極光)',
-          minimal: '簡約風 (純黑高對比)',
-          shattuck: '沙特克聖瑪麗 (拱門大樓)'
+          minimal: '簡約風 (純黑高對比)'
         }
       },
       'en': {
@@ -579,8 +603,7 @@
           cyberpunk: 'Cyberpunk (Neon Pulse)',
           engineering: 'Engineering (Golden Grid)',
           bluemix: 'Blue Gradient (Electro Blue)',
-          minimal: 'Minimalist (Pure Black)',
-          shattuck: 'Shattuck-St. Mary\'s (Arch Hall)'
+          minimal: 'Minimalist (Pure Black)'
         }
       }
     };
@@ -589,12 +612,12 @@
       constructor() {
         this.lang = localStorage.getItem('pithub_lang') || 'zh-CN';
         this.user = JSON.parse(localStorage.getItem('pithub_user')) || null;
-        this.theme = localStorage.getItem('pithub_theme') || 'shattuck';
+        this.theme = localStorage.getItem('pithub_theme') || 'cyberpunk';
         this.customBg = localStorage.getItem('pithub_bg') || '';
         this.tempAvatarData = { profile: null, wiz: null };
 
         this.comments = JSON.parse(localStorage.getItem('pithub_comments')) || [
-          { id: 1, name: 'PIT Core', city: 'Cyber City', content: '欢迎来到 Peox Institute of Technology 官方社区！', is_team: true, avatar: '⚡', time: '2026-08-26 10:00' }
+          { id: 1, name: 'PIT Core', city: 'Cyber City', content: '欢迎来到 Peox Institute of Technology 官方社区！', is_team: true, avatar: '⚡', time: '2026-08-26 10:00', replies: [] }
         ];
         
         this.products = JSON.parse(localStorage.getItem('pithub_products')) || [
@@ -661,7 +684,6 @@
 
         const themeSelect = document.getElementById('profileThemeSelect');
         themeSelect.innerHTML = `
-          <option value="shattuck" ${this.theme==='shattuck'?'selected':''}>${dict.themes.shattuck}</option>
           <option value="cyberpunk" ${this.theme==='cyberpunk'?'selected':''}>${dict.themes.cyberpunk}</option>
           <option value="engineering" ${this.theme==='engineering'?'selected':''}>${dict.themes.engineering}</option>
           <option value="bluemix" ${this.theme==='bluemix'?'selected':''}>${dict.themes.bluemix}</option>
@@ -679,23 +701,31 @@
 
       applyTheme(themeKey) {
         document.body.setAttribute('data-theme', themeKey);
-        const bgEl = document.getElementById('bgCustom');
-
-        if (themeKey === 'shattuck') {
-          // 使用上图展示的石拱门建筑背景
-          bgEl.style.backgroundImage = `url('https://upload.wikimedia.org/wikipedia/commons/ thumb/8/87/Shattuck_Hall.jpg/800px-Shattuck_Hall.jpg'), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80')`;
-        } else {
-          this.applyCustomBg();
-        }
+        this.applyCustomBg();
       }
 
       applyCustomBg() {
         const bgEl = document.getElementById('bgCustom');
-        if (this.customBg && this.theme !== 'shattuck') {
+        if (this.customBg) {
           bgEl.style.backgroundImage = `url('${this.customBg}')`;
-        } else if (this.theme !== 'shattuck') {
+        } else {
           bgEl.style.backgroundImage = 'none';
         }
+      }
+
+      handleBgUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.customBg = e.target.result;
+          localStorage.setItem('pithub_bg', this.customBg);
+          this.applyCustomBg();
+          document.getElementById('bgUploadStatus').innerText = `已成功设置背景: ${file.name}`;
+          alert('自定义本地背景设置成功！');
+        };
+        reader.readAsDataURL(file);
       }
 
       saveCustomBg() {
@@ -760,7 +790,6 @@
             document.getElementById('teamPostOptions').classList.remove('hidden');
             document.getElementById('teamBgCard').classList.remove('hidden');
           } else {
-            // 普通访客隐藏挂载面板
             document.getElementById('teamPostOptions').classList.add('hidden');
             document.getElementById('teamBgCard').classList.add('hidden');
           }
@@ -842,7 +871,6 @@
         let isTeam = false;
         let prodId = null;
 
-        // 仅当用户是 PIT Team 身份时才读取挂载产品信息
         if (this.user && this.user.isTeam) {
           isTeam = document.getElementById('postIsTeam').checked;
           prodId = document.getElementById('postProductSelect').value || null;
@@ -850,19 +878,54 @@
 
         const newComment = {
           id: Date.now(),
-          name: this.user.name,
-          city: this.user.city || 'Local',
-          avatar: this.user.avatar || '👤',
+          name: this.user ? this.user.name : '匿名访客',
+          city: this.user ? (this.user.city || 'Local') : 'Local',
+          avatar: this.user ? (this.user.avatar || '👤') : '👤',
           content,
           is_team: isTeam,
           productId: prodId,
-          time: new Date().toLocaleString()
+          time: new Date().toLocaleString(),
+          replies: []
         };
 
         this.comments.unshift(newComment);
         localStorage.setItem('pithub_comments', JSON.stringify(this.comments));
         document.getElementById('postContent').value = '';
         this.renderComments();
+      }
+
+      deleteComment(id) {
+        if (confirm('确定要删除这条动态吗？')) {
+          this.comments = this.comments.filter(c => c.id !== id);
+          localStorage.setItem('pithub_comments', JSON.stringify(this.comments));
+          this.renderComments();
+        }
+      }
+
+      toggleReplyInput(id) {
+        const box = document.getElementById(`replyBox-${id}`);
+        if (box) {
+          box.classList.toggle('active');
+        }
+      }
+
+      addReply(commentId) {
+        const input = document.getElementById(`replyInput-${commentId}`);
+        const content = input ? input.value : '';
+        if (!content) return;
+
+        const comment = this.comments.find(c => c.id === commentId);
+        if (comment) {
+          if (!comment.replies) comment.replies = [];
+          comment.replies.push({
+            id: Date.now(),
+            name: this.user ? this.user.name : '访客',
+            content,
+            time: new Date().toLocaleTimeString()
+          });
+          localStorage.setItem('pithub_comments', JSON.stringify(this.comments));
+          this.renderComments();
+        }
       }
 
       renderComments() {
@@ -872,8 +935,11 @@
         const html = filtered.length === 0 ? `<div class="empty-state">暂无相关动态</div>` : filtered.map(c => {
           const prod = c.productId ? this.products.find(p => p.id == c.productId) : null;
           const avatarDisplay = (c.avatar && c.avatar.includes('<img')) ? c.avatar : `<span>${c.avatar || '👤'}</span>`;
+          const repliesList = c.replies || [];
+
           return `
             <div class="comment-item ${c.is_team ? 'team-reply' : ''}">
+              <button class="btn-delete" onclick="app.deleteComment(${c.id})" title="删除动态">🗑️</button>
               <div class="comment-header">
                 <div class="comment-avatar">${avatarDisplay}</div>
                 <div class="comment-meta">
@@ -886,6 +952,28 @@
               </div>
               <div class="comment-body">${c.content}</div>
               ${prod ? `<a href="${prod.link}" target="_blank" class="product-badge">📦 推荐: ${prod.name} (${prod.price}) <span style="background:var(--neon-pink);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem">${prod.badge}</span></a>` : ''}
+              
+              <div class="comment-actions">
+                <button class="btn btn-sm" onclick="app.toggleReplyInput(${c.id})">💬 回复 (${repliesList.length})</button>
+              </div>
+
+              <!-- Nested Replies Block -->
+              <div class="replies-box">
+                ${repliesList.map(r => `
+                  <div class="reply-item">
+                    <div class="reply-header">
+                      <span class="reply-user">${r.name}</span>
+                      <span>${r.time}</span>
+                    </div>
+                    <div>${r.content}</div>
+                  </div>
+                `).join('')}
+                
+                <div class="reply-input-box" id="replyBox-${c.id}">
+                  <input type="text" class="form-input" id="replyInput-${c.id}" placeholder="写下你的回复...">
+                  <button class="btn btn-sm btn-primary" onclick="app.addReply(${c.id})">发送</button>
+                </div>
+              </div>
             </div>
           `;
         }).join('');
@@ -964,7 +1052,6 @@
         }
 
         if (select) {
-          // 第一项设为默认不挂载
           select.innerHTML = '<option value="">-- 不挂载产品 --</option>' + this.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
         }
       }
