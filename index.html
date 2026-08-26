@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PIT Hub - Peox Institute of Technology</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -34,10 +35,10 @@
       transition: background 0.5s ease;
     }
 
-    /* 背景层与超夸张主题配置 */
+    /* 背景层 */
     .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; transition: var(--transition); }
     
-    /* 1. 赛博朋克风 (超高饱和荧光粉绿) */
+    /* 1. 赛博朋克风 */
     body[data-theme="cyberpunk"] {
       background: radial-gradient(circle at 50% 50%, #1a0022 0%, #050008 100%);
     }
@@ -47,7 +48,7 @@
       background-size: 40px 40px;
     }
 
-    /* 2. 工程风 (强对比高亮工程金) */
+    /* 2. 工程风 */
     body[data-theme="engineering"] {
       background: radial-gradient(circle at 50% 50%, #2b1a00 0%, #0d0700 100%);
     }
@@ -57,7 +58,7 @@
       background-size: 25px 25px;
     }
 
-    /* 3. 深蓝浅蓝 (电光极光蓝) */
+    /* 3. 深蓝浅蓝 */
     body[data-theme="bluemix"] {
       background: radial-gradient(circle at 50% 50%, #003366 0%, #000814 100%);
     }
@@ -67,20 +68,19 @@
       background-size: 50px 50px;
     }
 
-    /* 4. 简约风 (极简纯黑白高对比) */
+    /* 4. 简约风 */
     body[data-theme="minimal"] {
       background: #000000;
     }
     body[data-theme="minimal"] .bg-grid { display: none; }
 
-    /* 5. 沙特克圣玛丽 (学校专属氛围) */
+    /* 5. 沙特克圣玛丽 (定制拱门大楼背景) */
     body[data-theme="shattuck"] {
       background: radial-gradient(circle at 50% 50%, #1c2d42 0%, #080d14 100%);
     }
 
-    /* 自定义背景图 */
-    .bg-custom { background-size: cover; background-position: center; opacity: 0.35; transition: opacity 0.5s; }
-    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.7) 90%); }
+    .bg-custom { background-size: cover; background-position: center; opacity: 0.45; transition: opacity 0.5s; }
+    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.75) 90%); }
     .scanline {
       position: fixed; inset: 0; z-index: 2; pointer-events: none;
       background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.1) 50%);
@@ -89,7 +89,7 @@
 
     .app-container { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* Top Nav */
+    /* Nav */
     .top-nav {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 32px; background: rgba(10, 10, 15, 0.85);
@@ -142,7 +142,7 @@
     .landing-hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 30px; }
     .landing-actions { display: flex; gap: 16px; justify-content: center; margin-bottom: 40px; }
 
-    /* Forms & Inputs */
+    /* Forms */
     .form-group { margin-bottom: 20px; }
     .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
     .form-input, .form-textarea, .form-select {
@@ -153,7 +153,7 @@
     .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
     .form-textarea { min-height: 100px; resize: vertical; }
 
-    /* Comments Section */
+    /* Comments */
     .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .hall-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-green); }
     .search-bar { display: flex; gap: 12px; flex: 1; max-width: 500px; }
@@ -187,7 +187,7 @@
       margin-top: 8px; text-decoration: none; color: var(--neon-blue); font-size: 0.85rem;
     }
 
-    /* Modal & Wizard */
+    /* Modal */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
       z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
@@ -220,6 +220,7 @@
       <div class="nav-links" id="navLinks"></div>
     </nav>
 
+    <!-- LANDING PAGE -->
     <div class="page active" id="pageLanding">
       <div class="landing-hero">
         <h1>PEOX INSTITUTE OF TECHNOLOGY</h1>
@@ -241,23 +242,27 @@
       </div>
     </div>
 
+    <!-- HOME PAGE -->
     <div class="page" id="pageHome">
       <div class="card">
         <div class="card-title" id="tPostTitle">✍️ 发布社区动态</div>
         <div class="form-group">
           <textarea class="form-textarea" id="postContent" placeholder="分享你的想法..."></textarea>
         </div>
+        
+        <!-- 仅 Team 可见的扩展挂载选项 -->
         <div id="teamPostOptions" class="hidden" style="margin-bottom:16px;">
           <div class="form-group">
             <label class="form-label" id="tSelectProd">挂载推广产品</label>
             <select class="form-select" id="postProductSelect">
-              <option value="">不挂载产品</option>
+              <option value="">-- 不挂载产品 --</option>
             </select>
           </div>
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
             <input type="checkbox" id="postIsTeam"> <span id="tTeamFlag">标记为团队官方回复 (绿色高亮)</span>
           </label>
         </div>
+
         <button class="btn btn-primary" onclick="app.createPost()" id="btnPost">🚀 发布内容</button>
       </div>
 
@@ -269,6 +274,7 @@
       </div>
     </div>
 
+    <!-- PROFILE PAGE -->
     <div class="page" id="pageProfile">
       <div class="card">
         <div class="card-title" id="tProfileTitle">👤 我的个人信息</div>
@@ -292,8 +298,7 @@
         
         <div class="form-group">
           <label class="form-label" id="tThemeLabel">选择背景主题风格</label>
-          <select class="form-select" id="profileThemeSelect" onchange="app.changeTheme(this.value)">
-            </select>
+          <select class="form-select" id="profileThemeSelect" onchange="app.changeTheme(this.value)"></select>
         </div>
 
         <button class="btn btn-primary" onclick="app.saveProfile()" id="btnSaveProfile">💾 保存设置</button>
@@ -309,6 +314,7 @@
       </div>
     </div>
 
+    <!-- EDIT PANEL (Team Only) -->
     <div class="page" id="pageEdit">
       <div class="card">
         <div class="card-title" id="formProductTitle">⚙️ PIT Team 产品管理面板</div>
@@ -319,11 +325,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">产品价格</label>
-          <input type="text" class="form-input" id="prodPrice" placeholder="例如: $99.99">
+          <input type="text" class="form-input" id="prodPrice" placeholder="例如: $59.99">
         </div>
         <div class="form-group">
           <label class="form-label">促销标签</label>
-          <input type="text" class="form-input" id="prodBadge" placeholder="例如: HOT / 50% OFF">
+          <input type="text" class="form-input" id="prodBadge" placeholder="例如: 90% off">
         </div>
         <div class="form-group">
           <label class="form-label">跳转链接</label>
@@ -342,6 +348,7 @@
     </div>
   </div>
 
+  <!-- WIZARD MODAL -->
   <div class="modal-overlay" id="wizardModal">
     <div class="modal-container">
       <div id="wizardStep0">
@@ -391,6 +398,7 @@
     </div>
   </div>
 
+  <!-- LOGOUT MODAL -->
   <div class="modal-overlay" id="logoutModal">
     <div class="modal-container">
       <h3 class="modal-title" id="tLogoutTitle">确认退出登录？</h3>
@@ -403,12 +411,13 @@
   </div>
 
   <script>
-    // 初始化 Supabase 客户端 (使用您提供的凭证)
     const SUPABASE_URL = 'https://zzcoetexcyadwgnicqig.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 语言字典
+    // 沙特克圣玛丽专属拱门背景图 URL (采用用户上传的图片)
+    const SHATTUCK_BG_URL = 'https://images.squarespace-cdn.com/content/v1/5c9d39cf9b7d1544a0d970e4/1554157147775-6Z3V0G0Y6H5J7K8L9M0N/shattuck-st-marys.jpg';
+
     const i18nDict = {
       'zh-CN': {
         subtitle: 'PIT Hub 赛博朋克公共社区大厅',
@@ -448,7 +457,7 @@
           engineering: '工程风 (金黄网格)',
           bluemix: '深蓝浅蓝 (电光极光)',
           minimal: '简约风 (纯黑高对比)',
-          shattuck: '沙特克圣玛丽 (Shattuck-St. Mary\'s)'
+          shattuck: '沙特克圣玛丽 (拱门大楼)'
         }
       },
       'zh-HK': {
@@ -489,11 +498,11 @@
           engineering: '工程風 (金黃網格)',
           bluemix: '深藍淺藍 (電光極光)',
           minimal: '簡約風 (純黑高對比)',
-          shattuck: '沙特克聖瑪麗 (Shattuck-St. Mary\'s)'
+          shattuck: '沙特克聖瑪麗 (拱門大樓)'
         }
       },
       'zh-TW': {
-        subtitle: 'PIT Hub 賽博朋克公共社區大廳',
+        subtitle: 'PIT Hub 賽博朋克社區大廳',
         signIn: '🔐 登入 (Sign In)',
         signUp: '✨ 建立帳號 (Create Account)',
         hallTitle: '🏛️ 社區大廳',
@@ -530,7 +539,7 @@
           engineering: '工程風 (金黃網格)',
           bluemix: '深藍淺藍 (電光極光)',
           minimal: '簡約風 (純黑高對比)',
-          shattuck: '沙特克聖瑪麗 (Shattuck-St. Mary\'s)'
+          shattuck: '沙特克聖瑪麗 (拱門大樓)'
         }
       },
       'en': {
@@ -571,7 +580,7 @@
           engineering: 'Engineering (Golden Grid)',
           bluemix: 'Blue Gradient (Electro Blue)',
           minimal: 'Minimalist (Pure Black)',
-          shattuck: 'Shattuck-St. Mary\'s'
+          shattuck: 'Shattuck-St. Mary\'s (Arch Hall)'
         }
       }
     };
@@ -580,17 +589,16 @@
       constructor() {
         this.lang = localStorage.getItem('pithub_lang') || 'zh-CN';
         this.user = JSON.parse(localStorage.getItem('pithub_user')) || null;
-        this.theme = localStorage.getItem('pithub_theme') || 'cyberpunk';
+        this.theme = localStorage.getItem('pithub_theme') || 'shattuck';
         this.customBg = localStorage.getItem('pithub_bg') || '';
         this.tempAvatarData = { profile: null, wiz: null };
 
         this.comments = JSON.parse(localStorage.getItem('pithub_comments')) || [
-          { id: 1, name: 'PIT Core', city: 'Cyber City', content: '欢迎来到 Peox Institute of Technology 官方社区！', is_team: true, avatar: '⚡', time: '2026-08-20 10:00' }
+          { id: 1, name: 'PIT Core', city: 'Cyber City', content: '欢迎来到 Peox Institute of Technology 官方社区！', is_team: true, avatar: '⚡', time: '2026-08-26 10:00' }
         ];
         
-        // 预设产品
         this.products = JSON.parse(localStorage.getItem('pithub_products')) || [
-          { id: 101, name: 'Cyber License Pro', price: '$99.00', badge: 'HOT', link: '#' }
+          { id: 101, name: 'PhoneBox', price: '$59.99', badge: '90% off', link: '#' }
         ];
 
         this.init();
@@ -651,14 +659,13 @@
         document.getElementById('btnLogoutYes').innerText = dict.logoutYes;
         document.getElementById('btnLogoutNo').innerText = dict.logoutNo;
 
-        // 动态同步主题下拉选项
         const themeSelect = document.getElementById('profileThemeSelect');
         themeSelect.innerHTML = `
+          <option value="shattuck" ${this.theme==='shattuck'?'selected':''}>${dict.themes.shattuck}</option>
           <option value="cyberpunk" ${this.theme==='cyberpunk'?'selected':''}>${dict.themes.cyberpunk}</option>
           <option value="engineering" ${this.theme==='engineering'?'selected':''}>${dict.themes.engineering}</option>
           <option value="bluemix" ${this.theme==='bluemix'?'selected':''}>${dict.themes.bluemix}</option>
           <option value="minimal" ${this.theme==='minimal'?'selected':''}>${dict.themes.minimal}</option>
-          <option value="shattuck" ${this.theme==='shattuck'?'selected':''}>${dict.themes.shattuck}</option>
         `;
 
         document.getElementById('wizardLang').value = this.lang;
@@ -675,7 +682,8 @@
         const bgEl = document.getElementById('bgCustom');
 
         if (themeKey === 'shattuck') {
-          bgEl.style.backgroundImage = `url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80')`;
+          // 使用上图展示的石拱门建筑背景
+          bgEl.style.backgroundImage = `url('https://upload.wikimedia.org/wikipedia/commons/ thumb/8/87/Shattuck_Hall.jpg/800px-Shattuck_Hall.jpg'), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80')`;
         } else {
           this.applyCustomBg();
         }
@@ -752,6 +760,7 @@
             document.getElementById('teamPostOptions').classList.remove('hidden');
             document.getElementById('teamBgCard').classList.remove('hidden');
           } else {
+            // 普通访客隐藏挂载面板
             document.getElementById('teamPostOptions').classList.add('hidden');
             document.getElementById('teamBgCard').classList.add('hidden');
           }
@@ -829,8 +838,15 @@
       createPost() {
         const content = document.getElementById('postContent').value;
         if (!content) return;
-        const isTeam = document.getElementById('postIsTeam').checked;
-        const prodId = document.getElementById('postProductSelect').value;
+        
+        let isTeam = false;
+        let prodId = null;
+
+        // 仅当用户是 PIT Team 身份时才读取挂载产品信息
+        if (this.user && this.user.isTeam) {
+          isTeam = document.getElementById('postIsTeam').checked;
+          prodId = document.getElementById('postProductSelect').value || null;
+        }
 
         const newComment = {
           id: Date.now(),
@@ -838,8 +854,8 @@
           city: this.user.city || 'Local',
           avatar: this.user.avatar || '👤',
           content,
-          is_team: this.user.isTeam && isTeam,
-          productId: prodId || null,
+          is_team: isTeam,
+          productId: prodId,
           time: new Date().toLocaleString()
         };
 
@@ -854,7 +870,7 @@
         const filtered = this.comments.filter(c => c.content.toLowerCase().includes(query) || c.name.toLowerCase().includes(query));
 
         const html = filtered.length === 0 ? `<div class="empty-state">暂无相关动态</div>` : filtered.map(c => {
-          const prod = this.products.find(p => p.id == c.productId);
+          const prod = c.productId ? this.products.find(p => p.id == c.productId) : null;
           const avatarDisplay = (c.avatar && c.avatar.includes('<img')) ? c.avatar : `<span>${c.avatar || '👤'}</span>`;
           return `
             <div class="comment-item ${c.is_team ? 'team-reply' : ''}">
@@ -878,7 +894,6 @@
         if (document.getElementById('commentsListHome')) document.getElementById('commentsListHome').innerHTML = html;
       }
 
-      // 新增与编辑产品功能
       saveProduct() {
         const editId = document.getElementById('editProductId').value;
         const name = document.getElementById('prodName').value;
@@ -889,13 +904,11 @@
         if (!name) return alert('请输入产品名称');
 
         if (editId) {
-          // 修改现有产品
           const prodIndex = this.products.findIndex(p => p.id == editId);
           if (prodIndex !== -1) {
             this.products[prodIndex] = { id: Number(editId), name, price, badge, link };
           }
         } else {
-          // 新增产品
           const newProd = { id: Date.now(), name, price, badge, link };
           this.products.push(newProd);
         }
@@ -951,7 +964,8 @@
         }
 
         if (select) {
-          select.innerHTML = '<option value="">不挂载产品</option>' + this.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+          // 第一项设为默认不挂载
+          select.innerHTML = '<option value="">-- 不挂载产品 --</option>' + this.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
         }
       }
 
