@@ -1,1334 +1,567 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PIT - Product Review Platform</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #0a0a0f;
-            --bg-elevated: #12121a;
-            --card: #1a1a24;
-            --border: #2a2a3a;
-            --fg: #f0f0f5;
-            --muted: #8888a0;
-            --accent: #00d4aa;
-            --accent-dim: #00d4aa33;
-            --danger: #ff4466;
-            --warning: #ffaa00;
-        }
- 
-        * {
-            box-sizing: border-box;
-        }
- 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--fg);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
- 
-        h1, h2, h3, .font-display {
-            font-family: 'Space Grotesk', sans-serif;
-        }
- 
-        .bg-noise {
-            position: fixed;
-            inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-            opacity: 0.03;
-            pointer-events: none;
-            z-index: 0;
-        }
- 
-        .gradient-orb {
-            position: fixed;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.15;
-            pointer-events: none;
-            z-index: 0;
-        }
- 
-        .orb-1 {
-            background: var(--accent);
-            top: -200px;
-            right: -200px;
-            animation: float 20s ease-in-out infinite;
-        }
- 
-        .orb-2 {
-            background: #6644ff;
-            bottom: -300px;
-            left: -200px;
-            animation: float 25s ease-in-out infinite reverse;
-        }
- 
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(30px, 20px) scale(1.05); }
-        }
- 
-        .page {
-            display: none;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
- 
-        .page.active {
-            display: block;
-            animation: fadeIn 0.4s ease-out;
-        }
- 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
- 
-        .btn-primary {
-            background: var(--accent);
-            color: var(--bg);
-            font-weight: 600;
-            padding: 12px 28px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
- 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px var(--accent-dim);
-        }
- 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
- 
-        .btn-secondary {
-            background: transparent;
-            color: var(--fg);
-            font-weight: 500;
-            padding: 12px 28px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
- 
-        .btn-secondary:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
- 
-        .input-field {
-            width: 100%;
-            padding: 14px 18px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--fg);
-            font-size: 15px;
-            transition: all 0.2s ease;
-        }
- 
-        .input-field:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-dim);
-        }
- 
-        .input-field::placeholder {
-            color: var(--muted);
-        }
- 
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
- 
-        .card:hover {
-            border-color: var(--accent);
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
- 
-        .product-card-img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            background: linear-gradient(135deg, var(--bg-elevated), var(--card));
-        }
- 
-        .nav-link {
-            color: var(--muted);
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
- 
-        .nav-link:hover, .nav-link.active {
-            color: var(--fg);
-            background: var(--card);
-        }
- 
-        .avatar-upload {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 3px dashed var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            overflow: hidden;
-            background-size: cover;
-            background-position: center;
-        }
- 
-        .avatar-upload:hover {
-            border-color: var(--accent);
-        }
- 
-        .star-rating {
-            display: flex;
-            gap: 4px;
-        }
- 
-        .star {
-            cursor: pointer;
-            color: var(--border);
-            transition: all 0.15s ease;
-        }
- 
-        .star.filled, .star:hover {
-            color: var(--warning);
-        }
- 
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(8px);
-            z-index: 100;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
- 
-        .modal-overlay.active {
-            display: flex;
-            animation: fadeIn 0.2s ease;
-        }
- 
-        .modal {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
- 
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 16px 24px;
-            border-radius: 12px;
-            z-index: 200;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
- 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
- 
-        .secret-input {
-            position: relative;
-        }
- 
-        .secret-hint {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 11px;
-            color: var(--muted);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
- 
-        .secret-input:focus-within .secret-hint {
-            opacity: 1;
-        }
- 
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
- 
-        .stagger-1 { animation-delay: 0.1s; }
-        .stagger-2 { animation-delay: 0.2s; }
-        .stagger-3 { animation-delay: 0.3s; }
-        .stagger-4 { animation-delay: 0.4s; }
- 
-        .slide-up {
-            animation: slideUp 0.6s ease forwards;
-            opacity: 0;
-        }
- 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
- 
-        .feedback-item {
-            border-left: 3px solid transparent;
-            transition: all 0.2s ease;
-        }
- 
-        .feedback-item:hover {
-            border-left-color: var(--accent);
-            background: var(--bg-elevated);
-        }
- 
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
- 
-        ::-webkit-scrollbar-track {
-            background: var(--bg);
-        }
- 
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 4px;
-        }
- 
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--muted);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIT Hub - Peox Institute of Technology</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-green: #00ff9d;
+      --neon-blue: #00d4ff;
+      --neon-pink: #ff00a0;
+      --dark-base: #0a0a0f;
+      --dark-card: #111118;
+      --dark-elevated: #1a1a24;
+      --text-primary: #e0e0e0;
+      --text-secondary: #8888a0;
+      --border-glow: rgba(0, 255, 157, 0.3);
+      --grid-color: rgba(0, 255, 157, 0.06);
+      --font-display: 'Orbitron', monospace;
+      --font-body: 'Noto Sans SC', sans-serif;
+      --radius: 12px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background: var(--dark-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .bg-grid {
+      background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
+                        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+    .bg-custom { background-size: cover; background-position: center; opacity: 0.15; transition: opacity 0.5s; }
+    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, var(--dark-base) 90%); }
+    .scanline {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.03) 50%);
+      background-size: 100% 4px;
+    }
+
+    .app-container { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px; background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glow);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand {
+      font-family: var(--font-display); font-size: 1.5rem; font-weight: 900;
+      color: var(--neon-green); text-decoration: none; letter-spacing: 2px; cursor: pointer;
+    }
+    .nav-brand span { color: var(--neon-blue); }
+    .nav-links { display: flex; align-items: center; gap: 12px; }
+
+    .btn {
+      padding: 10px 20px; border-radius: var(--radius);
+      border: 1px solid var(--border-glow); background: transparent;
+      color: var(--text-primary); font-size: 0.9rem; cursor: pointer;
+      transition: var(--transition); font-family: inherit; display: inline-flex;
+      align-items: center; gap: 8px; text-decoration: none;
+    }
+    .btn:hover { background: rgba(0, 255, 157, 0.1); border-color: var(--neon-green); box-shadow: 0 0 15px var(--border-glow); }
+    .btn-primary { background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); border: none; font-weight: 700; }
+    .btn-primary:hover { box-shadow: 0 0 25px rgba(0, 255, 157, 0.4); transform: translateY(-1px); }
+    .btn-danger { border-color: rgba(255, 50, 50, 0.4); color: #ff5555; }
+    .btn-danger:hover { background: rgba(255, 50, 50, 0.1); border-color: #ff5555; }
+    .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+
+    /* Page System */
+    .page { display: none; flex: 1; padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .page.active { display: block; }
+
+    .card {
+      background: var(--dark-card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue), transparent); opacity: 0.5;
+    }
+    .card-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--neon-green); margin-bottom: 16px; }
+
+    /* Landing Hero */
+    .landing-hero { text-align: center; padding: 60px 20px 40px; }
+    .landing-hero h1 {
+      font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900; color: var(--neon-green); margin-bottom: 16px; letter-spacing: 4px;
+    }
+    .landing-hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 30px; }
+    .landing-actions { display: flex; gap: 16px; justify-content: center; margin-bottom: 40px; }
+
+    /* Forms & Inputs */
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
+    .form-input, .form-textarea, .form-select {
+      width: 100%; padding: 12px 16px; background: var(--dark-elevated);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius);
+      color: var(--text-primary); font-size: 0.95rem; outline: none; transition: var(--transition);
+    }
+    .form-input:focus, .form-textarea:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
+    .form-textarea { min-height: 100px; resize: vertical; }
+
+    /* Comments Section */
+    .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .hall-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-green); }
+    .search-bar { display: flex; gap: 12px; flex: 1; max-width: 500px; }
+    .comments-list { display: flex; flex-direction: column; gap: 16px; }
+    
+    .comment-item {
+      background: var(--dark-card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius); padding: 20px; transition: var(--transition);
+    }
+    .comment-item.team-reply { border-left: 3px solid var(--neon-green); background: linear-gradient(90deg, rgba(0,255,157,0.03), transparent); }
+    .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .comment-avatar {
+      width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); font-weight: 700;
+    }
+    .comment-meta { flex: 1; }
+    .comment-name { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+    .comment-city { font-size: 0.8rem; color: var(--text-secondary); }
+    .comment-time { font-size: 0.75rem; color: var(--text-secondary); }
+    .comment-body { color: var(--text-primary); line-height: 1.6; margin-bottom: 8px; }
+
+    .team-badge {
+      font-size: 0.65rem; padding: 2px 8px; background: var(--neon-green);
+      color: var(--dark-base); border-radius: 4px; font-weight: 700; text-transform: uppercase;
+    }
+    .product-badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px;
+      background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); border-radius: 8px;
+      margin-top: 8px; text-decoration: none; color: var(--neon-blue); font-size: 0.85rem;
+    }
+
+    /* Modal & Wizard */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-container {
+      background: var(--dark-card); border: 1px solid var(--border-glow);
+      border-radius: var(--radius); width: 100%; max-width: 480px; padding: 28px; position: relative;
+    }
+    .modal-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--neon-green); margin-bottom: 12px; text-align: center; }
+
+    .hidden { display: none !important; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+  </style>
 </head>
 <body>
-    <!-- Background Effects -->
-    <div class="bg-noise"></div>
-    <div class="gradient-orb orb-1"></div>
-    <div class="gradient-orb orb-2"></div>
- 
-    <!-- Login Page -->
-    <div id="loginPage" class="page active">
-        <div class="min-h-screen flex items-center justify-center p-6">
-            <div class="w-full max-w-md">
-                <!-- Logo -->
-                <div class="text-center mb-10 slide-up">
-                    <div class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-[#00d4aa] to-[#00a088] mb-6 shadow-lg shadow-[#00d4aa33]">
-                        <span class="font-display text-4xl font-bold text-[#0a0a0f]">PIT</span>
-                    </div>
-                    <h1 class="font-display text-3xl font-bold mb-2">Welcome Back</h1>
-                    <p class="text-[var(--muted)]">Sign in to access your account</p>
-                </div>
- 
-                <!-- Login Form -->
-                <form id="loginForm" class="space-y-5 slide-up stagger-1">
-                    <div>
-                        <label class="block text-sm font-medium mb-2 text-[var(--muted)]">Email Address</label>
-                        <input type="email" id="loginEmail" class="input-field" placeholder="you@example.com" required>
-                    </div>
-                    
-                    <div class="secret-input">
-                        <label class="block text-sm font-medium mb-2 text-[var(--muted)]">Password</label>
-                        <input type="password" id="loginPassword" class="input-field pr-24" placeholder="Enter your password" required>
-                        <span class="secret-hint">Admin? Try "admin123"</span>
-                    </div>
- 
-                    <button type="submit" class="btn-primary w-full mt-6">Sign In</button>
-                </form>
- 
-                <p class="text-center mt-8 text-[var(--muted)] text-sm slide-up stagger-2">
-                    Don't have an account? 
-                    <button onclick="showRegister()" class="text-[var(--accent)] hover:underline">Create one</button>
-                </p>
-            </div>
+
+  <div class="bg-layer bg-grid"></div>
+  <div class="bg-layer bg-custom" id="bgCustom"></div>
+  <div class="bg-layer bg-overlay"></div>
+  <div class="scanline"></div>
+
+  <div class="app-container">
+    <!-- Navigation -->
+    <nav class="top-nav">
+      <a class="nav-brand" onclick="app.showPage('landing')">PIT<span>HUB</span></a>
+      <div class="nav-links" id="navLinks">
+        <!-- Dynamic Nav Links -->
+      </div>
+    </nav>
+
+    <!-- LANDING PAGE (Unauthenticated) -->
+    <div class="page active" id="pageLanding">
+      <div class="landing-hero">
+        <h1>PEOX INSTITUTE OF TECHNOLOGY</h1>
+        <p class="subtitle">PIT Hub 赛博朋克公共社区大厅</p>
+        <div class="landing-actions" id="landingAuthBtns">
+          <button class="btn btn-primary" onclick="app.startWizard('signin')">🔐 登录 (Sign In)</button>
+          <button class="btn" onclick="app.startWizard('signup')">✨ 创建账号 (Create Account)</button>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="hall-header">
+          <h2 class="hall-title">🏛️ 社区大厅</h2>
+          <div class="search-bar">
+            <input type="text" class="form-input" id="searchInput" placeholder="按关键词或日期搜索..." oninput="app.renderComments()">
+          </div>
+        </div>
+        <div class="comments-list" id="commentsListLanding"></div>
+      </div>
     </div>
- 
-    <!-- Register Modal -->
-    <div id="registerModal" class="modal-overlay">
-        <div class="modal p-8">
-            <h2 class="font-display text-2xl font-bold mb-6">Create Account</h2>
-            <form id="registerForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">Nickname</label>
-                    <input type="text" id="regNickname" class="input-field" placeholder="Your nickname" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Email</label>
-                    <input type="email" id="regEmail" class="input-field" placeholder="you@example.com" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Password</label>
-                    <input type="password" id="regPassword" class="input-field" placeholder="Create a password" required>
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <button type="button" onclick="hideRegister()" class="btn-secondary flex-1">Cancel</button>
-                    <button type="submit" class="btn-primary flex-1">Sign Up</button>
-                </div>
-            </form>
+
+    <!-- HOME PAGE (Authenticated) -->
+    <div class="page" id="pageHome">
+      <div class="card">
+        <div class="card-title">✍️ 发布社区动态</div>
+        <div class="form-group">
+          <textarea class="form-textarea" id="postContent" placeholder="分享你的想法..."></textarea>
         </div>
+        <div id="teamPostOptions" class="hidden" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label">挂载推广产品</label>
+            <select class="form-select" id="postProductSelect">
+              <option value="">不挂载产品</option>
+            </select>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="postIsTeam"> 标记为团队官方回复 (绿色高亮)
+          </label>
+        </div>
+        <button class="btn btn-primary" onclick="app.createPost()">🚀 发布内容</button>
+      </div>
+
+      <div class="card">
+        <div class="hall-header">
+          <h2 class="hall-title">🏛️ 动态列表</h2>
+        </div>
+        <div class="comments-list" id="commentsListHome"></div>
+      </div>
     </div>
- 
-    <!-- Main App -->
-    <div id="mainApp" class="page">
-        <!-- Header -->
-        <header class="sticky top-0 z-50 backdrop-blur-xl bg-[var(--bg)]/80 border-b border-[var(--border)]">
-            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('home')">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00d4aa] to-[#00a088] flex items-center justify-center">
-                        <span class="font-display font-bold text-[#0a0a0f]">P</span>
-                    </div>
-                    <span class="font-display text-xl font-bold">PIT</span>
-                </div>
- 
-                <nav class="hidden md:flex items-center gap-2">
-                    <span class="nav-link active" data-page="home" onclick="showPage('home')">Products</span>
-                    <span class="nav-link" data-page="feedback" onclick="showPage('feedback')">Feedback</span>
-                </nav>
- 
-                <div class="flex items-center gap-4">
-                    <!-- Language Selector -->
-                    <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-[var(--card)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[var(--accent)]">
-                        <option value="en">English</option>
-                        <option value="zh">中文</option>
-                        <option value="es">Español</option>
-                        <option value="fr">Français</option>
-                    </select>
- 
-                    <!-- User Menu -->
-                    <div class="relative">
-                        <button id="userMenuBtn" onclick="toggleUserMenu()" class="flex items-center gap-2 p-2 rounded-lg hover:bg-[var(--card)] transition-colors">
-                            <div id="headerAvatar" class="w-8 h-8 rounded-full bg-gradient-to-br from-[#00d4aa] to-[#6644ff] flex items-center justify-center text-sm font-bold"></div>
-                            <span id="headerName" class="hidden sm:block text-sm font-medium"></span>
-                            <svg class="w-4 h-4 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                            </svg>
-                        </button>
- 
-                        <div id="userMenu" class="absolute right-0 top-full mt-2 w-56 bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-xl py-2 hidden">
-                            <div class="px-4 py-3 border-b border-[var(--border)]">
-                                <p id="menuUserName" class="font-medium"></p>
-                                <p id="menuUserEmail" class="text-sm text-[var(--muted)]"></p>
-                            </div>
-                            <button onclick="showPage('settings')" class="w-full px-4 py-2 text-left hover:bg-[var(--bg-elevated)] flex items-center gap-3">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                Settings
-                            </button>
-                            <button onclick="logout()" class="w-full px-4 py-2 text-left hover:bg-[var(--bg-elevated)] text-[var(--danger)] flex items-center gap-3">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
- 
-        <!-- Home / Products Page -->
-        <div id="homeSection" class="section active">
-            <main class="max-w-7xl mx-auto px-6 py-10">
-                <!-- Hero -->
-                <div class="text-center mb-12">
-                    <h1 class="font-display text-4xl md:text-5xl font-bold mb-4" data-i18n="hero_title">Discover Amazing Products</h1>
-                    <p class="text-[var(--muted)] text-lg max-w-2xl mx-auto" data-i18n="hero_subtitle">Read honest reviews and share your experiences with the community</p>
-                </div>
- 
-                <!-- Products Grid -->
-                <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- Products will be rendered here -->
-                </div>
-            </main>
+
+    <!-- PROFILE PAGE -->
+    <div class="page" id="pageProfile">
+      <div class="card">
+        <div class="card-title">👤 我的个人信息</div>
+        <div class="form-group">
+          <label class="form-label">用户昵称</label>
+          <input type="text" class="form-input" id="profileName">
         </div>
- 
-        <!-- Feedback Page -->
-        <div id="feedbackSection" class="section" style="display:none;">
-            <main class="max-w-4xl mx-auto px-6 py-10">
-                <div class="flex items-center justify-between mb-8">
-                    <h1 class="font-display text-3xl font-bold" data-i18n="feedback_title">Community Feedback</h1>
-                    <button onclick="openFeedbackModal()" class="btn-primary flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        <span data-i18n="submit_feedback">Submit Feedback</span>
-                    </button>
-                </div>
- 
-                <div id="feedbackList" class="space-y-4">
-                    <!-- Feedback will be rendered here -->
-                </div>
-            </main>
+        <div class="form-group">
+          <label class="form-label">所在城市</label>
+          <input type="text" class="form-input" id="profileCity">
         </div>
- 
-        <!-- Settings Page -->
-        <div id="settingsSection" class="section" style="display:none;">
-            <main class="max-w-2xl mx-auto px-6 py-10">
-                <h1 class="font-display text-3xl font-bold mb-8" data-i18n="settings_title">Account Settings</h1>
- 
-                <div class="space-y-6">
-                    <!-- Avatar & Background -->
-                    <div class="card p-6">
-                        <h2 class="font-display text-xl font-semibold mb-6" data-i18n="appearance">Appearance</h2>
-                        
-                        <div class="flex flex-col sm:flex-row items-center gap-6">
-                            <div id="settingsAvatar" class="avatar-upload" onclick="document.getElementById('avatarInput').click()">
-                                <svg class="w-8 h-8 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-                                <input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="handleAvatarUpload(event)">
-                            </div>
-                            
-                            <div class="flex-1 space-y-4 w-full">
-                                <div>
-                                    <label class="block text-sm font-medium mb-2" data-i18n="nickname">Nickname</label>
-                                    <input type="text" id="settingsNickname" class="input-field" placeholder="Your nickname">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2" data-i18n="background_color">Background Color</label>
-                                    <div class="flex gap-2">
-                                        <input type="color" id="settingsBgColor" class="w-12 h-10 rounded cursor-pointer" value="#0a0a0f">
-                                        <input type="text" id="settingsBgColorText" class="input-field flex-1" value="#0a0a0f" onchange="document.getElementById('settingsBgColor').value = this.value; previewBackground()">
-                                    </div>
-                                </div>
-                                <button onclick="saveSettings()" class="btn-primary" data-i18n="save_changes">Save Changes</button>
-                            </div>
-                        </div>
-                    </div>
- 
-                    <!-- Danger Zone -->
-                    <div class="card p-6 border-[var(--danger)]/30">
-                        <h2 class="font-display text-xl font-semibold mb-4 text-[var(--danger)]" data-i18n="danger_zone">Danger Zone</h2>
-                        <p class="text-[var(--muted)] mb-4" data-i18n="delete_warning">Once you delete your account, there is no going back. Please be certain.</p>
-                        <button onclick="confirmDeleteAccount()" class="bg-[var(--danger)] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity" data-i18n="delete_account">Delete Account</button>
-                    </div>
-                </div>
-            </main>
+        <div class="form-group">
+          <label class="form-label">虚拟头像 (Emoji或字符)</label>
+          <input type="text" class="form-input" id="profileAvatar">
         </div>
- 
-        <!-- Admin Panel (Hidden) -->
-        <div id="adminSection" class="section" style="display:none;">
-            <main class="max-w-6xl mx-auto px-6 py-10">
-                <div class="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 class="font-display text-3xl font-bold flex items-center gap-3">
-                            <svg class="w-8 h-8 text-[var(--warning)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                            Admin Panel
-                        </h1>
-                        <p class="text-[var(--muted)]" data-i18n="admin_desc">Manage products and reviews</p>
-                    </div>
-                    <button onclick="showPage('home')" class="btn-secondary">Back to Site</button>
-                </div>
- 
-                <!-- Add Product Form -->
-                <div class="card p-6 mb-8">
-                    <h2 class="font-display text-xl font-semibold mb-6" data-i18n="add_product">Add New Product</h2>
-                    <form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Product Name</label>
-                            <input type="text" id="prodName" class="input-field" placeholder="Product name" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Price ($)</label>
-                            <input type="number" id="prodPrice" class="input-field" placeholder="99.99" step="0.01" required>
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-medium mb-2">Description</label>
-                            <textarea id="prodDesc" class="input-field" rows="3" placeholder="Product description..." required></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Product Link</label>
-                            <input type="url" id="prodLink" class="input-field" placeholder="https://...">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Image URL</label>
-                            <input type="url" id="prodImage" class="input-field" placeholder="https://...">
-                        </div>
-                        <div class="md:col-span-2">
-                            <button type="submit" class="btn-primary">Add Product</button>
-                        </div>
-                    </form>
-                </div>
- 
-                <!-- Products Management -->
-                <div class="card p-6">
-                    <h2 class="font-display text-xl font-semibold mb-6" data-i18n="manage_products">Manage Products</h2>
-                    <div id="adminProductsList" class="space-y-3">
-                        <!-- Admin product list -->
-                    </div>
-                </div>
-            </main>
+        <button class="btn btn-primary" onclick="app.saveProfile()">💾 保存设置</button>
+      </div>
+
+      <div class="card hidden" id="teamBgCard">
+        <div class="card-title">🎨 全站自定义背景 (PIT Team 专属)</div>
+        <div class="form-group">
+          <label class="form-label">背景图片 URL</label>
+          <input type="text" class="form-input" id="customBgUrl" placeholder="https://example.com/image.jpg">
         </div>
+        <button class="btn btn-primary" onclick="app.saveCustomBg()">🎨 应用全站背景</button>
+      </div>
     </div>
- 
-    <!-- Product Detail Modal -->
-    <div id="productModal" class="modal-overlay">
-        <div class="modal max-w-2xl">
-            <div id="productModalContent">
-                <!-- Content rendered dynamically -->
-            </div>
+
+    <!-- EDIT PANEL (Team Only) -->
+    <div class="page" id="pageEdit">
+      <div class="card">
+        <div class="card-title">⚙️ PIT Team 产品管理面板</div>
+        <div class="form-group">
+          <label class="form-label">产品名称</label>
+          <input type="text" class="form-input" id="prodName">
         </div>
-    </div>
- 
-    <!-- Feedback Modal -->
-    <div id="feedbackModal" class="modal-overlay">
-        <div class="modal p-6">
-            <h2 class="font-display text-2xl font-bold mb-6" data-i18n="submit_feedback">Submit Feedback</h2>
-            <form id="feedbackForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2" data-i18n="select_product">Select Product</label>
-                    <select id="feedbackProduct" class="input-field" required></select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Rating</label>
-                    <div id="feedbackStars" class="star-rating">
-                        <span class="star" data-rating="1" onclick="setRating(1)">&#9733;</span>
-                        <span class="star" data-rating="2" onclick="setRating(2)">&#9733;</span>
-                        <span class="star" data-rating="3" onclick="setRating(3)">&#9733;</span>
-                        <span class="star" data-rating="4" onclick="setRating(4)">&#9733;</span>
-                        <span class="star" data-rating="5" onclick="setRating(5)">&#9733;</span>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2" data-i18n="your_review">Your Review</label>
-                    <textarea id="feedbackText" class="input-field" rows="4" placeholder="Share your experience..." required></textarea>
-                </div>
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeFeedbackModal()" class="btn-secondary flex-1" data-i18n="cancel">Cancel</button>
-                    <button type="submit" class="btn-primary flex-1" data-i18n="submit">Submit</button>
-                </div>
-            </form>
+        <div class="form-group">
+          <label class="form-label">产品价格</label>
+          <input type="text" class="form-input" id="prodPrice" placeholder="例如: $99.99">
         </div>
-    </div>
- 
-    <!-- Reply Modal -->
-    <div id="replyModal" class="modal-overlay">
-        <div class="modal p-6">
-            <h2 class="font-display text-2xl font-bold mb-6" data-i18n="write_reply">Write a Reply</h2>
-            <form id="replyForm" class="space-y-4">
-                <input type="hidden" id="replyToId">
-                <div>
-                    <label class="block text-sm font-medium mb-2" data-i18n="your_reply">Your Reply</label>
-                    <textarea id="replyText" class="input-field" rows="3" placeholder="Type your reply..." required></textarea>
-                </div>
-                <div class="flex gap-3">
-                    <button type="button" onclick="closeReplyModal()" class="btn-secondary flex-1" data-i18n="cancel">Cancel</button>
-                    <button type="submit" class="btn-primary flex-1" data-i18n="submit">Submit</button>
-                </div>
-            </form>
+        <div class="form-group">
+          <label class="form-label">促销标签</label>
+          <input type="text" class="form-input" id="prodBadge" placeholder="例如: HOT / 50% OFF">
         </div>
+        <div class="form-group">
+          <label class="form-label">跳转链接</label>
+          <input type="text" class="form-input" id="prodLink" placeholder="https://...">
+        </div>
+        <button class="btn btn-primary" onclick="app.addProduct()">➕ 保存产品</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📦 已上架产品清单</div>
+        <div id="productsContainer"></div>
+      </div>
     </div>
- 
-    <!-- Toast -->
-    <div id="toast" class="toast">
-        <span id="toastMessage"></span>
+  </div>
+
+  <!-- WIZARD MODAL -->
+  <div class="modal-overlay" id="wizardModal">
+    <div class="modal-container">
+      <div id="wizardStep0">
+        <h3 class="modal-title">Step 0: 语言选择 / Language</h3>
+        <div class="form-group">
+          <select class="form-select" id="wizardLang">
+            <option value="zh">简体中文</option>
+            <option value="cantonese">繁體中文 (Cantonese)</option>
+            <option value="mandarin">繁體中文 (Mandarin)</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="app.nextWizardStep(1)">下一步 (Next)</button>
+      </div>
+
+      <div id="wizardStep1" class="hidden">
+        <h3 class="modal-title">Step 1: 选择身份</h3>
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <button class="btn" style="flex:1" onclick="app.completeWizard('visitor')">🤖 访客 (Visitor)</button>
+          <button class="btn btn-primary" style="flex:1" onclick="app.completeWizard('team')">⚡ PIT Team</button>
+        </div>
+      </div>
+
+      <div id="wizardStepVisitor" class="hidden">
+        <h3 class="modal-title">完善访客信息</h3>
+        <div class="form-group">
+          <input type="text" class="form-input" id="wizName" placeholder="虚拟姓名">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-input" id="wizCity" placeholder="所在城市">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-input" id="wizChannel" placeholder="通过什么渠道了解 PIT？">
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="app.finishVisitorReg()">进入大厅</button>
+      </div>
     </div>
- 
-    <script>
-        // ==================== DATA STORE ====================
-        let currentUser = null;
-        let selectedRating = 0;
- 
-        // Initialize data structures first
-        let products = [
-            { id: 1, name: 'Wireless Pro Headphones', price: 299.99, desc: 'Premium noise-cancelling headphones with 40-hour battery life.', link: '#', image: '', rating: 4.5, reviews: 128 },
-            { id: 2, name: 'Smart Watch Ultra', price: 449.00, desc: 'Advanced fitness tracking with GPS and health monitoring.', link: '#', image: '', rating: 4.8, reviews: 256 },
-            { id: 3, name: 'Mechanical Keyboard RGB', price: 159.99, desc: 'Cherry MX switches with per-key RGB lighting.', link: '#', image: '', rating: 4.3, reviews: 89 },
-            { id: 4, name: 'Portable SSD 2TB', price: 189.00, desc: 'Ultra-fast transfer speeds up to 2000MB/s.', link: '#', image: '', rating: 4.7, reviews: 167 },
+  </div>
+
+  <!-- LOGOUT CONFIRM MODAL -->
+  <div class="modal-overlay" id="logoutModal">
+    <div class="modal-container">
+      <h3 class="modal-title">确认退出登录？</h3>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:20px;">退出后将返回公开大厅状态。</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button class="btn btn-danger" onclick="app.confirmLogout(true)">Yes (退出)</button>
+        <button class="btn" onclick="app.confirmLogout(false)">No (取消)</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // System Core Logic & State Management
+    class PitHubApp {
+      constructor() {
+        this.user = JSON.parse(localStorage.getItem('pithub_user')) || null;
+        this.customBg = localStorage.getItem('pithub_bg') || '';
+        this.comments = JSON.parse(localStorage.getItem('pithub_comments')) || [
+          { id: 1, name: 'PIT Core', city: 'Cyber City', content: '欢迎来到 Peox Institute of Technology 官方社区！', is_team: true, time: '2026-08-20 10:00' }
         ];
- 
-        let feedbacks = [
-            { id: 1, productId: 1, userId: 1, userName: 'TechEnthusiast', userAvatar: '', rating: 5, text: 'Amazing sound quality! The noise cancellation is incredible for flights.', date: '2024-01-15', replies: [] },
-            { id: 2, productId: 2, userId: 2, userName: 'FitnessGuru', userAvatar: '', rating: 4, text: 'Great fitness tracker, but battery could be better.', date: '2024-01-14', replies: [{ id: 101, userName: 'BrandRep', text: 'Thanks for the feedback! We are working on improving battery life.', date: '2024-01-15' }] },
-            { id: 3, productId: 3, userId: 3, userName: 'GamerPro', userAvatar: '', rating: 5, text: 'Best keyboard I have ever used. The tactile feel is perfect!', date: '2024-01-13', replies: [] },
-        ];
- 
-        let users = [
-            { id: 1, email: 'admin@pit.com', password: 'admin123', nickname: 'Admin', avatar: '', bgColor: '#0a0a0f', isAdmin: true },
-            { id: 2, email: 'user@test.com', password: 'user123', nickname: 'TestUser', avatar: '', bgColor: '#0a0a0f', isAdmin: false },
-        ];
- 
-        const i18n = {
-            en: {
-                hero_title: 'Discover Amazing Products',
-                hero_subtitle: 'Read honest reviews and share your experiences with the community',
-                feedback_title: 'Community Feedback',
-                submit_feedback: 'Submit Feedback',
-                settings_title: 'Account Settings',
-                appearance: 'Appearance',
-                nickname: 'Nickname',
-                background_color: 'Background Color',
-                save_changes: 'Save Changes',
-                danger_zone: 'Danger Zone',
-                delete_warning: 'Once you delete your account, there is no going back. Please be certain.',
-                delete_account: 'Delete Account',
-                admin_desc: 'Manage products and reviews',
-                add_product: 'Add New Product',
-                manage_products: 'Manage Products',
-                select_product: 'Select Product',
-                your_review: 'Your Review',
-                cancel: 'Cancel',
-                submit: 'Submit',
-                write_reply: 'Write a Reply',
-                your_reply: 'Your Reply',
-                buy_now: 'Buy Now',
-                view_details: 'View Details',
-                reviews: 'reviews',
-                reply: 'Reply',
-                delete: 'Delete',
-                edit: 'Edit'
-            },
-            zh: {
-                hero_title: '发现精彩产品',
-                hero_subtitle: '阅读真实评价，与社区分享您的体验',
-                feedback_title: '社区反馈',
-                submit_feedback: '提交反馈',
-                settings_title: '账户设置',
-                appearance: '外观',
-                nickname: '昵称',
-                background_color: '背景颜色',
-                save_changes: '保存更改',
-                danger_zone: '危险区域',
-                delete_warning: '一旦删除账户，将无法恢复。请谨慎操作。',
-                delete_account: '删除账户',
-                admin_desc: '管理产品和评论',
-                add_product: '添加新产品',
-                manage_products: '管理产品',
-                select_product: '选择产品',
-                your_review: '您的评价',
-                cancel: '取消',
-                submit: '提交',
-                write_reply: '撰写回复',
-                your_reply: '您的回复',
-                buy_now: '立即购买',
-                view_details: '查看详情',
-                reviews: '条评价',
-                reply: '回复',
-                delete: '删除',
-                edit: '编辑'
-            },
-            es: {
-                hero_title: 'Descubre Productos Increíbles',
-                hero_subtitle: 'Lee reseñas honestas y comparte tus experiencias con la comunidad',
-                feedback_title: 'Comentarios de la Comunidad',
-                submit_feedback: 'Enviar Comentario',
-                settings_title: 'Configuración de Cuenta',
-                appearance: 'Apariencia',
-                nickname: 'Apodo',
-                background_color: 'Color de Fondo',
-                save_changes: 'Guardar Cambios',
-                danger_zone: 'Zona de Peligro',
-                delete_warning: 'Una vez que elimines tu cuenta, no hay vuelta atrás.',
-                delete_account: 'Eliminar Cuenta',
-                admin_desc: 'Administrar productos y reseñas',
-                add_product: 'Agregar Nuevo Producto',
-                manage_products: 'Administrar Productos',
-                select_product: 'Seleccionar Producto',
-                your_review: 'Tu Reseña',
-                cancel: 'Cancelar',
-                submit: 'Enviar',
-                write_reply: 'Escribir Respuesta',
-                your_reply: 'Tu Respuesta',
-                buy_now: 'Comprar Ahora',
-                view_details: 'Ver Detalles',
-                reviews: 'reseñas',
-                reply: 'Responder',
-                delete: 'Eliminar',
-                edit: 'Editar'
-            },
-            fr: {
-                hero_title: 'Découvrez des Produits Incroyables',
-                hero_subtitle: 'Lisez des avis honnêtes et partagez vos expériences avec la communauté',
-                feedback_title: 'Commentaires de la Communauté',
-                submit_feedback: 'Soumettre un Avis',
-                settings_title: 'Paramètres du Compte',
-                appearance: 'Apparence',
-                nickname: 'Surnom',
-                background_color: 'Couleur de Fond',
-                save_changes: 'Enregistrer les Modifications',
-                danger_zone: 'Zone de Danger',
-                delete_warning: 'Une fois votre compte supprimé, il n\'y a pas de retour en arrière.',
-                delete_account: 'Supprimer le Compte',
-                admin_desc: 'Gérer les produits et les avis',
-                add_product: 'Ajouter un Nouveau Produit',
-                manage_products: 'Gérer les Produits',
-                select_product: 'Sélectionner un Produit',
-                your_review: 'Votre Avis',
-                cancel: 'Annuler',
-                submit: 'Soumettre',
-                write_reply: 'Écrire une Réponse',
-                your_reply: 'Votre Réponse',
-                buy_now: 'Acheter Maintenant',
-                view_details: 'Voir les Détails',
-                reviews: 'avis',
-                reply: 'Répondre',
-                delete: 'Supprimer',
-                edit: 'Modifier'
-            }
+        this.products = JSON.parse(localStorage.getItem('pithub_products')) || [];
+        
+        this.init();
+      }
+
+      init() {
+        this.applyBg();
+        this.updateNav();
+        this.renderComments();
+        this.renderProducts();
+        this.showPage(this.user ? 'home' : 'landing');
+      }
+
+      applyBg() {
+        const bgEl = document.getElementById('bgCustom');
+        if (this.customBg) {
+          bgEl.style.backgroundImage = `url('${this.customBg}')`;
+        }
+      }
+
+      saveCustomBg() {
+        const url = document.getElementById('customBgUrl').value;
+        this.customBg = url;
+        localStorage.setItem('pithub_bg', url);
+        this.applyBg();
+        alert('全站背景已更新！');
+      }
+
+      showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById(`page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`);
+        if (target) target.classList.add('active');
+      }
+
+      updateNav() {
+        const navLinks = document.getElementById('navLinks');
+        if (!this.user) {
+          navLinks.innerHTML = `
+            <button class="btn btn-sm btn-primary" onclick="app.startWizard('signin')">Sign In</button>
+            <button class="btn btn-sm" onclick="app.startWizard('signup')">Create Account</button>
+          `;
+        } else {
+          let extraLinks = `<button class="btn btn-sm" onclick="app.showPage('profile')">My Info</button>`;
+          if (this.user.isTeam) {
+            extraLinks += `<button class="btn btn-sm" onclick="app.showPage('edit')">Team Panel</button>`;
+            document.getElementById('teamPostOptions').classList.remove('hidden');
+            document.getElementById('teamBgCard').classList.remove('hidden');
+          }
+          navLinks.innerHTML = `
+            <span style="font-size:0.85rem;color:var(--neon-green)">${this.user.name} ${this.user.isTeam ? '<span class="team-badge">TEAM</span>' : ''}</span>
+            <button class="btn btn-sm" onclick="app.showPage('home')">Home</button>
+            ${extraLinks}
+            <button class="btn btn-sm btn-danger" onclick="app.promptLogout()">Log Out</button>
+          `;
+
+          // Fill Profile
+          document.getElementById('profileName').value = this.user.name || '';
+          document.getElementById('profileCity').value = this.user.city || '';
+          document.getElementById('profileAvatar').value = this.user.avatar || '👤';
+        }
+      }
+
+      startWizard(type) {
+        document.getElementById('wizardModal').classList.add('active');
+        document.getElementById('wizardStep0').classList.remove('hidden');
+        document.getElementById('wizardStep1').classList.add('hidden');
+        document.getElementById('wizardStepVisitor').classList.add('hidden');
+      }
+
+      nextWizardStep(step) {
+        if (step === 1) {
+          document.getElementById('wizardStep0').classList.add('hidden');
+          document.getElementById('wizardStep1').classList.remove('hidden');
+        }
+      }
+
+      completeWizard(type) {
+        if (type === 'team') {
+          this.user = { name: 'PIT Team Member', isTeam: true, city: 'HQ', avatar: '⚡' };
+          localStorage.setItem('pithub_user', JSON.stringify(this.user));
+          document.getElementById('wizardModal').classList.remove('active');
+          this.updateNav();
+          this.showPage('home');
+        } else {
+          document.getElementById('wizardStep1').classList.add('hidden');
+          document.getElementById('wizardStepVisitor').classList.remove('hidden');
+        }
+      }
+
+      finishVisitorReg() {
+        const name = document.getElementById('wizName').value || 'Visitor';
+        const city = document.getElementById('wizCity').value || 'Unknown';
+        this.user = { name, city, isTeam: false, avatar: '🤖' };
+        localStorage.setItem('pithub_user', JSON.stringify(this.user));
+        document.getElementById('wizardModal').classList.remove('active');
+        this.updateNav();
+        this.showPage('home');
+      }
+
+      promptLogout() {
+        document.getElementById('logoutModal').classList.add('active');
+      }
+
+      confirmLogout(yes) {
+        document.getElementById('logoutModal').classList.remove('active');
+        if (yes) {
+          this.user = null;
+          localStorage.removeItem('pithub_user');
+          this.updateNav();
+          this.showPage('landing');
+        }
+      }
+
+      createPost() {
+        const content = document.getElementById('postContent').value;
+        if (!content) return;
+        const isTeam = document.getElementById('postIsTeam').checked;
+        const prodId = document.getElementById('postProductSelect').value;
+
+        const newComment = {
+          id: Date.now(),
+          name: this.user.name,
+          city: this.user.city || 'Local',
+          avatar: this.user.avatar || '👤',
+          content,
+          is_team: this.user.isTeam && isTeam,
+          productId: prodId || null,
+          time: new Date().toLocaleString()
         };
- 
-        let currentLang = 'en';
- 
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            initEventListeners();
-            renderProducts();
-            renderFeedbacks();
-            
-            // Check for saved session
-            const savedUser = localStorage.getItem('pit_currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showMainApp();
-            }
-        });
- 
-        function initEventListeners() {
-            document.getElementById('loginForm').addEventListener('submit', handleLogin);
-            document.getElementById('registerForm').addEventListener('submit', handleRegister);
-            document.getElementById('addProductForm').addEventListener('submit', handleAddProduct);
-            document.getElementById('feedbackForm').addEventListener('submit', handleSubmitFeedback);
-            document.getElementById('replyForm').handleSubmitReply = function(e) {
-                e.preventDefault();
-                handleReplySubmit();
-            };
-            document.getElementById('replyForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleReplySubmit();
-            });
- 
-            // Close menus on outside click
-            document.addEventListener('click', function(e) {
-                const userMenu = document.getElementById('userMenu');
-                const userMenuBtn = document.getElementById('userMenuBtn');
-                if (!userMenu.contains(e.target) && !userMenuBtn.contains(e.target)) {
-                    userMenu.classList.add('hidden');
-                }
-            });
-        }
- 
-        // ==================== AUTH FUNCTIONS ====================
-        function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
- 
-            const user = users.find(u => u.email === email && u.password === password);
-            
-            if (user) {
-                currentUser = user;
-                localStorage.setItem('pit_currentUser', JSON.stringify(user));
-                
-                if (user.isAdmin) {
-                    showToast('Welcome back, Admin!');
-                } else {
-                    showToast('Login successful!');
-                }
-                
-                showMainApp();
-            } else {
-                showToast('Invalid credentials');
-            }
-        }
- 
-        function handleRegister(e) {
-            e.preventDefault();
-            const nickname = document.getElementById('regNickname').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
- 
-            if (users.find(u => u.email === email)) {
-                showToast('Email already exists');
-                return;
-            }
- 
-            const newUser = {
-                id: users.length + 1,
-                email,
-                password,
-                nickname,
-                avatar: '',
-                bgColor: '#0a0a0f',
-                isAdmin: false
-            };
- 
-            users.push(newUser);
-            currentUser = newUser;
-            localStorage.setItem('pit_currentUser', JSON.stringify(newUser));
-            
-            hideRegister();
-            showToast('Account created successfully!');
-            showMainApp();
-        }
- 
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('pit_currentUser');
-            document.getElementById('loginPage').classList.add('active');
-            document.getElementById('mainApp').classList.remove('active');
-            document.getElementById('loginEmail').value = '';
-            document.getElementById('loginPassword').value = '';
-            showToast('Logged out successfully');
-        }
- 
-        function showRegister() {
-            document.getElementById('registerModal').classList.add('active');
-        }
- 
-        function hideRegister() {
-            document.getElementById('registerModal').classList.remove('active');
-        }
- 
-        // ==================== NAVIGATION ====================
-        function showMainApp() {
-            document.getElementById('loginPage').classList.remove('active');
-            document.getElementById('mainApp').classList.add('active');
-            updateUserUI();
-            showPage(currentUser?.isAdmin ? 'admin' : 'home');
-        }
- 
-        function showPage(page) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
- 
-            // Show selected section
-            if (page === 'home') {
-                document.getElementById('homeSection').style.display = 'block';
-                document.querySelector('[data-page="home"]')?.classList.add('active');
-            } else if (page === 'feedback') {
-                document.getElementById('feedbackSection').style.display = 'block';
-                document.querySelector('[data-page="feedback"]')?.classList.add('active');
-                renderFeedbacks();
-            } else if (page === 'settings') {
-                document.getElementById('settingsSection').style.display = 'block';
-                loadSettings();
-            } else if (page === 'admin') {
-                document.getElementById('adminSection').style.display = 'block';
-                renderAdminProducts();
-            }
- 
-            // Close user menu
-            document.getElementById('userMenu').classList.add('hidden');
-        }
- 
-        function toggleUserMenu() {
-            document.getElementById('userMenu').classList.toggle('hidden');
-        }
- 
-        // ==================== UI UPDATES ====================
-        function updateUserUI() {
-            if (!currentUser) return;
- 
-            const initial = currentUser.nickname.charAt(0).toUpperCase();
-            document.getElementById('headerAvatar').textContent = initial;
-            document.getElementById('headerAvatar').style.backgroundImage = currentUser.avatar ? `url(${currentUser.avatar})` : '';
-            document.getElementById('headerAvatar').style.backgroundSize = currentUser.avatar ? 'cover' : '';
-            document.getElementById('headerName').textContent = currentUser.nickname;
-            document.getElementById('menuUserName').textContent = currentUser.nickname;
-            document.getElementById('menuUserEmail').textContent = currentUser.email;
- 
-            // Apply background color
-            document.body.style.backgroundColor = currentUser.bgColor || '#0a0a0f';
-        }
- 
-        // ==================== PRODUCTS ====================
-        function renderProducts() {
-            const grid = document.getElementById('productsGrid');
-            grid.innerHTML = products.map((p, i) => `
-                <div class="card cursor-pointer slide-up stagger-${(i % 4) + 1}" onclick="openProductModal(${p.id})">
-                    <div class="product-card-img flex items-center justify-center">
-                        ${p.image 
-                            ? `<img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover">`
-                            : `<svg class="w-16 h-16 text-[var(--border)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`
-                        }
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-display font-semibold text-lg mb-2 line-clamp-1">${p.name}</h3>
-                        <p class="text-[var(--muted)] text-sm mb-4 line-clamp-2">${p.desc}</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-[var(--accent)] font-bold text-xl">$${p.price.toFixed(2)}</span>
-                            <div class="flex items-center gap-1 text-sm">
-                                <span class="text-[var(--warning)]">${'★'.repeat(Math.floor(p.rating))}</span>
-                                <span class="text-[var(--muted)]">(${p.reviews})</span>
-                            </div>
-                        </div>
-                    </div>
+
+        this.comments.unshift(newComment);
+        localStorage.setItem('pithub_comments', JSON.stringify(this.comments));
+        document.getElementById('postContent').value = '';
+        this.renderComments();
+      }
+
+      renderComments() {
+        const query = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
+        const filtered = this.comments.filter(c => c.content.toLowerCase().includes(query) || c.name.toLowerCase().includes(query));
+
+        const html = filtered.length === 0 ? `<div class="empty-state">暂无相关留言</div>` : filtered.map(c => {
+          const prod = this.products.find(p => p.id == c.productId);
+          return `
+            <div class="comment-item ${c.is_team ? 'team-reply' : ''}">
+              <div class="comment-header">
+                <div class="comment-avatar">${c.avatar || '👤'}</div>
+                <div class="comment-meta">
+                  <div class="comment-name">
+                    ${c.name} ${c.is_team ? '<span class="team-badge">团队回复</span>' : ''}
+                  </div>
+                  <div class="comment-city">📍 ${c.city}</div>
                 </div>
-            `).join('');
+                <div class="comment-time">${c.time}</div>
+              </div>
+              <div class="comment-body">${c.content}</div>
+              ${prod ? `<a href="${prod.link}" target="_blank" class="product-badge">📦 推荐: ${prod.name} (${prod.price}) <span style="background:var(--neon-pink);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem">${prod.badge}</span></a>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        if (document.getElementById('commentsListLanding')) document.getElementById('commentsListLanding').innerHTML = html;
+        if (document.getElementById('commentsListHome')) document.getElementById('commentsListHome').innerHTML = html;
+      }
+
+      addProduct() {
+        const name = document.getElementById('prodName').value;
+        const price = document.getElementById('prodPrice').value;
+        const badge = document.getElementById('prodBadge').value;
+        const link = document.getElementById('prodLink').value;
+
+        if (!name) return;
+        const newProd = { id: Date.now(), name, price, badge, link };
+        this.products.push(newProd);
+        localStorage.setItem('pithub_products', JSON.stringify(this.products));
+        
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodPrice').value = '';
+        document.getElementById('prodBadge').value = '';
+        document.getElementById('prodLink').value = '';
+
+        this.renderProducts();
+        alert('产品添加成功！');
+      }
+
+      renderProducts() {
+        const container = document.getElementById('productsContainer');
+        const select = document.getElementById('postProductSelect');
+
+        if (container) {
+          container.innerHTML = this.products.map(p => `
+            <div style="padding:12px;background:var(--dark-elevated);margin-bottom:8px;border-radius:8px;display:flex;justify-content:space-between;">
+              <div><strong>${p.name}</strong> (${p.price})</div>
+              <div><span class="team-badge">${p.badge}</span></div>
+            </div>
+          `).join('');
         }
- 
-        function openProductModal(id) {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
- 
-            const modal = document.getElementById('productModal');
-            const content = document.getElementById('productModalContent');
-            
-            const productFeedbacks = feedbacks.filter(f => f.productId === id);
-            
-            content.innerHTML = `
-                <div class="relative">
-                    <button onclick="closeProductModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center hover:bg-[var(--border)] transition-colors z-10">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                    
-                    ${product.image 
-                        ? `<img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover">`
-                        : `<div class="w-full h-48 bg-gradient-to-br from-[var(--bg-elevated)] to-[var(--card)] flex items-center justify-center">
-                            <svg class="w-20 h-20 text-[var(--border)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                           </div>`
-                    }
-                    
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div>
-                                <h2 class="font-display text-2xl font-bold mb-2">${product.name}</h2>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[var(--warning)]">${'★'.repeat(Math.floor(product.rating))}${'☆'.repeat(5 - Math.floor(product.rating))}</span>
-                                    <span class="text-[var(--muted)]">(${product.reviews} ${i18n[currentLang].reviews})</span>
-                                </div>
-                            </div>
-                            <span class="text-[var(--accent)] font-bold text-2xl">$${product.price.toFixed(2)}</span>
-                        </div>
-                        
-                        <p class="text-[var(--muted)] mb-6">${product.desc}</p>
-                        
-                        <div class="flex gap-3 mb-8">
-                            ${product.link ? `<a href="${product.link}" target="_blank" class="btn-primary flex-1 text-center">${i18n[currentLang].buy_now}</a>` : ''}
-                            <button onclick="openFeedbackForProduct(${id})" class="btn-secondary flex-1">${i18n[currentLang].submit_feedback}</button>
-                        </div>
-                        
-                        <h3 class="font-display text-lg font-semibold mb-4">${i18n[currentLang].feedback_title}</h3>
-                        <div class="space-y-4 max-h-64 overflow-y-auto">
-                            ${productFeedbacks.length > 0 
-                                ? productFeedbacks.map(f => renderFeedbackItem(f)).join('')
-                                : '<p class="text-[var(--muted)] text-center py-4">No reviews yet. Be the first!</p>'
-                            }
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            modal.classList.add('active');
+
+        if (select) {
+          select.innerHTML = '<option value="">不挂载产品</option>' + this.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
         }
- 
-        function closeProductModal() {
-            document.getElementById('productModal').classList.remove('active');
-        }
- 
-        // ==================== FEEDBACK ====================
-        function renderFeedbacks() {
-            const list = document.getElementById('feedbackList');
-            list.innerHTML = feedbacks.map(f => renderFeedbackItem(f)).join('');
-        }
- 
-        function renderFeedbackItem(f) {
-            const product = products.find(p => p.id === f.productId);
-            return `
-                <div class="feedback-item card p-5 rounded-xl">
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#00d4aa] to-[#6644ff] flex items-center justify-center text-sm font-bold flex-shrink-0">
-                            ${f.userAvatar ? `<img src="${f.userAvatar}" class="w-full h-full rounded-full object-cover">` : f.userName.charAt(0)}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap mb-1">
-                                <span class="font-semibold">${f.userName}</span>
-                                ${product ? `<span class="text-xs bg-[var(--accent-dim)] text-[var(--accent)] px-2 py-0.5 rounded-full">${product.name}</span>` : ''}
-                                <span class="text-[var(--muted)] text-sm">${f.date}</span>
-                            </div>
-                            <div class="text-[var(--warning)] text-sm mb-2">${'★'.repeat(f.rating)}${'☆'.repeat(5-f.rating)}</div>
-                            <p class="text-[var(--muted)]">${f.text}</p>
-                            
-                            ${f.replies && f.replies.length > 0 ? `
-                                <div class="mt-4 pl-4 border-l-2 border-[var(--border)] space-y-3">
-                                    ${f.replies.map(r => `
-                                        <div class="bg-[var(--bg-elevated)] p-3 rounded-lg">
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <span class="font-medium text-sm">${r.userName}</span>
-                                                <span class="text-[var(--muted)] text-xs">${r.date}</span>
-                                            </div>
-                                            <p class="text-sm text-[var(--muted)]">${r.text}</p>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                            
-                            <button onclick="openReplyModal(${f.id})" class="mt-3 text-sm text-[var(--accent)] hover:underline">${i18n[currentLang].reply}</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
- 
-        function openFeedbackModal() {
-            const select = document.getElementById('feedbackProduct');
-            select.innerHTML = products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            resetStars();
-            document.getElementById('feedbackModal').classList.add('active');
-        }
- 
-        function closeFeedbackModal() {
-            document.getElementById('feedbackModal').classList.remove('active');
-            document.getElementById('feedbackForm').reset();
-            resetStars();
-        }
- 
-        function openFeedbackForProduct(productId) {
-            closeProductModal();
-            setTimeout(() => {
-                openFeedbackModal();
-                document.getElementById('feedbackProduct').value = productId;
-            }, 200);
-        }
- 
-        function setRating(rating) {
-            selectedRating = rating;
-            document.querySelectorAll('#feedbackStars .star').forEach((star, i) => {
-                star.classList.toggle('filled', i < rating);
-            });
-        }
- 
-        function resetStars() {
-            selectedRating = 0;
-            document.querySelectorAll('#feedbackStars .star').forEach(star => {
-                star.classList.remove('filled');
-            });
-        }
- 
-        function handleSubmitFeedback(e) {
-            e.preventDefault();
-            
-            if (selectedRating === 0) {
-                showToast('Please select a rating');
-                return;
-            }
- 
-            const newFeedback = {
-                id: feedbacks.length + 1,
-                productId: parseInt(document.getElementById('feedbackProduct').value),
-                userId: currentUser.id,
-                userName: currentUser.nickname,
-                userAvatar: currentUser.avatar,
-                rating: selectedRating,
-                text: document.getElementById('feedbackText').value,
-                date: new Date().toISOString().split('T')[0],
-                replies: []
-            };
- 
-            feedbacks.unshift(newFeedback);
-            closeFeedbackModal();
-            renderFeedbacks();
-            showToast('Feedback submitted successfully!');
-        }
- 
-        function openReplyModal(feedbackId) {
-            document.getElementById('replyToId').value = feedbackId;
-            document.getElementById('replyModal').classList.add('active');
-        }
- 
-        function closeReplyModal() {
-            document.getElementById('replyModal').classList.remove('active');
-            document.getElementById('replyForm').reset();
-        }
- 
-        function handleReplySubmit() {
-            const feedbackId = parseInt(document.getElementById('replyToId').value);
-            const replyText = document.getElementById('replyText').value;
- 
-            const feedback = feedbacks.find(f => f.id === feedbackId);
-            if (feedback) {
-                if (!feedback.replies) feedback.replies = [];
-                feedback.replies.push({
-                    id: Date.now(),
-                    userName: currentUser.nickname,
-                    text: replyText,
-                    date: new Date().toISOString().split('T')[0]
-                });
-            }
- 
-            closeReplyModal();
-            renderFeedbacks();
-            showToast('Reply submitted!');
-        }
- 
-        // ==================== SETTINGS ====================
-        function loadSettings() {
-            if (!currentUser) return;
-            document.getElementById('settingsNickname').value = currentUser.nickname;
-            document.getElementById('settingsBgColor').value = currentUser.bgColor || '#0a0a0f';
-            document.getElementById('settingsBgColorText').value = currentUser.bgColor || '#0a0a0f';
-            
-            const avatarEl = document.getElementById('settingsAvatar');
-            if (currentUser.avatar) {
-                avatarEl.style.backgroundImage = `url(${currentUser.avatar})`;
-                avatarEl.innerHTML = '';
-            } else {
-                avatarEl.style.backgroundImage = '';
-                avatarEl.innerHTML = '<svg class="w-8 h-8 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>';
-            }
-        }
- 
-        function handleAvatarUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    currentUser.avatar = e.target.result;
-                    localStorage.setItem('pit_currentUser', JSON.stringify(currentUser));
-                    
-                    // Update user in users array
-                    const userIndex = users.findIndex(u => u.id === currentUser.id);
-                    if (userIndex !== -1) {
-                        users[userIndex].avatar = e.target.result;
-                    }
-                    
-                    loadSettings();
-                    updateUserUI();
-                    showToast('Avatar updated!');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
- 
-        function previewBackground() {
-            const color = document.getElementById('settingsBgColorText').value;
-            document.body.style.backgroundColor = color;
-        }
- 
-        function saveSettings() {
-            if (!currentUser) return;
-            
-            currentUser.nickname = document.getElementById('settingsNickname').value;
-            currentUser.bgColor = document.getElementById('settingsBgColorText').value;
-            
-            localStorage.setItem('pit_currentUser', JSON.stringify(currentUser));
-            
-            // Update in users array
-            const userIndex = users.findIndex(u => u.id === currentUser.id);
-            if (userIndex !== -1) {
-                users[userIndex] = {...currentUser};
-            }
-            
-            updateUserUI();
-            showToast('Settings saved!');
-        }
- 
-        function confirmDeleteAccount() {
-            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                users = users.filter(u => u.id !== currentUser.id);
-                feedbacks = feedbacks.filter(f => f.userId !== currentUser.id);
-                logout();
-                showToast('Account deleted');
-            }
-        }
- 
-        // ==================== ADMIN ====================
-        function renderAdminProducts() {
-            const list = document.getElementById('adminProductsList');
-            list.innerHTML = products.map(p => `
-                <div class="flex items-center justify-between p-4 bg-[var(--bg-elevated)] rounded-lg">
-                    <div class="flex-1 min-w-0 mr-4">
-                        <h4 class="font-semibold truncate">${p.name}</h4>
-                        <p class="text-[var(--muted)] text-sm">$${p.price.toFixed(2)} · ${p.reviews} reviews</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="deleteProduct(${p.id})" class="p-2 text-[var(--danger)] hover:bg-[var(--danger)]/10 rounded-lg transition-colors" title="Delete">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
- 
-        function handleAddProduct(e) {
-            e.preventDefault();
-            
-            const newProduct = {
-                id: products.length + 1,
-                name: document.getElementById('prodName').value,
-                price: parseFloat(document.getElementById('prodPrice').value),
-                desc: document.getElementById('prodDesc').value,
-                link: document.getElementById('prodLink').value,
-                image: document.getElementById('prodImage').value,
-                rating: 0,
-                reviews: 0
-            };
- 
-            products.push(newProduct);
-            document.getElementById('addProductForm').reset();
-            renderAdminProducts();
-            renderProducts();
-            showToast('Product added successfully!');
-        }
- 
-        function deleteProduct(id) {
-            if (confirm('Delete this product?')) {
-                products = products.filter(p => p.id !== id);
-                feedbacks = feedbacks.filter(f => f.productId !== id);
-                renderAdminProducts();
-                renderProducts();
-                showToast('Product deleted');
-            }
-        }
- 
-        // ==================== LANGUAGE ====================
-        function changeLanguage(lang) {
-            currentLang = lang;
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (i18n[lang][key]) {
-                    el.textContent = i18n[lang][key];
-                }
-            });
-            showToast(`Language changed to ${lang.toUpperCase()}`);
-        }
- 
-        // ==================== UTILITIES ====================
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
- 
-        // Close modals on overlay click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.classList.remove('active');
-                }
-            });
-        });
-    </script>
+      }
+
+      saveProfile() {
+        if (!this.user) return;
+        this.user.name = document.getElementById('profileName').value;
+        this.user.city = document.getElementById('profileCity').value;
+        this.user.avatar = document.getElementById('profileAvatar').value;
+        localStorage.setItem('pithub_user', JSON.stringify(this.user));
+        this.updateNav();
+        alert('个人信息已更新！');
+      }
+    }
+
+    const app = new PitHubApp();
+  </script>
 </body>
 </html>
