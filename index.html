@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PIT Hub - Peox Institute of Technology</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --neon-green: #00ff9d;
@@ -19,7 +18,7 @@
       --border-glow: rgba(0, 255, 157, 0.3);
       --grid-color: rgba(0, 255, 157, 0.06);
       --font-display: 'Orbitron', monospace;
-      --font-body: 'Noto Sans SC', sans-serif;
+      --font-body: 'Noto Sans SC', 'Noto Sans TC', sans-serif;
       --radius: 12px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -34,14 +33,30 @@
       position: relative;
     }
 
-    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-    .bg-grid {
-      background-image: linear-gradient(var(--grid-color) 1px, transparent 1px),
-                        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-      background-size: 50px 50px;
+    /* 背景主题样式 */
+    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; transition: var(--transition); }
+    
+    /* 预置主题样式 */
+    body[data-theme="engineering"] .bg-grid {
+      background-image: linear-gradient(rgba(255, 165, 0, 0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255, 165, 0, 0.1) 1px, transparent 1px);
+      background-size: 30px 30px;
     }
-    .bg-custom { background-size: cover; background-position: center; opacity: 0.15; transition: opacity 0.5s; }
-    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, var(--dark-base) 90%); }
+    body[data-theme="bluemix"] { background: #051329; }
+    body[data-theme="bluemix"] .bg-grid {
+      background-image: linear-gradient(rgba(0, 212, 255, 0.15) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0, 212, 255, 0.15) 1px, transparent 1px);
+    }
+    body[data-theme="cyberpunk"] .bg-grid {
+      background-image: linear-gradient(rgba(255, 0, 160, 0.12) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0, 255, 157, 0.12) 1px, transparent 1px);
+    }
+    body[data-theme="minimal"] { background: #121212; }
+    body[data-theme="minimal"] .bg-grid { display: none; }
+    
+    /* 自定义背景图 */
+    .bg-custom { background-size: cover; background-position: center; opacity: 0.25; transition: opacity 0.5s; }
+    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.8) 90%); }
     .scanline {
       position: fixed; inset: 0; z-index: 2; pointer-events: none;
       background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.03) 50%);
@@ -69,7 +84,7 @@
       border: 1px solid var(--border-glow); background: transparent;
       color: var(--text-primary); font-size: 0.9rem; cursor: pointer;
       transition: var(--transition); font-family: inherit; display: inline-flex;
-      align-items: center; gap: 8px; text-decoration: none;
+      align-items: center; gap: 8px; text-decoration: none; justify-content: center;
     }
     .btn:hover { background: rgba(0, 255, 157, 0.1); border-color: var(--neon-green); box-shadow: 0 0 15px var(--border-glow); }
     .btn-primary { background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); border: none; font-weight: 700; }
@@ -110,7 +125,7 @@
       border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius);
       color: var(--text-primary); font-size: 0.95rem; outline: none; transition: var(--transition);
     }
-    .form-input:focus, .form-textarea:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
     .form-textarea { min-height: 100px; resize: vertical; }
 
     /* Comments Section */
@@ -126,9 +141,11 @@
     .comment-item.team-reply { border-left: 3px solid var(--neon-green); background: linear-gradient(90deg, rgba(0,255,157,0.03), transparent); }
     .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .comment-avatar {
-      width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); font-weight: 700;
+      width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; background: var(--dark-elevated); border: 1px solid var(--border-glow);
+      overflow: hidden; flex-shrink: 0;
     }
+    .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .comment-meta { flex: 1; }
     .comment-name { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
     .comment-city { font-size: 0.8rem; color: var(--text-secondary); }
@@ -153,15 +170,19 @@
     .modal-overlay.active { display: flex; }
     .modal-container {
       background: var(--dark-card); border: 1px solid var(--border-glow);
-      border-radius: var(--radius); width: 100%; max-width: 480px; padding: 28px; position: relative;
+      border-radius: var(--radius); width: 100%; max-width: 500px; padding: 28px; position: relative;
     }
     .modal-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--neon-green); margin-bottom: 12px; text-align: center; }
+
+    .avatar-picker { display: flex; gap: 12px; align-items: center; }
+    .avatar-preview { width: 50px; height: 50px; border-radius: 50%; background: var(--dark-elevated); border: 1px solid var(--border-glow); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; overflow: hidden; flex-shrink: 0; }
+    .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
 
     .hidden { display: none !important; }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
   </style>
 </head>
-<body>
+<body data-theme="cyberpunk">
 
   <div class="bg-layer bg-grid"></div>
   <div class="bg-layer bg-custom" id="bgCustom"></div>
@@ -169,60 +190,58 @@
   <div class="scanline"></div>
 
   <div class="app-container">
-    <!-- Navigation -->
+    <!-- Top Nav -->
     <nav class="top-nav">
       <a class="nav-brand" onclick="app.showPage('landing')">PIT<span>HUB</span></a>
-      <div class="nav-links" id="navLinks">
-        <!-- Dynamic Nav Links -->
-      </div>
+      <div class="nav-links" id="navLinks"></div>
     </nav>
 
-    <!-- LANDING PAGE (Unauthenticated) -->
+    <!-- LANDING PAGE -->
     <div class="page active" id="pageLanding">
       <div class="landing-hero">
         <h1>PEOX INSTITUTE OF TECHNOLOGY</h1>
-        <p class="subtitle">PIT Hub 赛博朋克公共社区大厅</p>
+        <p class="subtitle" id="tSubtitle">PIT Hub 赛博朋克公共社区大厅</p>
         <div class="landing-actions" id="landingAuthBtns">
-          <button class="btn btn-primary" onclick="app.startWizard('signin')">🔐 登录 (Sign In)</button>
-          <button class="btn" onclick="app.startWizard('signup')">✨ 创建账号 (Create Account)</button>
+          <button class="btn btn-primary" onclick="app.startWizard('signin')" id="btnSignIn">🔐 登录 (Sign In)</button>
+          <button class="btn" onclick="app.startWizard('signup')" id="btnSignUp">✨ 创建账号 (Create Account)</button>
         </div>
       </div>
 
       <div class="card">
         <div class="hall-header">
-          <h2 class="hall-title">🏛️ 社区大厅</h2>
+          <h2 class="hall-title" id="tHallTitle">🏛️ 社区大厅</h2>
           <div class="search-bar">
-            <input type="text" class="form-input" id="searchInput" placeholder="按关键词或日期搜索..." oninput="app.renderComments()">
+            <input type="text" class="form-input" id="searchInput" placeholder="搜索内容..." oninput="app.renderComments()">
           </div>
         </div>
         <div class="comments-list" id="commentsListLanding"></div>
       </div>
     </div>
 
-    <!-- HOME PAGE (Authenticated) -->
+    <!-- HOME PAGE -->
     <div class="page" id="pageHome">
       <div class="card">
-        <div class="card-title">✍️ 发布社区动态</div>
+        <div class="card-title" id="tPostTitle">✍️ 发布社区动态</div>
         <div class="form-group">
           <textarea class="form-textarea" id="postContent" placeholder="分享你的想法..."></textarea>
         </div>
         <div id="teamPostOptions" class="hidden" style="margin-bottom:16px;">
           <div class="form-group">
-            <label class="form-label">挂载推广产品</label>
+            <label class="form-label" id="tSelectProd">挂载推广产品</label>
             <select class="form-select" id="postProductSelect">
               <option value="">不挂载产品</option>
             </select>
           </div>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-            <input type="checkbox" id="postIsTeam"> 标记为团队官方回复 (绿色高亮)
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+            <input type="checkbox" id="postIsTeam"> <span id="tTeamFlag">标记为团队官方回复 (绿色高亮)</span>
           </label>
         </div>
-        <button class="btn btn-primary" onclick="app.createPost()">🚀 发布内容</button>
+        <button class="btn btn-primary" onclick="app.createPost()" id="btnPost">🚀 发布内容</button>
       </div>
 
       <div class="card">
         <div class="hall-header">
-          <h2 class="hall-title">🏛️ 动态列表</h2>
+          <h2 class="hall-title" id="tListTitle">🏛️ 动态列表</h2>
         </div>
         <div class="comments-list" id="commentsListHome"></div>
       </div>
@@ -231,29 +250,44 @@
     <!-- PROFILE PAGE -->
     <div class="page" id="pageProfile">
       <div class="card">
-        <div class="card-title">👤 我的个人信息</div>
+        <div class="card-title" id="tProfileTitle">👤 我的个人信息</div>
         <div class="form-group">
-          <label class="form-label">用户昵称</label>
+          <label class="form-label" id="tNameLabel">用户昵称</label>
           <input type="text" class="form-input" id="profileName">
         </div>
         <div class="form-group">
-          <label class="form-label">所在城市</label>
+          <label class="form-label" id="tCityLabel">所在城市</label>
           <input type="text" class="form-input" id="profileCity">
         </div>
         <div class="form-group">
-          <label class="form-label">虚拟头像 (Emoji或字符)</label>
-          <input type="text" class="form-input" id="profileAvatar">
+          <label class="form-label" id="tAvatarLabel">虚拟头像 (支持Emoji或上传本地图片)</label>
+          <div class="avatar-picker">
+            <div class="avatar-preview" id="profileAvatarPreview">👤</div>
+            <input type="text" class="form-input" id="profileAvatarText" placeholder="输入 Emoji (例如 🍎/🤖)" oninput="app.updateAvatarPreview('profile')">
+            <button class="btn btn-sm" onclick="document.getElementById('profileAvatarFile').click()" id="btnUploadAvatar">📁 本地选择</button>
+            <input type="file" id="profileAvatarFile" class="hidden" accept="image/*" onchange="app.handleFileUpload(event, 'profile')">
+          </div>
         </div>
-        <button class="btn btn-primary" onclick="app.saveProfile()">💾 保存设置</button>
+        
+        <!-- 背景风格选择 -->
+        <div class="form-group">
+          <label class="form-label" id="tThemeLabel">选择背景主题风格</label>
+          <select class="form-select" id="profileThemeSelect" onchange="app.changeTheme(this.value)">
+            <!-- 选项由 JS 动态渲染以支持多语言 -->
+          </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="app.saveProfile()" id="btnSaveProfile">💾 保存设置</button>
       </div>
 
+      <!-- PIT Team 专属背景链接定义 -->
       <div class="card hidden" id="teamBgCard">
-        <div class="card-title">🎨 全站自定义背景 (PIT Team 专属)</div>
+        <div class="card-title" id="tCustomBgTitle">🎨 全站自定义背景图片 URL (PIT Team 专属)</div>
         <div class="form-group">
-          <label class="form-label">背景图片 URL</label>
+          <label class="form-label" id="tBgUrlLabel">背景图片 URL</label>
           <input type="text" class="form-input" id="customBgUrl" placeholder="https://example.com/image.jpg">
         </div>
-        <button class="btn btn-primary" onclick="app.saveCustomBg()">🎨 应用全站背景</button>
+        <button class="btn btn-primary" onclick="app.saveCustomBg()" id="btnApplyBg">🎨 应用全站背景图</button>
       </div>
     </div>
 
@@ -291,38 +325,49 @@
   <div class="modal-overlay" id="wizardModal">
     <div class="modal-container">
       <div id="wizardStep0">
-        <h3 class="modal-title">Step 0: 语言选择 / Language</h3>
+        <h3 class="modal-title">Step 0: 选择语言 / Select Language</h3>
         <div class="form-group">
-          <select class="form-select" id="wizardLang">
-            <option value="zh">简体中文</option>
-            <option value="cantonese">繁體中文 (Cantonese)</option>
-            <option value="mandarin">繁體中文 (Mandarin)</option>
+          <select class="form-select" id="wizardLang" onchange="app.onLanguageChange(this.value)">
+            <option value="zh-CN">简体中文</option>
+            <option value="zh-HK">繁體中文 (廣東話)</option>
+            <option value="zh-TW">繁體中文 (普通話)</option>
             <option value="en">English</option>
           </select>
         </div>
-        <button class="btn btn-primary" style="width:100%" onclick="app.nextWizardStep(1)">下一步 (Next)</button>
+        <button class="btn btn-primary" style="width:100%" onclick="app.nextWizardStep(1)" id="btnWizNext0">下一步 (Next)</button>
       </div>
 
       <div id="wizardStep1" class="hidden">
-        <h3 class="modal-title">Step 1: 选择身份</h3>
+        <h3 class="modal-title" id="tWizStep1Title">Step 1: 选择身份</h3>
         <div style="display:flex;gap:12px;margin-bottom:20px;">
-          <button class="btn" style="flex:1" onclick="app.completeWizard('visitor')">🤖 访客 (Visitor)</button>
-          <button class="btn btn-primary" style="flex:1" onclick="app.completeWizard('team')">⚡ PIT Team</button>
+          <button class="btn" style="flex:1" onclick="app.completeWizard('visitor')" id="btnWizVisitor">🤖 访客 (Visitor)</button>
+          <button class="btn btn-primary" style="flex:1" onclick="app.completeWizard('team')" id="btnWizTeam">⚡ PIT Team</button>
         </div>
       </div>
 
       <div id="wizardStepVisitor" class="hidden">
-        <h3 class="modal-title">完善访客信息</h3>
+        <h3 class="modal-title" id="tWizVisTitle">完善访客信息</h3>
         <div class="form-group">
-          <input type="text" class="form-input" id="wizName" placeholder="虚拟姓名">
+          <label class="form-label" id="tWizVisNameLabel">虚拟姓名</label>
+          <input type="text" class="form-input" id="wizName" placeholder="例如: Neo">
         </div>
         <div class="form-group">
-          <input type="text" class="form-input" id="wizCity" placeholder="所在城市">
+          <label class="form-label" id="tWizVisCityLabel">所在城市</label>
+          <input type="text" class="form-input" id="wizCity" placeholder="例如: Cyber City">
         </div>
+
+        <!-- 头像设置 (支持Emoji与本地上传) -->
         <div class="form-group">
-          <input type="text" class="form-input" id="wizChannel" placeholder="通过什么渠道了解 PIT？">
+          <label class="form-label" id="tWizAvatarLabel">头像 (Emoji 或 本地图片)</label>
+          <div class="avatar-picker">
+            <div class="avatar-preview" id="wizAvatarPreview">🤖</div>
+            <input type="text" class="form-input" id="wizAvatarText" placeholder="Emoji 🍎/🤖" oninput="app.updateAvatarPreview('wiz')">
+            <button class="btn btn-sm" onclick="document.getElementById('wizAvatarFile').click()" id="btnWizUpload">📁 选择文件</button>
+            <input type="file" id="wizAvatarFile" class="hidden" accept="image/*" onchange="app.handleFileUpload(event, 'wiz')">
+          </div>
         </div>
-        <button class="btn btn-primary" style="width:100%" onclick="app.finishVisitorReg()">进入大厅</button>
+
+        <button class="btn btn-primary" style="width:100%" onclick="app.finishVisitorReg()" id="btnWizFinish">进入大厅</button>
       </div>
     </div>
   </div>
@@ -330,41 +375,293 @@
   <!-- LOGOUT CONFIRM MODAL -->
   <div class="modal-overlay" id="logoutModal">
     <div class="modal-container">
-      <h3 class="modal-title">确认退出登录？</h3>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:20px;">退出后将返回公开大厅状态。</p>
+      <h3 class="modal-title" id="tLogoutTitle">确认退出登录？</h3>
+      <p style="text-align:center;color:var(--text-secondary);margin-bottom:20px;" id="tLogoutDesc">退出后将返回公开大厅状态。</p>
       <div style="display:flex;gap:12px;justify-content:center;">
-        <button class="btn btn-danger" onclick="app.confirmLogout(true)">Yes (退出)</button>
-        <button class="btn" onclick="app.confirmLogout(false)">No (取消)</button>
+        <button class="btn btn-danger" onclick="app.confirmLogout(true)" id="btnLogoutYes">Yes (退出)</button>
+        <button class="btn" onclick="app.confirmLogout(false)" id="btnLogoutNo">No (取消)</button>
       </div>
     </div>
   </div>
 
   <script>
-    // System Core Logic & State Management
+    // 语言翻译词库映射表
+    const i18nDict = {
+      'zh-CN': {
+        subtitle: 'PIT Hub 赛博朋克公共社区大厅',
+        signIn: '🔐 登录 (Sign In)',
+        signUp: '✨ 创建账号 (Create Account)',
+        hallTitle: '🏛️ 社区大厅',
+        postTitle: '✍️ 发布社区动态',
+        selectProd: '挂载推广产品',
+        teamFlag: '标记为团队官方回复 (绿色高亮)',
+        btnPost: '🚀 发布内容',
+        listTitle: '🏛️ 动态列表',
+        profileTitle: '👤 我的个人信息',
+        nameLabel: '用户昵称',
+        cityLabel: '所在城市',
+        avatarLabel: '虚拟头像 (支持Emoji或上传本地图片)',
+        uploadBtn: '📁 本地选择',
+        themeLabel: '选择背景主题风格',
+        saveProfile: '💾 保存设置',
+        customBgTitle: '🎨 全站自定义背景图片 URL (PIT Team 专属)',
+        bgUrlLabel: '背景图片 URL',
+        applyBg: '🎨 应用全站背景图',
+        wizNext: '下一步 (Next)',
+        wizStep1Title: 'Step 1: 选择身份',
+        wizVisitor: '🤖 访客 (Visitor)',
+        wizTeam: '⚡ PIT Team',
+        wizVisTitle: '完善访客信息',
+        wizVisName: '虚拟姓名',
+        wizVisCity: '所在城市',
+        wizVisAvatar: '头像 (Emoji 或 本地图片)',
+        wizFinish: '进入大厅',
+        logoutTitle: '确认退出登录？',
+        logoutDesc: '退出后将返回公开大厅状态。',
+        logoutYes: 'Yes (退出)',
+        logoutNo: 'No (取消)',
+        themes: {
+          cyberpunk: '赛博朋克风 (Cyberpunk)',
+          engineering: '工程风 (Engineering Grid)',
+          bluemix: '深蓝浅蓝 (Blue Gradient)',
+          minimal: '简约风 (Minimalist)',
+          shattuck: '沙特克圣玛丽 (Shattuck-St. Mary\'s)'
+        }
+      },
+      'zh-HK': {
+        subtitle: 'PIT Hub 賽博朋克公共社區大廳',
+        signIn: '🔐 登入 (Sign In)',
+        signUp: '✨ 建立帳戶 (Create Account)',
+        hallTitle: '🏛️ 社區大廳',
+        postTitle: '✍️ 發佈社區動態',
+        selectProd: '掛載推廣產品',
+        teamFlag: '標記為團隊官方回覆 (綠色高亮)',
+        btnPost: '🚀 發佈內容',
+        listTitle: '🏛️ 動態列表',
+        profileTitle: '👤 我的個人資訊',
+        nameLabel: '用戶暱稱',
+        cityLabel: '所在城市',
+        avatarLabel: '虛擬頭像 (支援Emoji或上傳本地圖片)',
+        uploadBtn: '📁 本地選擇',
+        themeLabel: '選擇背景主題風格',
+        saveProfile: '💾 儲存設定',
+        customBgTitle: '🎨 全站自訂背景圖片 URL (PIT Team 專屬)',
+        bgUrlLabel: '背景圖片 URL',
+        applyBg: '🎨 應用全站背景圖',
+        wizNext: '下一步 (Next)',
+        wizStep1Title: 'Step 1: 選擇身份',
+        wizVisitor: '🤖 訪客 (Visitor)',
+        wizTeam: '⚡ PIT Team',
+        wizVisTitle: '完善訪客資訊',
+        wizVisName: '虛擬姓名',
+        wizVisCity: '所在城市',
+        wizVisAvatar: '頭像 (Emoji 或 本地圖片)',
+        wizFinish: '進入大廳',
+        logoutTitle: '確認登出？',
+        logoutDesc: '登出後將返回公開大廳狀態。',
+        logoutYes: 'Yes (登出)',
+        logoutNo: 'No (取消)',
+        themes: {
+          cyberpunk: '賽博朋克風 (Cyberpunk)',
+          engineering: '工程風 (Engineering Grid)',
+          bluemix: '深藍淺藍 (Blue Gradient)',
+          minimal: '簡約風 (Minimalist)',
+          shattuck: '沙特克聖瑪麗 (Shattuck-St. Mary\'s)'
+        }
+      },
+      'zh-TW': {
+        subtitle: 'PIT Hub 賽博朋克公共社區大廳',
+        signIn: '🔐 登入 (Sign In)',
+        signUp: '✨ 建立帳號 (Create Account)',
+        hallTitle: '🏛️ 社區大廳',
+        postTitle: '✍️ 發布社區動態',
+        selectProd: '掛載推廣產品',
+        teamFlag: '標記為團隊官方回覆 (綠色高亮)',
+        btnPost: '🚀 發布內容',
+        listTitle: '🏛️ 動態列表',
+        profileTitle: '👤 我的個人資訊',
+        nameLabel: '使用者暱稱',
+        cityLabel: '所在城市',
+        avatarLabel: '虛擬頭像 (支援Emoji或上傳本地圖片)',
+        uploadBtn: '📁 本地選擇',
+        themeLabel: '選擇背景主題風格',
+        saveProfile: '💾 儲存設定',
+        customBgTitle: '🎨 全站自訂背景圖片 URL (PIT Team 專屬)',
+        bgUrlLabel: '背景圖片 URL',
+        applyBg: '🎨 應用全站背景圖',
+        wizNext: '下一步 (Next)',
+        wizStep1Title: 'Step 1: 選擇身份',
+        wizVisitor: '🤖 訪客 (Visitor)',
+        wizTeam: '⚡ PIT Team',
+        wizVisTitle: '完善訪客資訊',
+        wizVisName: '虛擬姓名',
+        wizVisCity: '所在城市',
+        wizVisAvatar: '頭像 (Emoji 或 本地圖片)',
+        wizFinish: '進入大廳',
+        logoutTitle: '確認登出？',
+        logoutDesc: '登出後將返回公開大廳狀態。',
+        logoutYes: 'Yes (登出)',
+        logoutNo: 'No (取消)',
+        themes: {
+          cyberpunk: '賽博朋克風 (Cyberpunk)',
+          engineering: '工程風 (Engineering Grid)',
+          bluemix: '深藍淺藍 (Blue Gradient)',
+          minimal: '簡約風 (Minimalist)',
+          shattuck: '沙特克聖瑪麗 (Shattuck-St. Mary\'s)'
+        }
+      },
+      'en': {
+        subtitle: 'PIT Hub Cyberpunk Community Hall',
+        signIn: '🔐 Sign In',
+        signUp: '✨ Create Account',
+        hallTitle: '🏛️ Community Hall',
+        postTitle: '✍️ Create Post',
+        selectProd: 'Attach Product',
+        teamFlag: 'Mark as Team Reply (Green Highlight)',
+        btnPost: '🚀 Post Now',
+        listTitle: '🏛️ Activity Feed',
+        profileTitle: '👤 My Profile',
+        nameLabel: 'Nickname',
+        cityLabel: 'City',
+        avatarLabel: 'Avatar (Emoji or Upload Image)',
+        uploadBtn: '📁 Upload File',
+        themeLabel: 'Select Background Theme',
+        saveProfile: '💾 Save Profile',
+        customBgTitle: '🎨 Custom Background URL (PIT Team Only)',
+        bgUrlLabel: 'Background Image URL',
+        applyBg: '🎨 Apply Background',
+        wizNext: 'Next',
+        wizStep1Title: 'Step 1: Select Identity',
+        wizVisitor: '🤖 Visitor',
+        wizTeam: '⚡ PIT Team',
+        wizVisTitle: 'Complete Visitor Profile',
+        wizVisName: 'Virtual Name',
+        wizVisCity: 'City',
+        wizVisAvatar: 'Avatar (Emoji or Image)',
+        wizFinish: 'Enter Hall',
+        logoutTitle: 'Confirm Sign Out?',
+        logoutDesc: 'You will return to the public hall state.',
+        logoutYes: 'Yes (Sign Out)',
+        logoutNo: 'No (Cancel)',
+        themes: {
+          cyberpunk: 'Cyberpunk',
+          engineering: 'Engineering Grid',
+          bluemix: 'Blue Gradient',
+          minimal: 'Minimalist',
+          shattuck: 'Shattuck-St. Mary\'s'
+        }
+      }
+    };
+
     class PitHubApp {
       constructor() {
+        this.lang = localStorage.getItem('pithub_lang') || 'zh-CN';
         this.user = JSON.parse(localStorage.getItem('pithub_user')) || null;
+        this.theme = localStorage.getItem('pithub_theme') || 'cyberpunk';
         this.customBg = localStorage.getItem('pithub_bg') || '';
+        this.tempAvatarData = { profile: null, wiz: null };
+
         this.comments = JSON.parse(localStorage.getItem('pithub_comments')) || [
-          { id: 1, name: 'PIT Core', city: 'Cyber City', content: '欢迎来到 Peox Institute of Technology 官方社区！', is_team: true, time: '2026-08-20 10:00' }
+          { id: 1, name: 'PIT Core', city: 'Cyber City', content: '欢迎来到 Peox Institute of Technology 官方社区！', is_team: true, avatar: '⚡', time: '2026-08-20 10:00' }
         ];
         this.products = JSON.parse(localStorage.getItem('pithub_products')) || [];
-        
+
         this.init();
       }
 
       init() {
-        this.applyBg();
+        this.applyTheme(this.theme);
+        this.applyCustomBg();
+        this.updateLanguageUI();
         this.updateNav();
         this.renderComments();
         this.renderProducts();
         this.showPage(this.user ? 'home' : 'landing');
       }
 
-      applyBg() {
+      onLanguageChange(lang) {
+        this.lang = lang;
+        localStorage.setItem('pithub_lang', lang);
+        this.updateLanguageUI();
+      }
+
+      updateLanguageUI() {
+        const dict = i18nDict[this.lang] || i18nDict['zh-CN'];
+        
+        // 界面文本更新
+        document.getElementById('tSubtitle').innerText = dict.subtitle;
+        document.getElementById('btnSignIn').innerText = dict.signIn;
+        document.getElementById('btnSignUp').innerText = dict.signUp;
+        document.getElementById('tHallTitle').innerText = dict.hallTitle;
+        document.getElementById('tPostTitle').innerText = dict.postTitle;
+        document.getElementById('tSelectProd').innerText = dict.selectProd;
+        document.getElementById('tTeamFlag').innerText = dict.teamFlag;
+        document.getElementById('btnPost').innerText = dict.btnPost;
+        document.getElementById('tListTitle').innerText = dict.listTitle;
+        document.getElementById('tProfileTitle').innerText = dict.profileTitle;
+        document.getElementById('tNameLabel').innerText = dict.nameLabel;
+        document.getElementById('tCityLabel').innerText = dict.cityLabel;
+        document.getElementById('tAvatarLabel').innerText = dict.avatarLabel;
+        document.getElementById('btnUploadAvatar').innerText = dict.uploadBtn;
+        document.getElementById('tThemeLabel').innerText = dict.themeLabel;
+        document.getElementById('btnSaveProfile').innerText = dict.saveProfile;
+        document.getElementById('tCustomBgTitle').innerText = dict.customBgTitle;
+        document.getElementById('tBgUrlLabel').innerText = dict.bgUrlLabel;
+        document.getElementById('btnApplyBg').innerText = dict.applyBg;
+
+        document.getElementById('btnWizNext0').innerText = dict.wizNext;
+        document.getElementById('tWizStep1Title').innerText = dict.wizStep1Title;
+        document.getElementById('btnWizVisitor').innerText = dict.wizVisitor;
+        document.getElementById('btnWizTeam').innerText = dict.wizTeam;
+        document.getElementById('tWizVisTitle').innerText = dict.wizVisTitle;
+        document.getElementById('tWizVisNameLabel').innerText = dict.wizVisName;
+        document.getElementById('tWizVisCityLabel').innerText = dict.wizVisCity;
+        document.getElementById('tWizAvatarLabel').innerText = dict.wizVisAvatar;
+        document.getElementById('btnWizUpload').innerText = dict.uploadBtn;
+        document.getElementById('btnWizFinish').innerText = dict.wizFinish;
+
+        document.getElementById('tLogoutTitle').innerText = dict.logoutTitle;
+        document.getElementById('tLogoutDesc').innerText = dict.logoutDesc;
+        document.getElementById('btnLogoutYes').innerText = dict.logoutYes;
+        document.getElementById('btnLogoutNo').innerText = dict.logoutNo;
+
+        // 动态同步修改下拉菜单的主题标注
+        const themeSelect = document.getElementById('profileThemeSelect');
+        themeSelect.innerHTML = `
+          <option value="cyberpunk" ${this.theme==='cyberpunk'?'selected':''}>${dict.themes.cyberpunk}</option>
+          <option value="engineering" ${this.theme==='engineering'?'selected':''}>${dict.themes.engineering}</option>
+          <option value="bluemix" ${this.theme==='bluemix'?'selected':''}>${dict.themes.bluemix}</option>
+          <option value="minimal" ${this.theme==='minimal'?'selected':''}>${dict.themes.minimal}</option>
+          <option value="shattuck" ${this.theme==='shattuck'?'selected':''}>${dict.themes.shattuck}</option>
+        `;
+
+        document.getElementById('wizardLang').value = this.lang;
+      }
+
+      changeTheme(themeKey) {
+        this.theme = themeKey;
+        localStorage.setItem('pithub_theme', themeKey);
+        this.applyTheme(themeKey);
+      }
+
+      applyTheme(themeKey) {
+        document.body.setAttribute('data-theme', themeKey);
         const bgEl = document.getElementById('bgCustom');
-        if (this.customBg) {
+
+        if (themeKey === 'shattuck') {
+          // 沙特克圣玛丽主题专属背景
+          bgEl.style.backgroundImage = `url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80')`;
+        } else {
+          this.applyCustomBg();
+        }
+      }
+
+      applyCustomBg() {
+        const bgEl = document.getElementById('bgCustom');
+        if (this.customBg && this.theme !== 'shattuck') {
           bgEl.style.backgroundImage = `url('${this.customBg}')`;
+        } else if (this.theme !== 'shattuck') {
+          bgEl.style.backgroundImage = 'none';
         }
       }
 
@@ -372,8 +669,43 @@
         const url = document.getElementById('customBgUrl').value;
         this.customBg = url;
         localStorage.setItem('pithub_bg', url);
-        this.applyBg();
-        alert('全站背景已更新！');
+        this.applyCustomBg();
+        alert('自定义背景图已保存！');
+      }
+
+      // 处理头像预览及本地文件上传 (Base64)
+      handleFileUpload(event, type) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target.result;
+          this.tempAvatarData[type] = result;
+          this.renderAvatarPreview(type, `<img src="${result}" alt="avatar">`);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      updateAvatarPreview(type) {
+        const val = document.getElementById(type === 'profile' ? 'profileAvatarText' : 'wizAvatarText').value;
+        if (val) {
+          this.tempAvatarData[type] = null;
+          this.renderAvatarPreview(type, val);
+        }
+      }
+
+      renderAvatarPreview(type, contentHtml) {
+        const container = document.getElementById(type === 'profile' ? 'profileAvatarPreview' : 'wizAvatarPreview');
+        container.innerHTML = contentHtml;
+      }
+
+      getAvatarValue(type) {
+        if (this.tempAvatarData[type]) {
+          return `<img src="${this.tempAvatarData[type]}" alt="avatar">`;
+        }
+        const textVal = document.getElementById(type === 'profile' ? 'profileAvatarText' : 'wizAvatarText').value;
+        return textVal || (type === 'wiz' ? '🤖' : '👤');
       }
 
       showPage(pageId) {
@@ -395,6 +727,9 @@
             extraLinks += `<button class="btn btn-sm" onclick="app.showPage('edit')">Team Panel</button>`;
             document.getElementById('teamPostOptions').classList.remove('hidden');
             document.getElementById('teamBgCard').classList.remove('hidden');
+          } else {
+            document.getElementById('teamPostOptions').classList.add('hidden');
+            document.getElementById('teamBgCard').classList.add('hidden');
           }
           navLinks.innerHTML = `
             <span style="font-size:0.85rem;color:var(--neon-green)">${this.user.name} ${this.user.isTeam ? '<span class="team-badge">TEAM</span>' : ''}</span>
@@ -403,14 +738,19 @@
             <button class="btn btn-sm btn-danger" onclick="app.promptLogout()">Log Out</button>
           `;
 
-          // Fill Profile
+          // Fill Profile Form
           document.getElementById('profileName').value = this.user.name || '';
           document.getElementById('profileCity').value = this.user.city || '';
-          document.getElementById('profileAvatar').value = this.user.avatar || '👤';
+          if (this.user.avatar && this.user.avatar.includes('<img')) {
+            document.getElementById('profileAvatarPreview').innerHTML = this.user.avatar;
+          } else {
+            document.getElementById('profileAvatarText').value = this.user.avatar || '👤';
+            document.getElementById('profileAvatarPreview').innerText = this.user.avatar || '👤';
+          }
         }
       }
 
-      startWizard(type) {
+      startWizard() {
         document.getElementById('wizardModal').classList.add('active');
         document.getElementById('wizardStep0').classList.remove('hidden');
         document.getElementById('wizardStep1').classList.add('hidden');
@@ -440,7 +780,9 @@
       finishVisitorReg() {
         const name = document.getElementById('wizName').value || 'Visitor';
         const city = document.getElementById('wizCity').value || 'Unknown';
-        this.user = { name, city, isTeam: false, avatar: '🤖' };
+        const avatar = this.getAvatarValue('wiz');
+
+        this.user = { name, city, isTeam: false, avatar };
         localStorage.setItem('pithub_user', JSON.stringify(this.user));
         document.getElementById('wizardModal').classList.remove('active');
         this.updateNav();
@@ -488,12 +830,13 @@
         const query = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
         const filtered = this.comments.filter(c => c.content.toLowerCase().includes(query) || c.name.toLowerCase().includes(query));
 
-        const html = filtered.length === 0 ? `<div class="empty-state">暂无相关留言</div>` : filtered.map(c => {
+        const html = filtered.length === 0 ? `<div class="empty-state">暂无相关动态</div>` : filtered.map(c => {
           const prod = this.products.find(p => p.id == c.productId);
+          const avatarDisplay = (c.avatar && c.avatar.includes('<img')) ? c.avatar : `<span>${c.avatar || '👤'}</span>`;
           return `
             <div class="comment-item ${c.is_team ? 'team-reply' : ''}">
               <div class="comment-header">
-                <div class="comment-avatar">${c.avatar || '👤'}</div>
+                <div class="comment-avatar">${avatarDisplay}</div>
                 <div class="comment-meta">
                   <div class="comment-name">
                     ${c.name} ${c.is_team ? '<span class="team-badge">团队回复</span>' : ''}
@@ -554,10 +897,11 @@
         if (!this.user) return;
         this.user.name = document.getElementById('profileName').value;
         this.user.city = document.getElementById('profileCity').value;
-        this.user.avatar = document.getElementById('profileAvatar').value;
+        this.user.avatar = this.getAvatarValue('profile');
+
         localStorage.setItem('pithub_user', JSON.stringify(this.user));
         this.updateNav();
-        alert('个人信息已更新！');
+        alert('个人信息设置已更新！');
       }
     }
 
