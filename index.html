@@ -732,114 +732,19 @@
         const bgEl = document.getElementById('bgCustom');
         if (this.customBg) {
           bgEl.style.backgroundImage = `url('${this.customBg}')`;
+          bgEl.style.display = 'block';
         } else {
           bgEl.style.backgroundImage = 'none';
+          bgEl.style.display = 'none';
         }
       }
 
-      handleBgUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.customBg = e.target.result;
-          localStorage.setItem('pithub_bg', this.customBg);
-          this.applyCustomBg();
-          document.getElementById('bgUploadStatus').innerText = `已成功设置背景: ${file.name}`;
-          alert('自定义本地背景设置成功！');
-        };
-        reader.readAsDataURL(file);
-      }
-
-      saveCustomBg() {
-        const url = document.getElementById('customBgUrl').value;
-        this.customBg = url;
-        localStorage.setItem('pithub_bg', url);
-        this.applyCustomBg();
-        alert('自定义背景图已保存！');
-      }
-
-      handleFileUpload(event, type) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target.result;
-          this.tempAvatarData[type] = result;
-          this.renderAvatarPreview(type, `<img src="${result}" alt="avatar">`);
-        };
-        reader.readAsDataURL(file);
-      }
-
-      updateAvatarPreview(type) {
-        const val = document.getElementById(type === 'profile' ? 'profileAvatarText' : 'wizAvatarText').value;
-        if (val) {
-          this.tempAvatarData[type] = null;
-          this.renderAvatarPreview(type, val);
-        }
-      }
-
-      renderAvatarPreview(type, contentHtml) {
-        const container = document.getElementById(type === 'profile' ? 'profileAvatarPreview' : 'wizAvatarPreview');
-        container.innerHTML = contentHtml;
-      }
-
-      getAvatarValue(type) {
-        if (this.tempAvatarData[type]) {
-          return `<img src="${this.tempAvatarData[type]}" alt="avatar">`;
-        }
-        const textVal = document.getElementById(type === 'profile' ? 'profileAvatarText' : 'wizAvatarText').value;
-        return textVal || (type === 'wiz' ? '🤖' : '👤');
-      }
-
-      showPage(pageId) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const target = document.getElementById(`page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`);
-        if (target) target.classList.add('active');
-      }
-
-      updateNav() {
-        const navLinks = document.getElementById('navLinks');
-        if (!this.user) {
-          navLinks.innerHTML = `
-            <button class="btn btn-sm btn-primary" onclick="app.startWizard('signin')">Sign In</button>
-            <button class="btn btn-sm" onclick="app.startWizard('signup')">Create Account</button>
-          `;
-        } else {
-          let extraLinks = `<button class="btn btn-sm" onclick="app.showPage('profile')">My Info</button>`;
-          if (this.user.isTeam) {
-            extraLinks += `<button class="btn btn-sm" onclick="app.showPage('edit')">Team Panel</button>`;
-            document.getElementById('teamPostOptions').classList.remove('hidden');
-            document.getElementById('teamBgCard').classList.remove('hidden');
-          } else {
-            document.getElementById('teamPostOptions').classList.add('hidden');
-            document.getElementById('teamBgCard').classList.add('hidden');
-          }
-          navLinks.innerHTML = `
-            <span style="font-size:0.85rem;color:var(--neon-green)">${this.user.name} ${this.user.isTeam ? '<span class="team-badge">TEAM</span>' : ''}</span>
-            <button class="btn btn-sm" onclick="app.showPage('home')">Home</button>
-            ${extraLinks}
-            <button class="btn btn-sm btn-danger" onclick="app.promptLogout()">Log Out</button>
-          `;
-
-          document.getElementById('profileName').value = this.user.name || '';
-          document.getElementById('profileCity').value = this.user.city || '';
-          if (this.user.avatar && this.user.avatar.includes('<img')) {
-            document.getElementById('profileAvatarPreview').innerHTML = this.user.avatar;
-          } else {
-            document.getElementById('profileAvatarText').value = this.user.avatar || '👤';
-            document.getElementById('profileAvatarPreview').innerText = this.user.avatar || '👤';
-          }
-        }
-      }
-
-      startWizard() {
-        document.getElementById('wizardModal').classList.add('active');
+      startWizard(type) {
+        const modal = document.getElementById('wizardModal');
         document.getElementById('wizardStep0').classList.remove('hidden');
         document.getElementById('wizardStep1').classList.add('hidden');
         document.getElementById('wizardStepVisitor').classList.add('hidden');
+        modal.classList.add('active');
       }
 
       nextWizardStep(step) {
@@ -849,13 +754,18 @@
         }
       }
 
-      completeWizard(type) {
-        if (type === 'team') {
-          this.user = { name: 'PIT Team Member', isTeam: true, city: 'HQ', avatar: '⚡' };
-          localStorage.setItem('pithub_user', JSON.stringify(this.user));
-          document.getElementById('wizardModal').classList.remove('active');
-          this.updateNav();
-          this.showPage('home');
+      completeWizard(role) {
+        if (role === 'team') {
+          const password = prompt('请输入 PIT Team 管理员密码:');
+          if (password === 'pit123' || password === 'admin') {
+            this.user = { role: 'team', name: 'PIT Official', city: 'Base HQ', avatar: '⚡' };
+            localStorage.setItem('pithub_user', JSON.stringify(this.user));
+            document.getElementById('wizardModal').classList.remove('active');
+            this.updateNav();
+            this.showPage('home');
+          } else {
+            alert('密码错误！');
+          }
         } else {
           document.getElementById('wizardStep1').classList.add('hidden');
           document.getElementById('wizardStepVisitor').classList.remove('hidden');
@@ -863,24 +773,68 @@
       }
 
       finishVisitorReg() {
-        const name = document.getElementById('wizName').value || 'Visitor';
-        const city = document.getElementById('wizCity').value || 'Unknown';
-        const avatar = this.getAvatarValue('wiz');
+        const name = document.getElementById('wizName').value.trim() || 'Visitor_' + Math.floor(Math.random()*1000);
+        const city = document.getElementById('wizCity').value.trim() || 'Cyberspace';
+        const avatar = this.tempAvatarData.wiz || document.getElementById('wizAvatarText').value.trim() || '🤖';
 
-        this.user = { name, city, isTeam: false, avatar };
+        this.user = { role: 'visitor', name, city, avatar };
         localStorage.setItem('pithub_user', JSON.stringify(this.user));
         document.getElementById('wizardModal').classList.remove('active');
         this.updateNav();
         this.showPage('home');
       }
 
-      promptLogout() {
+      updateNav() {
+        const nav = document.getElementById('navLinks');
+        if (!this.user) {
+          nav.innerHTML = `
+            <button class="btn btn-sm" onclick="app.showPage('landing')">🏛️ 社区大厅</button>
+            <button class="btn btn-primary btn-sm" onclick="app.startWizard('signin')">🔐 登录</button>
+          `;
+          document.getElementById('teamPostOptions')?.classList.add('hidden');
+          document.getElementById('teamBgCard')?.classList.add('hidden');
+        } else {
+          let extraLinks = '';
+          if (this.user.role === 'team') {
+            extraLinks = `<button class="btn btn-sm" onclick="app.showPage('edit')">⚙️ PIT Panel</button>`;
+            document.getElementById('teamPostOptions')?.classList.remove('hidden');
+            document.getElementById('teamBgCard')?.classList.remove('hidden');
+          } else {
+            document.getElementById('teamPostOptions')?.classList.add('hidden');
+            document.getElementById('teamBgCard')?.classList.add('hidden');
+          }
+
+          nav.innerHTML = `
+            <button class="btn btn-sm" onclick="app.showPage('home')">🏠 动态首页</button>
+            <button class="btn btn-sm" onclick="app.showPage('profile')">👤 ${this.user.name}</button>
+            ${extraLinks}
+            <button class="btn btn-danger btn-sm" onclick="app.openLogoutModal()">🚪 退出</button>
+          `;
+
+          // Fill Profile Form
+          document.getElementById('profileName').value = this.user.name || '';
+          document.getElementById('profileCity').value = this.user.city || '';
+          this.renderAvatarPreview('profileAvatarPreview', this.user.avatar || '👤');
+        }
+      }
+
+      showPage(pageId) {
+        const pages = document.querySelectorAll('.page');
+        pages.forEach(p => p.classList.remove('active'));
+
+        const target = document.getElementById('page' + pageId.charAt(0).toUpperCase() + pageId.slice(1));
+        if (target) target.classList.add('active');
+
+        this.renderComments();
+      }
+
+      openLogoutModal() {
         document.getElementById('logoutModal').classList.add('active');
       }
 
-      confirmLogout(yes) {
+      confirmLogout(confirm) {
         document.getElementById('logoutModal').classList.remove('active');
-        if (yes) {
+        if (confirm) {
           this.user = null;
           localStorage.removeItem('pithub_user');
           this.updateNav();
@@ -888,30 +842,70 @@
         }
       }
 
-      async createPost() {
-        const content = document.getElementById('postContent').value;
-        if (!content) return;
-        
-        let isTeam = false;
-        let prodId = null;
-
-        if (this.user && this.user.isTeam) {
-          isTeam = document.getElementById('postIsTeam').checked;
-          prodId = document.getElementById('postProductSelect').value || null;
+      updateAvatarPreview(type) {
+        const text = document.getElementById(type + 'AvatarText').value.trim();
+        if (text) {
+          this.tempAvatarData[type] = null;
+          this.renderAvatarPreview(type + 'AvatarPreview', text);
         }
+      }
 
-        const { error } = await supabaseClient
-          .from('comments')
-          .insert([{
-            name: this.user ? this.user.name : '匿名访客',
-            city: this.user ? (this.user.city || 'Local') : 'Local',
-            avatar: this.user ? (this.user.avatar || '👤') : '👤',
-            content,
-            is_team: isTeam,
-            product_id: prodId,
-            parent_id: null
-          }]);
+      handleFileUpload(event, type) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.tempAvatarData[type] = e.target.result;
+            this.renderAvatarPreview(type + 'AvatarPreview', e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
 
+      handleBgUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            this.customBg = e.target.result;
+            localStorage.setItem('pithub_bg', this.customBg);
+            this.applyCustomBg();
+            document.getElementById('bgUploadStatus').innerText = '已应用本地自定义图片';
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      renderAvatarPreview(containerId, avatarValue) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        if (avatarValue && avatarValue.startsWith('data:image')) {
+          container.innerHTML = `<img src="${avatarValue}" alt="avatar">`;
+        } else {
+          container.innerText = avatarValue || '👤';
+        }
+      }
+
+      async createPost() {
+        if (!this.user) return alert('请先登录！');
+        const content = document.getElementById('postContent').value.trim();
+        if (!content) return alert('请输入动态内容！');
+
+        const isTeam = document.getElementById('postIsTeam')?.checked || (this.user.role === 'team');
+        const prodId = document.getElementById('postProductSelect')?.value;
+        const attachedProd = this.products.find(p => p.id == prodId);
+
+        const newComment = {
+          name: this.user.name,
+          city: this.user.city,
+          avatar: this.user.avatar,
+          content,
+          is_team: isTeam,
+          product_name: attachedProd ? attachedProd.name : null,
+          product_link: attachedProd ? attachedProd.link : null
+        };
+
+        const { error } = await supabaseClient.from('comments').insert([newComment]);
         if (error) {
           alert('发布失败: ' + error.message);
         } else {
@@ -932,38 +926,22 @@
             city: this.user ? (this.user.city || 'Local') : 'Local',
             avatar: this.user ? (this.user.avatar || '👤') : '👤',
             content,
-            pa rent_id: commentId
+            parent_id: commentId
           }]);
+
         if (error) {
           alert('回复失败: ' + error.message);
         } else {
-          input.value = ''; // 清空输入框
+          input.value = '';
           const box = document.getElementById(`replyBox-${commentId}`);
-          if (box) box.style.display = 'none'; // 发送后隐藏输入框
+          if (box) box.style.display = 'none';
           this.loadCommentsFromCloud();
         }
       }
 
-      async deleteComment(id) {
-        if (!confirm('确定要删除这条动态吗？')) return;
-
-        const { error } = await supabaseClient
-          .from('comments')
-          .delete()
-          .eq('id', id);
-
-        if (error) {
-          alert('删除失败: ' + error.message);
-        } else {
-          this.loadCommentsFromCloud();
-        }
-      }
-
-      // Fixed: Explicitly toggle display style
       toggleReplyInput(id) {
         const box = document.getElementById(`replyBox-${id}`);
         if (box) {
-          // 检查当前实际生效的 display 样式
           const currentDisplay = window.getComputedStyle(box).display;
           if (currentDisplay === 'none') {
             box.style.setProperty('display', 'flex', 'important');
@@ -975,148 +953,150 @@
         }
       }
 
-      renderComments() {
-        const query = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
-        const filtered = this.comments.filter(c => c.content.toLowerCase().includes(query) || c.name.toLowerCase().includes(query));
+      async deleteComment(id) {
+        if (!confirm('确定要删除这条动态吗？')) return;
+        const { error } = await supabaseClient.from('comments').delete().eq('id', id);
+        if (error) alert('删除失败: ' + error.message);
+        else this.loadCommentsFromCloud();
+      }
 
-        const html = filtered.length === 0 ? `<div class="empty-state">暂无相关动态</div>` : filtered.map(c => {
-          const prod = c.product_id ? this.products.find(p => p.id == c.product_id) : null;
-          const avatarDisplay = (c.avatar && c.avatar.includes('<img')) ? c.avatar : `<span>${c.avatar || '👤'}</span>`;
-          const repliesList = c.replies || [];
-          const timeFormatted = new Date(c.created_at).toLocaleString();
+      renderComments() {
+        const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
+        const filtered = this.comments.filter(c => c.content && c.content.toLowerCase().includes(query));
+
+        const html = filtered.map(item => {
+          const isTeamClass = item.is_team ? 'team-reply' : '';
+          const teamBadgeHtml = item.is_team ? `<span class="team-badge">OFFICIAL</span>` : '';
+          const avatarHtml = (item.avatar && item.avatar.startsWith('data:image')) 
+            ? `<img src="${item.avatar}">` 
+            : (item.avatar || '👤');
+
+          const deleteBtn = (this.user && this.user.role === 'team') 
+            ? `<button class="btn-delete" onclick="app.deleteComment(${item.id})">🗑️</button>` : '';
+
+          const productHtml = item.product_name 
+            ? `<a href="${item.product_link || '#'}" target="_blank" class="product-badge">🛍️ ${item.product_name}</a>` : '';
+
+          const repliesHtml = (item.replies || []).map(r => `
+            <div class="reply-item">
+              <div class="reply-header">
+                <span class="reply-user">${r.name} (${r.city || 'Local'})</span>
+                <span class="comment-time">${new Date(r.created_at).toLocaleString()}</span>
+              </div>
+              <div>${r.content}</div>
+            </div>
+          `).join('');
 
           return `
-            <div class="comment-item ${c.is_team ? 'team-reply' : ''}">
-              <button class="btn-delete" onclick="app.deleteComment(${c.id})" title="删除动态">🗑️</button>
+            <div class="comment-item ${isTeamClass}">
+              ${deleteBtn}
               <div class="comment-header">
-                <div class="comment-avatar">${avatarDisplay}</div>
+                <div class="comment-avatar">${avatarHtml}</div>
                 <div class="comment-meta">
-                  <div class="comment-name">
-                    ${c.name} ${c.is_team ? '<span class="team-badge">团队回复</span>' : ''}
-                  </div>
-                  <div class="comment-city">📍 ${c.city}</div>
+                  <div class="comment-name">${item.name} ${teamBadgeHtml}</div>
+                  <div class="comment-city">📍 ${item.city || 'Cyberspace'}</div>
                 </div>
-                <div class="comment-time">${timeFormatted}</div>
+                <span class="comment-time">${new Date(item.created_at).toLocaleString()}</span>
               </div>
-              <div class="comment-body">${c.content}</div>
-              ${prod ? `<a href="${prod.link}" target="_blank" class="product-badge">📦 推荐: ${prod.name} (${prod.price}) <span style="background:var(--neon-pink);color:#fff;padding:2px 6px;border-radius:4px;font-size:0.7rem">${prod.badge}</span></a>` : ''}
+              <div class="comment-body">${item.content}</div>
+              ${productHtml}
               
               <div class="comment-actions">
-                <button class="btn btn-sm" onclick="app.toggleReplyInput(${c.id})">💬 回复 (${repliesList.length})</button>
+                <button class="btn btn-sm" onclick="app.toggleReplyInput(${item.id})">💬 回复</button>
               </div>
 
-              <!-- Nested Replies Block -->
-              <div class="replies-box">
-                ${repliesList.map(r => `
-                  <div class="reply-item">
-                    <div class="reply-header">
-                      <span class="reply-user">${r.name}</span>
-                      <span>${new Date(r.created_at).toLocaleTimeString()}</span>
-                    </div>
-                    <div>${r.content}</div>
-                  </div>
-                `).join('')}
-                
-                <div class="reply-input-box" id="replyBox-${c.id}" style="display: none; margin-top: 12px; gap: 8px;">
-                  <input type="text" class="form-input" id="replyInput-${c.id}" placeholder="写下你的回复...">
-                  <button class="btn btn-sm btn-primary" onclick="app.addReply(${c.id})">发送</button>
-                </div>
+              <div class="reply-input-box" id="replyBox-${item.id}">
+                <input type="text" class="form-input" id="replyInput-${item.id}" placeholder="输入回复内容...">
+                <button class="btn btn-primary btn-sm" onclick="app.addReply(${item.id})">发送</button>
               </div>
+
+              ${repliesHtml ? `<div class="replies-box">${repliesHtml}</div>` : ''}
             </div>
           `;
-        }).join('');
+        }).join('') || `<div class="empty-state">暂无相关动态</div>`;
 
-        if (document.getElementById('commentsListLanding')) document.getElementById('commentsListLanding').innerHTML = html;
-        if (document.getElementById('commentsListHome')) document.getElementById('commentsListHome').innerHTML = html;
+        const containerLanding = document.getElementById('commentsListLanding');
+        const containerHome = document.getElementById('commentsListHome');
+        if (containerLanding) containerLanding.innerHTML = html;
+        if (containerHome) containerHome.innerHTML = html;
+      }
+
+      saveProfile() {
+        if (!this.user) return;
+        this.user.name = document.getElementById('profileName').value.trim() || this.user.name;
+        this.user.city = document.getElementById('profileCity').value.trim() || this.user.city;
+        if (this.tempAvatarData.profile) {
+          this.user.avatar = this.tempAvatarData.profile;
+        } else {
+          const txt = document.getElementById('profileAvatarText').value.trim();
+          if (txt) this.user.avatar = txt;
+        }
+
+        localStorage.setItem('pithub_user', JSON.stringify(this.user));
+        this.updateNav();
+        alert('个人设置保存成功！');
+      }
+
+      saveCustomBg() {
+        const url = document.getElementById('customBgUrl').value.trim();
+        this.customBg = url;
+        localStorage.setItem('pithub_bg', url);
+        this.applyCustomBg();
+        alert('全站背景图设置成功！');
+      }
+
+      renderProducts() {
+        const select = document.getElementById('postProductSelect');
+        if (select) {
+          select.innerHTML = '<option value="">-- 不挂载产品 --</option>' +
+            this.products.map(p => `<option value="${p.id}">${p.name} (${p.price})</option>`).join('');
+        }
+
+        const container = document.getElementById('productsContainer');
+        if (container) {
+          container.innerHTML = this.products.map(p => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+              <div>
+                <strong>${p.name}</strong> - <span style="color:var(--neon-green)">${p.price}</span>
+                <span class="team-badge">${p.badge}</span>
+              </div>
+              <button class="btn btn-danger btn-sm" onclick="app.deleteProduct(${p.id})">删除</button>
+            </div>
+          `).join('');
+        }
       }
 
       saveProduct() {
-        const editId = document.getElementById('editProductId').value;
-        const name = document.getElementById('prodName').value;
-        const price = document.getElementById('prodPrice').value;
-        const badge = document.getElementById('prodBadge').value;
-        const link = document.getElementById('prodLink').value;
+        const name = document.getElementById('prodName').value.trim();
+        const price = document.getElementById('prodPrice').value.trim();
+        const badge = document.getElementById('prodBadge').value.trim();
+        const link = document.getElementById('prodLink').value.trim();
 
-        if (!name) return alert('请输入产品名称');
+        if (!name) return alert('请填入产品名称');
 
-        if (editId) {
-          const prodIndex = this.products.findIndex(p => p.id == editId);
-          if (prodIndex !== -1) {
-            this.products[prodIndex] = { id: Number(editId), name, price, badge, link };
-          }
-        } else {
-          const newProd = { id: Date.now(), name, price, badge, link };
-          this.products.push(newProd);
-        }
-
+        const newProd = { id: Date.now(), name, price, badge, link };
+        this.products.push(newProd);
         localStorage.setItem('pithub_products', JSON.stringify(this.products));
-        this.cancelProductEdit();
-        this.renderProducts();
-        alert(editId ? '产品更新成功！' : '产品添加成功！');
-      }
 
-      editProduct(id) {
-        const prod = this.products.find(p => p.id == id);
-        if (!prod) return;
-
-        document.getElementById('editProductId').value = prod.id;
-        document.getElementById('prodName').value = prod.name;
-        document.getElementById('prodPrice').value = prod.price || '';
-        document.getElementById('prodBadge').value = prod.badge || '';
-        document.getElementById('prodLink').value = prod.link || '';
-
-        document.getElementById('formProductTitle').innerText = '✏️ 编辑现有产品信息';
-        document.getElementById('btnSaveProd').innerText = '💾 确认修改';
-        document.getElementById('btnCancelProd').classList.remove('hidden');
-      }
-
-      cancelProductEdit() {
-        document.getElementById('editProductId').value = '';
         document.getElementById('prodName').value = '';
         document.getElementById('prodPrice').value = '';
         document.getElementById('prodBadge').value = '';
         document.getElementById('prodLink').value = '';
 
-        document.getElementById('formProductTitle').innerText = '⚙️ PIT Team 产品管理面板';
-        document.getElementById('btnSaveProd').innerText = '➕ 保存产品';
-        document.getElementById('btnCancelProd').classList.add('hidden');
+        this.renderProducts();
+        alert('产品已上架！');
       }
 
-      renderProducts() {
-        const container = document.getElementById('productsContainer');
-        const select = document.getElementById('postProductSelect');
-
-        if (container) {
-          container.innerHTML = this.products.map(p => `
-            <div style="padding:14px;background:var(--dark-elevated);margin-bottom:10px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <strong>${p.name}</strong> 
-                <span style="color:var(--neon-green);margin-left:8px;">${p.price}</span>
-                ${p.badge ? `<span class="team-badge" style="margin-left:8px;background:var(--neon-pink);color:#fff;">${p.badge}</span>` : ''}
-              </div>
-              <button class="btn btn-sm" onclick="app.editProduct(${p.id})">✏️ 编辑 (Edit)</button>
-            </div>
-          `).join('');
-        }
-
-        if (select) {
-          select.innerHTML = '<option value="">-- 不挂载产品 --</option>' + this.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-        }
-      }
-
-      saveProfile() {
-        if (!this.user) return;
-        this.user.name = document.getElementById('profileName').value;
-        this.user.city = document.getElementById('profileCity').value;
-        this.user.avatar = this.getAvatarValue('profile');
-
-        localStorage.setItem('pithub_user', JSON.stringify(this.user));
-        this.updateNav();
-        alert('个人信息设置已更新！');
+      deleteProduct(id) {
+        this.products = this.products.filter(p => p.id !== id);
+        localStorage.setItem('pithub_products', JSON.stringify(this.products));
+        this.renderProducts();
       }
     }
 
+    // 全局实例化并暴露
     const app = new PitHubApp();
+    window.app = app;
   </script>
 </body>
 </html>
