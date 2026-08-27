@@ -922,7 +922,7 @@
 
       async addReply(commentId) {
         const input = document.getElementById(`replyInput-${commentId}`);
-        const content = input ? input.value : '';
+        const content = input ? input.value.trim() : '';
         if (!content) return;
 
         const { error } = await supabaseClient
@@ -932,12 +932,14 @@
             city: this.user ? (this.user.city || 'Local') : 'Local',
             avatar: this.user ? (this.user.avatar || '👤') : '👤',
             content,
-            parent_id: commentId
+            pa rent_id: commentId
           }]);
-
         if (error) {
           alert('回复失败: ' + error.message);
         } else {
+          input.value = ''; // 清空输入框
+          const box = document.getElementById(`replyBox-${commentId}`);
+          if (box) box.style.display = 'none'; // 发送后隐藏输入框
           this.loadCommentsFromCloud();
         }
       }
@@ -961,12 +963,14 @@
       toggleReplyInput(id) {
         const box = document.getElementById(`replyBox-${id}`);
         if (box) {
-          if (box.style.display === 'flex') {
-            box.style.display = 'none';
-          } else {
-            box.style.display = 'flex';
+          // 检查当前实际生效的 display 样式
+          const currentDisplay = window.getComputedStyle(box).display;
+          if (currentDisplay === 'none') {
+            box.style.setProperty('display', 'flex', 'important');
             const input = document.getElementById(`replyInput-${id}`);
             if (input) input.focus();
+          } else {
+            box.style.setProperty('display', 'none', 'important');
           }
         }
       }
