@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* --------------------------------------------------------------------------
-       1. CSS 全局变量与主题声明
+       1. CSS 全局变量声明与基础配置
        -------------------------------------------------------------------------- */
     :root {
       --neon-green: #00ff9d;
@@ -27,7 +27,11 @@
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     
     body {
       font-family: var(--font-body);
@@ -40,10 +44,17 @@
     }
 
     /* --------------------------------------------------------------------------
-       2. 背景特效与主题风格
+       2. 背景特效与主题风格定义
        -------------------------------------------------------------------------- */
-    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; transition: var(--transition); }
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      transition: var(--transition);
+    }
     
+    /* 赛博朋克主题 */
     body[data-theme="cyberpunk"] {
       background: radial-gradient(circle at 50% 50%, #1a0022 0%, #050008 100%);
     }
@@ -53,6 +64,7 @@
       background-size: 40px 40px;
     }
 
+    /* 工程金主题 */
     body[data-theme="engineering"] {
       background: radial-gradient(circle at 50% 50%, #2b1a00 0%, #0d0700 100%);
     }
@@ -62,6 +74,7 @@
       background-size: 25px 25px;
     }
 
+    /* 深海蓝主题 */
     body[data-theme="bluemix"] {
       background: radial-gradient(circle at 50% 50%, #003366 0%, #000814 100%);
     }
@@ -71,119 +84,329 @@
       background-size: 50px 50px;
     }
 
-    body[data-theme="minimal"] { background: #000000; }
-    body[data-theme="minimal"] .bg-grid { display: none; }
+    /* 极简黑主题 */
+    body[data-theme="minimal"] {
+      background: #000000;
+    }
+    body[data-theme="minimal"] .bg-grid {
+      display: none;
+    }
 
-    .bg-custom { background-size: cover; background-position: center; opacity: 0.45; transition: opacity 0.5s; }
-    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.75) 90%); }
     .scanline {
-      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
       background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.1) 50%);
       background-size: 100% 4px;
     }
 
     /* --------------------------------------------------------------------------
-       3. 导航栏与基础组件
+       3. 页面布局与导航栏组件
        -------------------------------------------------------------------------- */
-    .app-container { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+    .app-container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
     .top-nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 32px; background: rgba(10, 10, 15, 0.85);
-      backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glow);
-      position: sticky; top: 0; z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-glow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
+
     .nav-brand {
-      font-family: var(--font-display); font-size: 1.5rem; font-weight: 900;
-      color: var(--neon-green); text-decoration: none; letter-spacing: 2px; cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--neon-green);
+      text-decoration: none;
+      letter-spacing: 2px;
+      cursor: pointer;
     }
-    .nav-brand span { color: var(--neon-blue); }
-    .nav-links { display: flex; align-items: center; gap: 12px; }
+    .nav-brand span {
+      color: var(--neon-blue);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
     .btn {
-      padding: 10px 20px; border-radius: var(--radius);
-      border: 1px solid var(--border-glow); background: transparent;
-      color: var(--text-primary); font-size: 0.9rem; cursor: pointer;
-      transition: var(--transition); font-family: inherit; display: inline-flex;
-      align-items: center; gap: 8px; text-decoration: none; justify-content: center;
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-glow);
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      justify-content: center;
     }
-    .btn:hover { background: rgba(0, 255, 157, 0.1); border-color: var(--neon-green); box-shadow: 0 0 15px var(--border-glow); }
-    .btn-primary { background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); border: none; font-weight: 700; }
-    .btn-primary:hover { box-shadow: 0 0 25px rgba(0, 255, 157, 0.4); transform: translateY(-1px); }
-    .btn-danger { border-color: rgba(255, 50, 50, 0.4); color: #ff5555; }
-    .btn-danger:hover { background: rgba(255, 50, 50, 0.1); border-color: #ff5555; }
-    .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+    .btn:hover {
+      background: rgba(0, 255, 157, 0.1);
+      border-color: var(--neon-green);
+      box-shadow: 0 0 15px var(--border-glow);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
+      color: var(--dark-base);
+      border: none;
+      font-weight: 700;
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 25px rgba(0, 255, 157, 0.4);
+      transform: translateY(-1px);
+    }
+    .btn-danger {
+      border-color: rgba(255, 50, 50, 0.4);
+      color: #ff5555;
+    }
+    .btn-danger:hover {
+      background: rgba(255, 50, 50, 0.1);
+      border-color: #ff5555;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
 
-    .page { display: none; flex: 1; padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
-    .page.active { display: block; }
+    .page {
+      display: none;
+      flex: 1;
+      padding: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .page.active {
+      display: block;
+    }
 
     .card {
-      background: rgba(17, 17, 24, 0.85); border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(12px); border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
-      position: relative; overflow: hidden;
+      background: rgba(17, 17, 24, 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
     }
     .card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue), transparent); opacity: 0.5;
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue), transparent);
+      opacity: 0.5;
     }
 
     /* --------------------------------------------------------------------------
-       4. 表单与控件
+       4. 表单与交互控件
        -------------------------------------------------------------------------- */
-    .form-group { margin-bottom: 20px; }
-    .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
     .form-input, .form-textarea, .form-select {
-      width: 100%; padding: 12px 16px; background: var(--dark-elevated);
-      border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius);
-      color: var(--text-primary); font-size: 0.95rem; outline: none; transition: var(--transition);
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--dark-elevated);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition);
     }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
-    .form-textarea { min-height: 100px; resize: vertical; }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--neon-green);
+      box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1);
+    }
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
 
     /* --------------------------------------------------------------------------
-       5. 动态列表与评论回复视图
+       5. 动态、回复与交互组件样式
        -------------------------------------------------------------------------- */
-    .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-    .hall-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-green); }
-    .search-bar { display: flex; gap: 12px; flex: 1; max-width: 500px; }
-    .comments-list { display: flex; flex-direction: column; gap: 16px; }
+    .hall-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .hall-title {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--neon-green);
+    }
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+      max-width: 500px;
+    }
+    .comments-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
     
     .comment-item {
-      background: var(--dark-card); border: 1px solid rgba(255,255,255,0.06);
-      border-radius: var(--radius); padding: 20px; transition: var(--transition);
+      background: var(--dark-card);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: var(--transition);
       position: relative;
     }
-    .comment-item.team-reply { border-left: 3px solid var(--neon-green); background: linear-gradient(90deg, rgba(0,255,157,0.05), transparent); }
-    .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .comment-item.team-reply {
+      border-left: 3px solid var(--neon-green);
+      background: linear-gradient(90deg, rgba(0,255,157,0.05), transparent);
+    }
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
     .comment-avatar {
-      width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; background: var(--dark-elevated); border: 1px solid var(--border-glow);
-      overflow: hidden; flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      background: var(--dark-elevated);
+      border: 1px solid var(--border-glow);
+      overflow: hidden;
+      flex-shrink: 0;
     }
-    .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .comment-meta { flex: 1; }
-    .comment-name { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
-    .comment-city { font-size: 0.8rem; color: var(--text-secondary); }
-    .comment-time { font-size: 0.75rem; color: var(--text-secondary); margin-right: 10px; }
-    .comment-body { color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+    .comment-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .comment-meta {
+      flex: 1;
+    }
+    .comment-name {
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comment-city {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .comment-time {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-right: 10px;
+    }
+    .comment-body {
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
 
-    .comment-actions { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
-    .btn-delete {
-      position: absolute; top: 16px; right: 16px; background: transparent;
-      border: none; color: #ff5555; cursor: pointer; font-size: 1rem; opacity: 0.7; transition: var(--transition);
+    .comment-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+      align-items: center;
     }
-    .btn-delete:hover { opacity: 1; transform: scale(1.1); }
+    .btn-delete {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      color: #ff5555;
+      cursor: pointer;
+      font-size: 1rem;
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+    .btn-delete:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .product-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.3);
+      border-radius: 8px;
+      margin-top: 8px;
+      text-decoration: none;
+      color: var(--neon-blue);
+      font-size: 0.85rem;
+    }
 
     .replies-box {
-      margin-top: 14px; padding-left: 16px; border-left: 2px solid rgba(0,255,157,0.2);
-      display: flex; flex-direction: column; gap: 10px;
+      margin-top: 14px;
+      padding-left: 16px;
+      border-left: 2px solid rgba(0,255,157,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
     .reply-item {
-      background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 8px;
-      font-size: 0.88rem; position: relative;
+      background: rgba(255,255,255,0.02);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      position: relative;
     }
-    .reply-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 0.8rem; color: var(--text-secondary); }
-    .reply-user { font-weight: 600; color: var(--neon-blue); }
+    .reply-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .reply-user {
+      font-weight: 600;
+      color: var(--neon-blue);
+    }
 
     .reply-input-box {
       display: none;
@@ -193,23 +416,73 @@
     }
 
     .team-badge {
-      font-size: 0.65rem; padding: 2px 8px; background: var(--neon-green);
-      color: var(--dark-base); border-radius: 4px; font-weight: 700; text-transform: uppercase;
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      background: var(--neon-green);
+      color: var(--dark-base);
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
     }
 
     /* --------------------------------------------------------------------------
-       6. 模态框 Modal
+       6. 模态框与弹窗样式
        -------------------------------------------------------------------------- */
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-      z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    .modal-overlay.active { display: flex; }
+    .modal-overlay.active {
+      display: flex;
+    }
     .modal-container {
-      background: var(--dark-card); border: 1px solid var(--border-glow);
-      border-radius: var(--radius); width: 100%; max-width: 500px; padding: 28px; position: relative;
+      background: var(--dark-card);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 500px;
+      padding: 28px;
+      position: relative;
     }
-    .modal-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--neon-green); margin-bottom: 12px; text-align: center; }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      color: var(--neon-green);
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .avatar-picker {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .avatar-preview {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--dark-elevated);
+      border: 1px solid var(--border-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
     .hidden { display: none !important; }
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
@@ -218,8 +491,6 @@
 <body data-theme="cyberpunk">
 
   <div class="bg-layer bg-grid"></div>
-  <div class="bg-layer bg-custom" id="bgCustom"></div>
-  <div class="bg-layer bg-overlay"></div>
   <div class="scanline"></div>
 
   <div class="app-container">
@@ -231,9 +502,9 @@
     <div class="page active" id="pageLanding">
       <div class="card">
         <div class="hall-header">
-          <h2 class="hall-title" id="tHallTitle">🏛️ 社区大厅</h2>
+          <h2 class="hall-title">🏛️ 社区大厅</h2>
           <div class="search-bar">
-            <input type="text" class="form-input" id="searchInput" placeholder="搜索内容..." oninput="app.renderComments()">
+            <input type="text" class="form-input" id="searchInput" placeholder="搜索内容或用户名..." oninput="app.renderComments()">
           </div>
         </div>
         <div class="comments-list" id="commentsListLanding"></div>
@@ -242,29 +513,32 @@
 
     <div class="page" id="pageHome">
       <div class="card">
-        <div class="card-title" id="tPostTitle" style="font-size: 1.2rem; font-weight: bold; color: var(--neon-green); margin-bottom: 12px;">✍️ 发布社区动态</div>
+        <div class="card-title" style="font-size: 1.2rem; font-weight: bold; color: var(--neon-green); margin-bottom: 12px;">✍️ 发布社区动态</div>
+        
         <div class="form-group">
-          <textarea class="form-textarea" id="postContent" placeholder="分享你的想法..."></textarea>
+          <textarea class="form-textarea" id="postContent" placeholder="分享你的技术见解或想法..."></textarea>
         </div>
         
-        <div id="teamPostOptions" class="hidden" style="margin-bottom:16px;">
-          <div class="form-group">
-            <label class="form-label" id="tSelectProd">挂载推广产品</label>
-            <select class="form-select" id="postProductSelect">
-              <option value="">-- 不挂载产品 --</option>
-            </select>
-          </div>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
-            <input type="checkbox" id="postIsTeam"> <span id="tTeamFlag">标记为团队官方回复 (绿色高亮)</span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">挂载推广产品（可选）</label>
+          <select class="form-select" id="postProductSelect">
+            <option value="">-- 不挂载产品 --</option>
+            <option value="1">PIT Cloud Platform</option>
+            <option value="2">Cyber Engine 2.0</option>
+          </select>
         </div>
 
-        <button class="btn btn-primary" onclick="app.createPost()" id="btnPost">🚀 发布内容</button>
+        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="postIsTeam">
+          <label for="postIsTeam" style="cursor:pointer; font-size:0.9rem;">标记为团队官方动态 (绿色高亮)</label>
+        </div>
+
+        <button class="btn btn-primary" onclick="app.createPost()">🚀 确认发布</button>
       </div>
 
       <div class="card">
         <div class="hall-header">
-          <h2 class="hall-title" id="tListTitle">🏛️ 动态列表</h2>
+          <h2 class="hall-title">🏛️ 我的与最新动态</h2>
         </div>
         <div class="comments-list" id="commentsListHome"></div>
       </div>
@@ -272,9 +546,9 @@
 
     <div class="page" id="pageSettings">
       <div class="card">
-        <h2 class="hall-title" style="margin-bottom: 20px;">⚙️ 系统个性化设置</h2>
+        <h2 class="hall-title" style="margin-bottom: 20px;">⚙️ 系统配置与外观</h2>
         <div class="form-group">
-          <label class="form-label">切换界面主题</label>
+          <label class="form-label">界面主题切换</label>
           <select class="form-select" id="themeSelect" onchange="app.changeTheme(this.value)">
             <option value="cyberpunk">赛博朋克 (Cyberpunk)</option>
             <option value="engineering">工程金 (Engineering Gold)</option>
@@ -288,28 +562,41 @@
 
   <div class="modal-overlay" id="loginModal">
     <div class="modal-container">
-      <h3 class="modal-title">用户登录</h3>
+      <h3 class="modal-title">设置身份</h3>
       <div class="form-group">
-        <label class="form-label">用户名</label>
-        <input type="text" class="form-input" id="loginUsername" placeholder="输入用户名">
+        <label class="form-label">昵称</label>
+        <input type="text" class="form-input" id="loginUsername" placeholder="请输入你的昵称">
+      </div>
+      <div class="form-group">
+        <label class="form-label">城市 / 地区</label>
+        <input type="text" class="form-input" id="loginCity" placeholder="例如: 上海 / Cyber City">
+      </div>
+      <div class="avatar-picker">
+        <div class="avatar-preview" id="avatarPreview">👤</div>
+        <input type="text" class="form-input" id="loginAvatar" placeholder="输入 Emoji 或图片 URL" oninput="app.updateAvatarPreview(this.value)">
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 10px;">
         <button class="btn" onclick="app.closeModal('loginModal')">取消</button>
-        <button class="btn btn-primary" onclick="app.handleLogin()">确认登录</button>
+        <button class="btn btn-primary" onclick="app.handleLogin()">保存配置</button>
       </div>
     </div>
   </div>
 
   <script>
     /* --------------------------------------------------------------------------
-       7. Supabase 客户端配置
+       7. Supabase 数据库连接与产品配置
        -------------------------------------------------------------------------- */
     const SUPABASE_URL = 'https://zzcoetexcyadwgnicqig.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    const MOCK_PRODUCTS = {
+      "1": { name: "PIT Cloud Platform", link: "https://example.com/cloud" },
+      "2": { name: "Cyber Engine 2.0", link: "https://example.com/engine" }
+    };
+
     /* --------------------------------------------------------------------------
-       8. 核心业务逻辑控制器 (PitHubApp)
+       8. 业务逻辑应用控制器类
        -------------------------------------------------------------------------- */
     class PitHubApp {
       constructor() {
@@ -319,6 +606,7 @@
         this.init();
       }
 
+      // 初始化应用程序
       init() {
         this.applyTheme(this.currentTheme);
         this.updateNav();
@@ -327,20 +615,20 @@
         this.loadCommentsFromCloud();
       }
 
-      // 主题管理
-      changeTheme(theme) {
-        this.currentTheme = theme;
-        localStorage.setItem('pithub_theme', theme);
-        this.applyTheme(theme);
-      }
-
+      // 1. 主题控制
       applyTheme(theme) {
         document.body.setAttribute('data-theme', theme);
         const themeSelect = document.getElementById('themeSelect');
         if (themeSelect) themeSelect.value = theme;
       }
 
-      // Supabase 数据库数据同步
+      changeTheme(theme) {
+        this.currentTheme = theme;
+        localStorage.setItem('pithub_theme', theme);
+        this.applyTheme(theme);
+      }
+
+      // 2. 从 Supabase 获取动态和二级回复
       async loadCommentsFromCloud() {
         const { data, error } = await supabaseClient
           .from('comments')
@@ -348,7 +636,7 @@
           .order('created_at', { ascending: false });
 
         if (error) {
-          console.error('拉取云端评论失败:', error);
+          console.error('拉取云端数据失败:', error);
           return;
         }
 
@@ -360,6 +648,7 @@
           commentMap[item.id] = item;
         });
 
+        // 嵌套处理多级回复
         data.forEach(item => {
           if (item.parent_id && commentMap[item.parent_id]) {
             commentMap[item.parent_id].replies.push(item);
@@ -372,6 +661,7 @@
         this.renderComments();
       }
 
+      // 监听云端实时数据更新推流
       listenCloudUpdates() {
         supabaseClient
           .channel('public:comments')
@@ -381,7 +671,7 @@
           .subscribe();
       }
 
-      // 视图控制与页面导航
+      // 3. 视图导航控制
       showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         const target = document.getElementById(`page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`);
@@ -392,26 +682,38 @@
         const navLinks = document.getElementById('navLinks');
         if (!this.user) {
           navLinks.innerHTML = `
-            <button class="btn btn-sm" onclick="app.showModal('loginModal')">登录</button>
-            <button class="btn btn-sm btn-primary" onclick="app.showPage('home')">Demo User</button>
+            <button class="btn btn-sm btn-primary" onclick="app.showModal('loginModal')">设置身份</button>
           `;
         } else {
           navLinks.innerHTML = `
-            <span style="color:var(--neon-green)">${this.user.name}</span>
+            <span style="color:var(--neon-green)">${this.user.avatar || '👤'} ${this.user.name}</span>
             <button class="btn btn-sm" onclick="app.showPage('settings')">⚙️ 设置</button>
             <button class="btn btn-sm btn-danger" onclick="app.logout()">退出</button>
           `;
         }
       }
 
-      // 弹窗控制与用户状态
+      // 4. 用户身份及弹窗管理
       showModal(id) { document.getElementById(id).classList.add('active'); }
       closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
+      updateAvatarPreview(val) {
+        const preview = document.getElementById('avatarPreview');
+        if (val.startsWith('http://') || val.startsWith('https://')) {
+          preview.innerHTML = `<img src="${val}" alt="avatar">`;
+        } else {
+          preview.innerHTML = val || '👤';
+        }
+      }
+
       handleLogin() {
         const username = document.getElementById('loginUsername').value.trim();
-        if (!username) return;
-        this.user = { name: username, avatar: '👤' };
+        const city = document.getElementById('loginCity').value.trim() || 'HQ';
+        const avatar = document.getElementById('loginAvatar').value.trim() || '👤';
+
+        if (!username) return alert('请输入昵称');
+
+        this.user = { name: username, city, avatar };
         localStorage.setItem('pithub_user', JSON.stringify(this.user));
         this.closeModal('loginModal');
         this.updateNav();
@@ -425,31 +727,42 @@
         this.showPage('landing');
       }
 
-      // 发表动态
+      // 5. 动态发布
       async createPost() {
         const content = document.getElementById('postContent').value.trim();
-        if (!content) return;
+        const productId = document.getElementById('postProductSelect').value;
+        const isTeam = document.getElementById('postIsTeam').checked;
+
+        if (!content) return alert('请输入内容');
+
+        const postData = {
+          name: this.user ? this.user.name : '匿名访客',
+          city: this.user ? this.user.city : 'Unknown',
+          avatar: this.user ? this.user.avatar : '👤',
+          content,
+          is_team: isTeam,
+          parent_id: null
+        };
+
+        if (productId && MOCK_PRODUCTS[productId]) {
+          postData.product = MOCK_PRODUCTS[productId];
+        }
 
         const { error } = await supabaseClient
           .from('comments')
-          .insert([{
-            name: this.user ? this.user.name : 'PIT Team Member',
-            city: 'HQ',
-            avatar: '⚡',
-            content,
-            is_team: true,
-            parent_id: null
-          }]);
+          .insert([postData]);
 
         if (error) {
           alert('发布失败: ' + error.message);
         } else {
           document.getElementById('postContent').value = '';
+          document.getElementById('postProductSelect').value = '';
+          document.getElementById('postIsTeam').checked = false;
           this.loadCommentsFromCloud();
         }
       }
 
-      // 发表二级回复
+      // 6. 发送二级回复
       async addReply(commentId) {
         const input = document.getElementById(`replyInput-${commentId}`);
         const content = input ? input.value.trim() : '';
@@ -459,8 +772,8 @@
           .from('comments')
           .insert([{
             name: this.user ? this.user.name : '访客',
-            city: 'Local',
-            avatar: '👤',
+            city: this.user ? this.user.city : 'Local',
+            avatar: this.user ? this.user.avatar : '👤',
             content,
             parent_id: commentId
           }]);
@@ -468,12 +781,14 @@
         if (error) {
           alert('回复失败: ' + error.message);
         } else {
-          if (input) input.value = '';
+          input.value = '';
+          const box = document.getElementById(`replyBox-${commentId}`);
+          if (box) box.style.display = 'none';
           this.loadCommentsFromCloud();
         }
       }
 
-      // 删除动态
+      // 7. 删除动态
       async deleteComment(id) {
         if (!confirm('确定要删除这条动态吗？')) return;
 
@@ -489,11 +804,12 @@
         }
       }
 
-      // 准确切换二级回复框 display 状态
+      // 8. 修复后的二级回复框展开/收起切换逻辑
       toggleReplyInput(id) {
         const box = document.getElementById(`replyBox-${id}`);
         if (!box) return;
 
+        // 使用 window.getComputedStyle 精确获取实际 display 属性值
         const computedDisplay = window.getComputedStyle(box).display;
 
         if (computedDisplay === 'none') {
@@ -505,7 +821,7 @@
         }
       }
 
-      // 动态与回复渲染
+      // 9. 渲染视图列表
       renderComments() {
         const searchElem = document.getElementById('searchInput');
         const query = searchElem ? searchElem.value.toLowerCase() : '';
@@ -513,21 +829,27 @@
 
         const html = filtered.length === 0 ? `<div class="empty-state">暂无相关动态</div>` : filtered.map(c => {
           const repliesList = c.replies || [];
-          const timeFormatted = new Date(c.created_at).toLocaleString();
+          const avatarHtml = c.avatar && (c.avatar.startsWith('http://') || c.avatar.startsWith('https://')) 
+            ? `<img src="${c.avatar}" alt="avatar">` 
+            : `<span>${c.avatar || '👤'}</span>`;
 
           return `
             <div class="comment-item ${c.is_team ? 'team-reply' : ''}">
               <button class="btn-delete" onclick="app.deleteComment(${c.id})" title="删除动态">🗑️</button>
+              
               <div class="comment-header">
-                <div class="comment-avatar"><span>${c.avatar || '👤'}</span></div>
+                <div class="comment-avatar">${avatarHtml}</div>
                 <div class="comment-meta">
                   <div class="comment-name">${c.name} ${c.is_team ? '<span class="team-badge">TEAM</span>' : ''}</div>
-                  <div class="comment-city">📍 ${c.city}</div>
+                  <div class="comment-city">📍 ${c.city || '未知'}</div>
                 </div>
-                <div class="comment-time">${timeFormatted}</div>
+                <div class="comment-time">${new Date(c.created_at).toLocaleString()}</div>
               </div>
-              <div class="comment-body">${c.content}</div>
               
+              <div class="comment-body">${c.content}</div>
+
+              ${c.product ? `<a class="product-badge" href="${c.product.link}" target="_blank">📦 ${c.product.name}</a>` : ''}
+
               <div class="comment-actions">
                 <button class="btn btn-sm" onclick="app.toggleReplyInput(${c.id})">💬 回复 (${repliesList.length})</button>
               </div>
@@ -557,7 +879,7 @@
       }
     }
 
-    // 初始化全局应用示例
+    // 全局应用程序初始化启动
     const app = new PitHubApp();
   </script>
 </body>
