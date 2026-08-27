@@ -4,12 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PIT Hub - Peox Institute of Technology</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    /* --------------------------------------------------------------------------
+       1. CSS 全局变量与主题声明
+       -------------------------------------------------------------------------- */
     :root {
       --neon-green: #00ff9d;
       --neon-blue: #00d4ff;
+      --neon-pink: #ff00a0;
+      --neon-purple: #9d00ff;
       --dark-base: #0a0a0f;
       --dark-card: #111118;
       --dark-elevated: #1a1a24;
@@ -17,85 +22,344 @@
       --text-secondary: #8888a0;
       --border-glow: rgba(0, 255, 157, 0.3);
       --font-display: 'Orbitron', monospace;
-      --font-body: 'Noto Sans SC', sans-serif;
+      --font-body: 'Noto Sans SC', 'Noto Sans TC', sans-serif;
       --radius: 12px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: var(--font-body); background: var(--dark-base); color: var(--text-primary); min-height: 100vh; }
     
-    .top-nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 32px; background: rgba(10,10,15,0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glow); position: sticky; top: 0; z-index: 100; }
-    .nav-brand { font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; color: var(--neon-green); cursor: pointer; }
+    body {
+      font-family: var(--font-body);
+      background: var(--dark-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      transition: background 0.5s ease;
+    }
+
+    /* --------------------------------------------------------------------------
+       2. 背景特效与主题风格
+       -------------------------------------------------------------------------- */
+    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; transition: var(--transition); }
+    
+    body[data-theme="cyberpunk"] {
+      background: radial-gradient(circle at 50% 50%, #1a0022 0%, #050008 100%);
+    }
+    body[data-theme="cyberpunk"] .bg-grid {
+      background-image: linear-gradient(rgba(255, 0, 160, 0.35) 2px, transparent 2px),
+                        linear-gradient(90deg, rgba(0, 255, 157, 0.35) 2px, transparent 2px);
+      background-size: 40px 40px;
+    }
+
+    body[data-theme="engineering"] {
+      background: radial-gradient(circle at 50% 50%, #2b1a00 0%, #0d0700 100%);
+    }
+    body[data-theme="engineering"] .bg-grid {
+      background-image: linear-gradient(rgba(255, 170, 0, 0.4) 2px, transparent 2px),
+                        linear-gradient(90deg, rgba(255, 170, 0, 0.4) 2px, transparent 2px);
+      background-size: 25px 25px;
+    }
+
+    body[data-theme="bluemix"] {
+      background: radial-gradient(circle at 50% 50%, #003366 0%, #000814 100%);
+    }
+    body[data-theme="bluemix"] .bg-grid {
+      background-image: linear-gradient(rgba(0, 212, 255, 0.4) 2px, transparent 2px),
+                        linear-gradient(90deg, rgba(0, 212, 255, 0.15) 2px, transparent 2px);
+      background-size: 50px 50px;
+    }
+
+    body[data-theme="minimal"] { background: #000000; }
+    body[data-theme="minimal"] .bg-grid { display: none; }
+
+    .bg-custom { background-size: cover; background-position: center; opacity: 0.45; transition: opacity 0.5s; }
+    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.75) 90%); }
+    .scanline {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.1) 50%);
+      background-size: 100% 4px;
+    }
+
+    /* --------------------------------------------------------------------------
+       3. 导航栏与基础组件
+       -------------------------------------------------------------------------- */
+    .app-container { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+    .top-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px; background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glow);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-brand {
+      font-family: var(--font-display); font-size: 1.5rem; font-weight: 900;
+      color: var(--neon-green); text-decoration: none; letter-spacing: 2px; cursor: pointer;
+    }
     .nav-brand span { color: var(--neon-blue); }
-    
-    .btn { padding: 8px 16px; border-radius: var(--radius); border: 1px solid var(--border-glow); background: transparent; color: var(--text-primary); cursor: pointer; }
-    .btn-primary { background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); font-weight: 700; border: none; }
+    .nav-links { display: flex; align-items: center; gap: 12px; }
+
+    .btn {
+      padding: 10px 20px; border-radius: var(--radius);
+      border: 1px solid var(--border-glow); background: transparent;
+      color: var(--text-primary); font-size: 0.9rem; cursor: pointer;
+      transition: var(--transition); font-family: inherit; display: inline-flex;
+      align-items: center; gap: 8px; text-decoration: none; justify-content: center;
+    }
+    .btn:hover { background: rgba(0, 255, 157, 0.1); border-color: var(--neon-green); box-shadow: 0 0 15px var(--border-glow); }
+    .btn-primary { background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); border: none; font-weight: 700; }
+    .btn-primary:hover { box-shadow: 0 0 25px rgba(0, 255, 157, 0.4); transform: translateY(-1px); }
+    .btn-danger { border-color: rgba(255, 50, 50, 0.4); color: #ff5555; }
+    .btn-danger:hover { background: rgba(255, 50, 50, 0.1); border-color: #ff5555; }
     .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
-    
-    .page { display: none; padding: 32px; max-width: 1000px; margin: 0 auto; }
+
+    .page { display: none; flex: 1; padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
     .page.active { display: block; }
-    .card { background: var(--dark-card); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
-    .form-input, .form-textarea { width: 100%; padding: 10px 14px; background: var(--dark-elevated); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; margin-bottom: 12px; }
+
+    .card {
+      background: rgba(17, 17, 24, 0.85); border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px); border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue), transparent); opacity: 0.5;
+    }
+
+    /* --------------------------------------------------------------------------
+       4. 表单与控件
+       -------------------------------------------------------------------------- */
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
+    .form-input, .form-textarea, .form-select {
+      width: 100%; padding: 12px 16px; background: var(--dark-elevated);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius);
+      color: var(--text-primary); font-size: 0.95rem; outline: none; transition: var(--transition);
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
+    .form-textarea { min-height: 100px; resize: vertical; }
+
+    /* --------------------------------------------------------------------------
+       5. 动态列表与评论回复视图
+       -------------------------------------------------------------------------- */
+    .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
+    .hall-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-green); }
+    .search-bar { display: flex; gap: 12px; flex: 1; max-width: 500px; }
+    .comments-list { display: flex; flex-direction: column; gap: 16px; }
     
-    .comment-item { background: var(--dark-elevated); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
-    .comment-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; }
-    .comment-user { color: var(--neon-green); font-weight: bold; }
-    
-    .replies-box { margin-top: 12px; padding-left: 16px; border-left: 2px solid var(--border-glow); }
-    .reply-item { background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; font-size: 0.85rem; }
-    
-    /* 核心：初始隐藏回复框 */
-    .reply-input-box { display: none; margin-top: 10px; gap: 8px; }
+    .comment-item {
+      background: var(--dark-card); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius); padding: 20px; transition: var(--transition);
+      position: relative;
+    }
+    .comment-item.team-reply { border-left: 3px solid var(--neon-green); background: linear-gradient(90deg, rgba(0,255,157,0.05), transparent); }
+    .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .comment-avatar {
+      width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; background: var(--dark-elevated); border: 1px solid var(--border-glow);
+      overflow: hidden; flex-shrink: 0;
+    }
+    .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .comment-meta { flex: 1; }
+    .comment-name { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+    .comment-city { font-size: 0.8rem; color: var(--text-secondary); }
+    .comment-time { font-size: 0.75rem; color: var(--text-secondary); margin-right: 10px; }
+    .comment-body { color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
+
+    .comment-actions { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
+    .btn-delete {
+      position: absolute; top: 16px; right: 16px; background: transparent;
+      border: none; color: #ff5555; cursor: pointer; font-size: 1rem; opacity: 0.7; transition: var(--transition);
+    }
+    .btn-delete:hover { opacity: 1; transform: scale(1.1); }
+
+    .replies-box {
+      margin-top: 14px; padding-left: 16px; border-left: 2px solid rgba(0,255,157,0.2);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .reply-item {
+      background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 8px;
+      font-size: 0.88rem; position: relative;
+    }
+    .reply-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 0.8rem; color: var(--text-secondary); }
+    .reply-user { font-weight: 600; color: var(--neon-blue); }
+
+    .reply-input-box {
+      display: none;
+      margin-top: 12px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .team-badge {
+      font-size: 0.65rem; padding: 2px 8px; background: var(--neon-green);
+      color: var(--dark-base); border-radius: 4px; font-weight: 700; text-transform: uppercase;
+    }
+
+    /* --------------------------------------------------------------------------
+       6. 模态框 Modal
+       -------------------------------------------------------------------------- */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-container {
+      background: var(--dark-card); border: 1px solid var(--border-glow);
+      border-radius: var(--radius); width: 100%; max-width: 500px; padding: 28px; position: relative;
+    }
+    .modal-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--neon-green); margin-bottom: 12px; text-align: center; }
+
+    .hidden { display: none !important; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
   </style>
 </head>
-<body>
+<body data-theme="cyberpunk">
 
-  <nav class="top-nav">
-    <div class="nav-brand" onclick="app.showPage('home')">PIT<span>HUB</span></div>
-    <div id="navUser"></div>
-  </nav>
+  <div class="bg-layer bg-grid"></div>
+  <div class="bg-layer bg-custom" id="bgCustom"></div>
+  <div class="bg-layer bg-overlay"></div>
+  <div class="scanline"></div>
 
-  <div class="page active" id="pageHome">
-    <div class="card">
-      <h3 style="color:var(--neon-green);margin-bottom:12px;">✍️ 发布动态</h3>
-      <textarea class="form-textarea" id="postContent" placeholder="分享你的想法..."></textarea>
-      <button class="btn btn-primary" onclick="app.createPost()">🚀 发布内容</button>
+  <div class="app-container">
+    <nav class="top-nav">
+      <a class="nav-brand" onclick="app.showPage('landing')">PIT<span>HUB</span></a>
+      <div class="nav-links" id="navLinks"></div>
+    </nav>
+
+    <div class="page active" id="pageLanding">
+      <div class="card">
+        <div class="hall-header">
+          <h2 class="hall-title" id="tHallTitle">🏛️ 社区大厅</h2>
+          <div class="search-bar">
+            <input type="text" class="form-input" id="searchInput" placeholder="搜索内容..." oninput="app.renderComments()">
+          </div>
+        </div>
+        <div class="comments-list" id="commentsListLanding"></div>
+      </div>
     </div>
 
-    <div class="card">
-      <h3 style="color:var(--neon-green);margin-bottom:16px;">🏛️ 社区大厅</h3>
-      <div id="commentsList"></div>
+    <div class="page" id="pageHome">
+      <div class="card">
+        <div class="card-title" id="tPostTitle" style="font-size: 1.2rem; font-weight: bold; color: var(--neon-green); margin-bottom: 12px;">✍️ 发布社区动态</div>
+        <div class="form-group">
+          <textarea class="form-textarea" id="postContent" placeholder="分享你的想法..."></textarea>
+        </div>
+        
+        <div id="teamPostOptions" class="hidden" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label class="form-label" id="tSelectProd">挂载推广产品</label>
+            <select class="form-select" id="postProductSelect">
+              <option value="">-- 不挂载产品 --</option>
+            </select>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+            <input type="checkbox" id="postIsTeam"> <span id="tTeamFlag">标记为团队官方回复 (绿色高亮)</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary" onclick="app.createPost()" id="btnPost">🚀 发布内容</button>
+      </div>
+
+      <div class="card">
+        <div class="hall-header">
+          <h2 class="hall-title" id="tListTitle">🏛️ 动态列表</h2>
+        </div>
+        <div class="comments-list" id="commentsListHome"></div>
+      </div>
+    </div>
+
+    <div class="page" id="pageSettings">
+      <div class="card">
+        <h2 class="hall-title" style="margin-bottom: 20px;">⚙️ 系统个性化设置</h2>
+        <div class="form-group">
+          <label class="form-label">切换界面主题</label>
+          <select class="form-select" id="themeSelect" onchange="app.changeTheme(this.value)">
+            <option value="cyberpunk">赛博朋克 (Cyberpunk)</option>
+            <option value="engineering">工程金 (Engineering Gold)</option>
+            <option value="bluemix">深海蓝 (Bluemix)</option>
+            <option value="minimal">极简黑 (Minimal Dark)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-container">
+      <h3 class="modal-title">用户登录</h3>
+      <div class="form-group">
+        <label class="form-label">用户名</label>
+        <input type="text" class="form-input" id="loginUsername" placeholder="输入用户名">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn" onclick="app.closeModal('loginModal')">取消</button>
+        <button class="btn btn-primary" onclick="app.handleLogin()">确认登录</button>
+      </div>
     </div>
   </div>
 
   <script>
+    /* --------------------------------------------------------------------------
+       7. Supabase 客户端配置
+       -------------------------------------------------------------------------- */
     const SUPABASE_URL = 'https://zzcoetexcyadwgnicqig.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    /* --------------------------------------------------------------------------
+       8. 核心业务逻辑控制器 (PitHubApp)
+       -------------------------------------------------------------------------- */
     class PitHubApp {
       constructor() {
+        this.user = JSON.parse(localStorage.getItem('pithub_user')) || null;
         this.comments = [];
+        this.currentTheme = localStorage.getItem('pithub_theme') || 'cyberpunk';
         this.init();
       }
 
       init() {
-        this.loadComments();
-        this.listenUpdates();
+        this.applyTheme(this.currentTheme);
+        this.updateNav();
+        this.showPage(this.user ? 'home' : 'landing');
+        this.listenCloudUpdates();
+        this.loadCommentsFromCloud();
       }
 
-      async loadComments() {
+      // 主题管理
+      changeTheme(theme) {
+        this.currentTheme = theme;
+        localStorage.setItem('pithub_theme', theme);
+        this.applyTheme(theme);
+      }
+
+      applyTheme(theme) {
+        document.body.setAttribute('data-theme', theme);
+        const themeSelect = document.getElementById('themeSelect');
+        if (themeSelect) themeSelect.value = theme;
+      }
+
+      // Supabase 数据库数据同步
+      async loadCommentsFromCloud() {
         const { data, error } = await supabaseClient
           .from('comments')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) return console.error(error);
+        if (error) {
+          console.error('拉取云端评论失败:', error);
+          return;
+        }
 
         const commentMap = {};
         const mainComments = [];
 
-        data.forEach(item => { item.replies = []; commentMap[item.id] = item; });
+        data.forEach(item => {
+          item.replies = [];
+          commentMap[item.id] = item;
+        });
+
         data.forEach(item => {
           if (item.parent_id && commentMap[item.parent_id]) {
             commentMap[item.parent_id].replies.push(item);
@@ -108,80 +372,192 @@
         this.renderComments();
       }
 
-      listenUpdates() {
-        supabaseClient.channel('comments_change')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => this.loadComments())
+      listenCloudUpdates() {
+        supabaseClient
+          .channel('public:comments')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+            this.loadCommentsFromCloud();
+          })
           .subscribe();
       }
 
-      async createPost() {
-        const content = document.getElementById('postContent').value;
-        if (!content) return;
-        await supabaseClient.from('comments').insert([{ name: 'Penny', city: 'Hong Kong', avatar: '👤', content, parent_id: null }]);
-        document.getElementById('postContent').value = '';
-        this.loadComments();
-      }
-
-      async addReply(parentId) {
-        const input = document.getElementById(`replyInput-${parentId}`);
-        const content = input ? input.value : '';
-        if (!content) return;
-        await supabaseClient.from('comments').insert([{ name: 'Penny', city: 'Hong Kong', avatar: '👤', content, parent_id: parentId }]);
-        this.loadComments();
-      }
-
-      // 控制回复文本框显隐的核心函数
-      toggleReplyInput(id) {
-        const box = document.getElementById(`replyBox-${id}`);
-        if (box) {
-          if (box.style.display === 'flex') {
-            box.style.display = 'none';
-          } else {
-            box.style.display = 'flex';
-            const input = document.getElementById(`replyInput-${id}`);
-            if (input) input.focus();
-          }
-        }
-      }
-
-      renderComments() {
-        const container = document.getElementById('commentsList');
-        if (!this.comments.length) {
-          container.innerHTML = '<div style="color:var(--text-secondary);">暂无动态</div>';
-          return;
-        }
-
-        container.innerHTML = this.comments.map(c => `
-          <div class="comment-item">
-            <div class="comment-header">
-              <span class="comment-user">${c.name}</span>
-              <span>${new Date(c.created_at).toLocaleString()}</span>
-            </div>
-            <div style="margin-bottom:10px;">${c.content}</div>
-            <button class="btn btn-sm" onclick="app.toggleReplyInput(${c.id})">💬 回复 (${c.replies.length})</button>
-
-            <div class="replies-box">
-              ${c.replies.map(r => `
-                <div class="reply-item">
-                  <strong>${r.name}:</strong> ${r.content}
-                </div>
-              `).join('')}
-              
-              <div class="reply-input-box" id="replyBox-${c.id}" style="display:none;">
-                <input type="text" class="form-input" id="replyInput-${c.id}" placeholder="写下你的回复..." style="margin-bottom:0;">
-                <button class="btn btn-sm btn-primary" onclick="app.addReply(${c.id})">发送</button>
-              </div>
-            </div>
-          </div>
-        `).join('');
-      }
-
+      // 视图控制与页面导航
       showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`).classList.add('active');
+        const target = document.getElementById(`page${pageId.charAt(0).toUpperCase() + pageId.slice(1)}`);
+        if (target) target.classList.add('active');
+      }
+
+      updateNav() {
+        const navLinks = document.getElementById('navLinks');
+        if (!this.user) {
+          navLinks.innerHTML = `
+            <button class="btn btn-sm" onclick="app.showModal('loginModal')">登录</button>
+            <button class="btn btn-sm btn-primary" onclick="app.showPage('home')">Demo User</button>
+          `;
+        } else {
+          navLinks.innerHTML = `
+            <span style="color:var(--neon-green)">${this.user.name}</span>
+            <button class="btn btn-sm" onclick="app.showPage('settings')">⚙️ 设置</button>
+            <button class="btn btn-sm btn-danger" onclick="app.logout()">退出</button>
+          `;
+        }
+      }
+
+      // 弹窗控制与用户状态
+      showModal(id) { document.getElementById(id).classList.add('active'); }
+      closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+      handleLogin() {
+        const username = document.getElementById('loginUsername').value.trim();
+        if (!username) return;
+        this.user = { name: username, avatar: '👤' };
+        localStorage.setItem('pithub_user', JSON.stringify(this.user));
+        this.closeModal('loginModal');
+        this.updateNav();
+        this.showPage('home');
+      }
+
+      logout() {
+        localStorage.removeItem('pithub_user');
+        this.user = null;
+        this.updateNav();
+        this.showPage('landing');
+      }
+
+      // 发表动态
+      async createPost() {
+        const content = document.getElementById('postContent').value.trim();
+        if (!content) return;
+
+        const { error } = await supabaseClient
+          .from('comments')
+          .insert([{
+            name: this.user ? this.user.name : 'PIT Team Member',
+            city: 'HQ',
+            avatar: '⚡',
+            content,
+            is_team: true,
+            parent_id: null
+          }]);
+
+        if (error) {
+          alert('发布失败: ' + error.message);
+        } else {
+          document.getElementById('postContent').value = '';
+          this.loadCommentsFromCloud();
+        }
+      }
+
+      // 发表二级回复
+      async addReply(commentId) {
+        const input = document.getElementById(`replyInput-${commentId}`);
+        const content = input ? input.value.trim() : '';
+        if (!content) return;
+
+        const { error } = await supabaseClient
+          .from('comments')
+          .insert([{
+            name: this.user ? this.user.name : '访客',
+            city: 'Local',
+            avatar: '👤',
+            content,
+            parent_id: commentId
+          }]);
+
+        if (error) {
+          alert('回复失败: ' + error.message);
+        } else {
+          if (input) input.value = '';
+          this.loadCommentsFromCloud();
+        }
+      }
+
+      // 删除动态
+      async deleteComment(id) {
+        if (!confirm('确定要删除这条动态吗？')) return;
+
+        const { error } = await supabaseClient
+          .from('comments')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          alert('删除失败: ' + error.message);
+        } else {
+          this.loadCommentsFromCloud();
+        }
+      }
+
+      // 准确切换二级回复框 display 状态
+      toggleReplyInput(id) {
+        const box = document.getElementById(`replyBox-${id}`);
+        if (!box) return;
+
+        const computedDisplay = window.getComputedStyle(box).display;
+
+        if (computedDisplay === 'none') {
+          box.style.display = 'flex';
+          const input = document.getElementById(`replyInput-${id}`);
+          if (input) input.focus();
+        } else {
+          box.style.display = 'none';
+        }
+      }
+
+      // 动态与回复渲染
+      renderComments() {
+        const searchElem = document.getElementById('searchInput');
+        const query = searchElem ? searchElem.value.toLowerCase() : '';
+        const filtered = this.comments.filter(c => c.content.toLowerCase().includes(query) || c.name.toLowerCase().includes(query));
+
+        const html = filtered.length === 0 ? `<div class="empty-state">暂无相关动态</div>` : filtered.map(c => {
+          const repliesList = c.replies || [];
+          const timeFormatted = new Date(c.created_at).toLocaleString();
+
+          return `
+            <div class="comment-item ${c.is_team ? 'team-reply' : ''}">
+              <button class="btn-delete" onclick="app.deleteComment(${c.id})" title="删除动态">🗑️</button>
+              <div class="comment-header">
+                <div class="comment-avatar"><span>${c.avatar || '👤'}</span></div>
+                <div class="comment-meta">
+                  <div class="comment-name">${c.name} ${c.is_team ? '<span class="team-badge">TEAM</span>' : ''}</div>
+                  <div class="comment-city">📍 ${c.city}</div>
+                </div>
+                <div class="comment-time">${timeFormatted}</div>
+              </div>
+              <div class="comment-body">${c.content}</div>
+              
+              <div class="comment-actions">
+                <button class="btn btn-sm" onclick="app.toggleReplyInput(${c.id})">💬 回复 (${repliesList.length})</button>
+              </div>
+
+              <div class="replies-box">
+                ${repliesList.map(r => `
+                  <div class="reply-item">
+                    <div class="reply-header">
+                      <span class="reply-user">${r.name}</span>
+                      <span>${new Date(r.created_at).toLocaleTimeString()}</span>
+                    </div>
+                    <div>${r.content}</div>
+                  </div>
+                `).join('')}
+                
+                <div class="reply-input-box" id="replyBox-${c.id}" style="display: none;">
+                  <input type="text" class="form-input" id="replyInput-${c.id}" placeholder="写下你的回复..." style="margin-bottom: 0;">
+                  <button class="btn btn-sm btn-primary" onclick="app.addReply(${c.id})">发送</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        if (document.getElementById('commentsListLanding')) document.getElementById('commentsListLanding').innerHTML = html;
+        if (document.getElementById('commentsListHome')) document.getElementById('commentsListHome').innerHTML = html;
       }
     }
 
+    // 初始化全局应用示例
     const app = new PitHubApp();
   </script>
 </body>
