@@ -1,1102 +1,146 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PIT Hub - Peox Institute of Technology</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <!-- Supabase JS SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --neon-green: #00ff9d;
-      --neon-blue: #00d4ff;
-      --neon-pink: #ff00a0;
-      --dark-base: #0a0a0f;
-      --dark-card: #111118;
-      --dark-elevated: #1a1a24;
-      --text-primary: #e0e0e0;
-      --text-secondary: #8888a0;
-      --border-glow: rgba(0, 255, 157, 0.3);
-      --font-display: 'Orbitron', monospace;
-      --font-body: 'Noto Sans SC', 'Noto Sans TC', sans-serif;
-      --radius: 12px;
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: var(--font-body);
-      background: var(--dark-base);
-      color: var(--text-primary);
-      min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
-      transition: background 0.5s ease;
-    }
-
-    .bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; transition: var(--transition); }
-    
-    body[data-theme="cyberpunk"] {
-      background: radial-gradient(circle at 50% 50%, #1a0022 0%, #050008 100%);
-    }
-    body[data-theme="cyberpunk"] .bg-grid {
-      background-image: linear-gradient(rgba(255, 0, 160, 0.35) 2px, transparent 2px),
-                        linear-gradient(90deg, rgba(0, 255, 157, 0.35) 2px, transparent 2px);
-      background-size: 40px 40px;
-    }
-
-    body[data-theme="engineering"] {
-      background: radial-gradient(circle at 50% 50%, #2b1a00 0%, #0d0700 100%);
-    }
-    body[data-theme="engineering"] .bg-grid {
-      background-image: linear-gradient(rgba(255, 170, 0, 0.4) 2px, transparent 2px),
-                        linear-gradient(90deg, rgba(255, 170, 0, 0.4) 2px, transparent 2px);
-      background-size: 25px 25px;
-    }
-
-    body[data-theme="bluemix"] {
-      background: radial-gradient(circle at 50% 50%, #003366 0%, #000814 100%);
-    }
-    body[data-theme="bluemix"] .bg-grid {
-      background-image: linear-gradient(rgba(0, 212, 255, 0.4) 2px, transparent 2px),
-                        linear-gradient(90deg, rgba(0, 212, 255, 0.15) 2px, transparent 2px);
-      background-size: 50px 50px;
-    }
-
-    body[data-theme="minimal"] {
-      background: #000000;
-    }
-    body[data-theme="minimal"] .bg-grid { display: none; }
-
-    .bg-custom { background-size: cover; background-position: center; opacity: 0.45; transition: opacity 0.5s; }
-    .bg-overlay { background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 15, 0.75) 90%); }
-    .scanline {
-      position: fixed; inset: 0; z-index: 2; pointer-events: none;
-      background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.1) 50%);
-      background-size: 100% 4px;
-    }
-
-    .app-container { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
-
-    .top-nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 32px; background: rgba(10, 10, 15, 0.85);
-      backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-glow);
-      position: sticky; top: 0; z-index: 100;
-    }
-    .nav-brand {
-      font-family: var(--font-display); font-size: 1.5rem; font-weight: 900;
-      color: var(--neon-green); text-decoration: none; letter-spacing: 2px; cursor: pointer;
-    }
-    .nav-brand span { color: var(--neon-blue); }
-    .nav-links { display: flex; align-items: center; gap: 12px; }
-
-    .btn {
-      padding: 10px 20px; border-radius: var(--radius);
-      border: 1px solid var(--border-glow); background: transparent;
-      color: var(--text-primary); font-size: 0.9rem; cursor: pointer;
-      transition: var(--transition); font-family: inherit; display: inline-flex;
-      align-items: center; gap: 8px; text-decoration: none; justify-content: center;
-    }
-    .btn:hover { background: rgba(0, 255, 157, 0.1); border-color: var(--neon-green); box-shadow: 0 0 15px var(--border-glow); }
-    .btn-primary { background: linear-gradient(135deg, var(--neon-green), var(--neon-blue)); color: var(--dark-base); border: none; font-weight: 700; }
-    .btn-primary:hover { box-shadow: 0 0 25px rgba(0, 255, 157, 0.4); transform: translateY(-1px); }
-    .btn-danger { border-color: rgba(255, 50, 50, 0.4); color: #ff5555; }
-    .btn-danger:hover { background: rgba(255, 50, 50, 0.1); border-color: #ff5555; }
-    .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
-
-    .page { display: none; flex: 1; padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
-    .page.active { display: block; }
-
-    .card {
-      background: rgba(17, 17, 24, 0.85); border: 1px solid rgba(255,255,255,0.08);
-      backdrop-filter: blur(12px); border-radius: var(--radius); padding: 24px; margin-bottom: 20px;
-      position: relative; overflow: hidden;
-    }
-    .card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue), transparent); opacity: 0.5;
-    }
-    .card-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--neon-green); margin-bottom: 16px; }
-
-    .landing-hero { text-align: center; padding: 60px 20px 40px; }
-    .landing-hero h1 {
-      font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem);
-      font-weight: 900; color: var(--neon-green); margin-bottom: 16px; letter-spacing: 4px;
-      text-shadow: 0 0 20px rgba(0,255,157,0.3);
-    }
-    .landing-hero .subtitle { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 30px; }
-    .landing-actions { display: flex; gap: 16px; justify-content: center; margin-bottom: 40px; }
-
-    .form-group { margin-bottom: 20px; }
-    .form-label { display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; }
-    .form-input, .form-textarea, .form-select {
-      width: 100%; padding: 12px 16px; background: var(--dark-elevated);
-      border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius);
-      color: var(--text-primary); font-size: 0.95rem; outline: none; transition: var(--transition);
-    }
-    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--neon-green); box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1); }
-    .form-textarea { min-height: 100px; resize: vertical; }
-
-    .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-    .hall-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--neon-green); }
-    .search-bar { display: flex; gap: 12px; flex: 1; max-width: 500px; }
-    .comments-list { display: flex; flex-direction: column; gap: 16px; }
-    
-    .comment-item {
-      background: var(--dark-card); border: 1px solid rgba(255,255,255,0.06);
-      border-radius: var(--radius); padding: 20px; transition: var(--transition);
-      position: relative;
-    }
-    .comment-item.team-reply { border-left: 3px solid var(--neon-green); background: linear-gradient(90deg, rgba(0,255,157,0.05), transparent); }
-    .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .comment-avatar {
-      width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem; background: var(--dark-elevated); border: 1px solid var(--border-glow);
-      overflow: hidden; flex-shrink: 0;
-    }
-    .comment-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .comment-meta { flex: 1; }
-    .comment-name { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
-    .comment-city { font-size: 0.8rem; color: var(--text-secondary); }
-    .comment-time { font-size: 0.75rem; color: var(--text-secondary); margin-right: 10px; }
-    .comment-body { color: var(--text-primary); line-height: 1.6; margin-bottom: 12px; }
-
-    .comment-actions { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
-    .btn-delete {
-      position: absolute; top: 16px; right: 16px; background: transparent;
-      border: none; color: #ff5555; cursor: pointer; font-size: 1rem; opacity: 0.7; transition: var(--transition);
-    }
-    .btn-delete:hover { opacity: 1; transform: scale(1.1); }
-
-    .replies-box {
-      margin-top: 14px; padding-left: 16px; border-left: 2px solid rgba(0,255,157,0.2);
-      display: flex; flex-direction: column; gap: 10px;
-    }
-    .reply-item {
-      background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 8px;
-      font-size: 0.88rem; position: relative;
-    }
-    .reply-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; font-size: 0.8rem; color: var(--text-secondary); }
-    .reply-user { font-weight: 600; color: var(--neon-blue); }
-
-    .reply-input-box {
-      display: none; margin-top: 12px; gap: 8px;
-    }
-
-    .team-badge {
-      font-size: 0.65rem; padding: 2px 8px; background: var(--neon-green);
-      color: var(--dark-base); border-radius: 4px; font-weight: 700; text-transform: uppercase;
-    }
-    .product-badge {
-      display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px;
-      background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); border-radius: 8px;
-      margin-top: 8px; text-decoration: none; color: var(--neon-blue); font-size: 0.85rem;
-    }
-
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-      z-index: 200; display: none; align-items: center; justify-content: center; padding: 20px;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-container {
-      background: var(--dark-card); border: 1px solid var(--border-glow);
-      border-radius: var(--radius); width: 100%; max-width: 500px; padding: 28px; position: relative;
-    }
-    .modal-title { font-family: var(--font-display); font-size: 1.3rem; color: var(--neon-green); margin-bottom: 12px; text-align: center; }
-
-    .avatar-picker { display: flex; gap: 12px; align-items: center; }
-    .avatar-preview { width: 50px; height: 50px; border-radius: 50%; background: var(--dark-elevated); border: 1px solid var(--border-glow); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; overflow: hidden; flex-shrink: 0; }
-    .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
-
-    .hidden { display: none !important; }
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
-  </style>
-</head>
-<body data-theme="cyberpunk">
-
-  <div class="bg-layer bg-grid"></div>
-  <div class="bg-layer bg-custom" id="bgCustom"></div>
-  <div class="bg-layer bg-overlay"></div>
-  <div class="scanline"></div>
-
-  <div class="app-container">
-    <nav class="top-nav">
-      <a class="nav-brand" onclick="app.showPage('landing')">PIT<span>HUB</span></a>
-      <div class="nav-links" id="navLinks"></div>
-    </nav>
-
-    <!-- LANDING PAGE -->
-    <div class="page active" id="pageLanding">
-      <div class="landing-hero">
-        <h1>PEOX INSTITUTE OF TECHNOLOGY</h1>
-        <p class="subtitle" id="tSubtitle">PIT Hub 赛博朋克公共社区大厅</p>
-        <div class="landing-actions" id="landingAuthBtns">
-          <button class="btn btn-primary" onclick="app.startWizard('signin')" id="btnSignIn">🔐 登录 (Sign In)</button>
-          <button class="btn" onclick="app.startWizard('signup')" id="btnSignUp">✨ 创建账号 (Create Account)</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="hall-header">
-          <h2 class="hall-title" id="tHallTitle">🏛️ 社区大厅</h2>
-          <div class="search-bar">
-            <input type="text" class="form-input" id="searchInput" placeholder="搜索内容..." oninput="app.renderComments()">
-          </div>
-        </div>
-        <div class="comments-list" id="commentsListLanding"></div>
-      </div>
-    </div>
-
-    <!-- HOME PAGE -->
-    <div class="page" id="pageHome">
-      <div class="card">
-        <div class="card-title" id="tPostTitle">✍️ 发布社区动态</div>
-        <div class="form-group">
-          <textarea class="form-textarea" id="postContent" placeholder="分享你的想法..."></textarea>
-        </div>
-        
-        <div id="teamPostOptions" class="hidden" style="margin-bottom:16px;">
-          <div class="form-group">
-            <label class="form-label" id="tSelectProd">挂载推广产品</label>
-            <select class="form-select" id="postProductSelect">
-              <option value="">-- 不挂载产品 --</option>
-            </select>
-          </div>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
-            <input type="checkbox" id="postIsTeam"> <span id="tTeamFlag">标记为团队官方回复 (绿色高亮)</span>
-          </label>
-        </div>
-
-        <button class="btn btn-primary" onclick="app.createPost()" id="btnPost">🚀 发布内容</button>
-      </div>
-
-      <div class="card">
-        <div class="hall-header">
-          <h2 class="hall-title" id="tListTitle">🏛️ 动态列表</h2>
-        </div>
-        <div class="comments-list" id="commentsListHome"></div>
-      </div>
-    </div>
-
-    <!-- PROFILE PAGE -->
-    <div class="page" id="pageProfile">
-      <div class="card">
-        <div class="card-title" id="tProfileTitle">👤 我的个人信息</div>
-        <div class="form-group">
-          <label class="form-label" id="tNameLabel">用户昵称</label>
-          <input type="text" class="form-input" id="profileName">
-        </div>
-        <div class="form-group">
-          <label class="form-label" id="tCityLabel">所在城市</label>
-          <input type="text" class="form-input" id="profileCity">
-        </div>
-        <div class="form-group">
-          <label class="form-label" id="tAvatarLabel">虚拟头像 (支持Emoji或上传本地图片)</label>
-          <div class="avatar-picker">
-            <div class="avatar-preview" id="profileAvatarPreview">👤</div>
-            <input type="text" class="form-input" id="profileAvatarText" placeholder="输入 Emoji (例如 🍎/🤖)" oninput="app.updateAvatarPreview('profile')">
-            <button class="btn btn-sm" onclick="document.getElementById('profileAvatarFile').click()" id="btnUploadAvatar">📁 本地选择</button>
-            <input type="file" id="profileAvatarFile" class="hidden" accept="image/*" onchange="app.handleFileUpload(event, 'profile')">
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label" id="tThemeLabel">选择背景主题风格</label>
-          <select class="form-select" id="profileThemeSelect" onchange="app.changeTheme(this.value)"></select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">🖥️ 从电脑上传自定义背景图片</label>
-          <div style="display:flex;gap:12px;align-items:center;">
-            <button class="btn btn-sm" onclick="document.getElementById('customBgFile').click()">🖼️ 选择电脑上的图片</button>
-            <input type="file" id="customBgFile" class="hidden" accept="image/*" onchange="app.handleBgUpload(event)">
-            <span id="bgUploadStatus" style="font-size:0.85rem;color:var(--text-secondary);">未选择图片</span>
-          </div>
-        </div>
-
-        <button class="btn btn-primary" onclick="app.saveProfile()" id="btnSaveProfile">💾 保存设置</button>
-      </div>
-
-      <div class="card hidden" id="teamBgCard">
-        <div class="card-title" id="tCustomBgTitle">🎨 全站自定义背景图片 URL (PIT Team 专属)</div>
-        <div class="form-group">
-          <label class="form-label" id="tBgUrlLabel">背景图片 URL</label>
-          <input type="text" class="form-input" id="customBgUrl" placeholder="https://example.com/image.jpg">
-        </div>
-        <button class="btn btn-primary" onclick="app.saveCustomBg()" id="btnApplyBg">🎨 应用全站背景图</button>
-      </div>
-    </div>
-
-    <!-- EDIT PANEL (Team Only) -->
-    <div class="page" id="pageEdit">
-      <div class="card">
-        <div class="card-title" id="formProductTitle">⚙️ PIT Team 产品管理面板</div>
-        <input type="hidden" id="editProductId">
-        <div class="form-group">
-          <label class="form-label">产品名称</label>
-          <input type="text" class="form-input" id="prodName">
-        </div>
-        <div class="form-group">
-          <label class="form-label">产品价格</label>
-          <input type="text" class="form-input" id="prodPrice" placeholder="例如: $59.99">
-        </div>
-        <div class="form-group">
-          <label class="form-label">促销标签</label>
-          <input type="text" class="form-input" id="prodBadge" placeholder="例如: 90% off">
-        </div>
-        <div class="form-group">
-          <label class="form-label">跳转链接</label>
-          <input type="text" class="form-input" id="prodLink" placeholder="https://...">
-        </div>
-        <div style="display:flex;gap:12px;">
-          <button class="btn btn-primary" onclick="app.saveProduct()" id="btnSaveProd">➕ 保存产品</button>
-          <button class="btn hidden" onclick="app.cancelProductEdit()" id="btnCancelProd">取消编辑</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">📦 已上架产品清单</div>
-        <div id="productsContainer"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WIZARD MODAL -->
-  <div class="modal-overlay" id="wizardModal">
-    <div class="modal-container">
-      <div id="wizardStep0">
-        <h3 class="modal-title">Step 0: 选择语言 / Select Language</h3>
-        <div class="form-group">
-          <select class="form-select" id="wizardLang" onchange="app.onLanguageChange(this.value)">
-            <option value="zh-CN">简体中文</option>
-            <option value="zh-HK">繁體中文 (廣東話)</option>
-            <option value="zh-TW">繁體中文 (普通話)</option>
-            <option value="en">English</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" style="width:100%" onclick="app.nextWizardStep(1)" id="btnWizNext0">下一步 (Next)</button>
-      </div>
-
-      <div id="wizardStep1" class="hidden">
-        <h3 class="modal-title" id="tWizStep1Title">Step 1: 选择身份</h3>
-        <div style="display:flex;gap:12px;margin-bottom:20px;">
-          <button class="btn" style="flex:1" onclick="app.completeWizard('visitor')" id="btnWizVisitor">🤖 访客 (Visitor)</button>
-          <button class="btn btn-primary" style="flex:1" onclick="app.completeWizard('team')" id="btnWizTeam">⚡ PIT Team</button>
-        </div>
-      </div>
-
-      <div id="wizardStepVisitor" class="hidden">
-        <h3 class="modal-title" id="tWizVisTitle">完善访客信息</h3>
-        <div class="form-group">
-          <label class="form-label" id="tWizVisNameLabel">虚拟姓名</label>
-          <input type="text" class="form-input" id="wizName" placeholder="例如: Neo">
-        </div>
-        <div class="form-group">
-          <label class="form-label" id="tWizVisCityLabel">所在城市</label>
-          <input type="text" class="form-input" id="wizCity" placeholder="例如: Cyber City">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" id="tWizAvatarLabel">头像 (Emoji 或 本地图片)</label>
-          <div class="avatar-picker">
-            <div class="avatar-preview" id="wizAvatarPreview">🤖</div>
-            <input type="text" class="form-input" id="wizAvatarText" placeholder="Emoji 🍎/🤖" oninput="app.updateAvatarPreview('wiz')">
-            <button class="btn btn-sm" onclick="document.getElementById('wizAvatarFile').click()" id="btnWizUpload">📁 选择文件</button>
-            <input type="file" id="wizAvatarFile" class="hidden" accept="image/*" onchange="app.handleFileUpload(event, 'wiz')">
-          </div>
-        </div>
-
-        <button class="btn btn-primary" style="width:100%" onclick="app.finishVisitorReg()" id="btnWizFinish">进入大厅</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- LOGOUT MODAL -->
-  <div class="modal-overlay" id="logoutModal">
-    <div class="modal-container">
-      <h3 class="modal-title" id="tLogoutTitle">确认退出登录？</h3>
-      <p style="text-align:center;color:var(--text-secondary);margin-bottom:20px;" id="tLogoutDesc">退出后将返回公开大厅状态。</p>
-      <div style="display:flex;gap:12px;justify-content:center;">
-        <button class="btn btn-danger" onclick="app.confirmLogout(true)" id="btnLogoutYes">Yes (退出)</button>
-        <button class="btn" onclick="app.confirmLogout(false)" id="btnLogoutNo">No (取消)</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SUPABASE_URL = 'https://zzcoetexcyadwgnicqig.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_7SDkgJLqXBH53o9LrHNIXQ_JzO553i8';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    const i18nDict = {
-      'zh-CN': {
-        subtitle: 'PIT Hub 赛博朋克公共社区大厅',
-        signIn: '🔐 登录 (Sign In)',
-        signUp: '✨ 创建账号 (Create Account)',
-        hallTitle: '🏛️ 社区大厅',
-        postTitle: '✍️ 发布社区动态',
-        selectProd: '挂载推广产品',
-        teamFlag: '标记为团队官方回复 (绿色高亮)',
-        btnPost: '🚀 发布内容',
-        listTitle: '🏛️ 动态列表',
-        profileTitle: '👤 我的个人信息',
-        nameLabel: '用户昵称',
-        cityLabel: '所在城市',
-        avatarLabel: '虚拟头像 (支持Emoji或上传本地图片)',
-        uploadBtn: '📁 本地选择',
-        themeLabel: '选择背景主题风格 (夸张渐变)',
-        saveProfile: '💾 保存设置',
-        customBgTitle: '🎨 全站自定义背景图片 URL (PIT Team 专属)',
-        bgUrlLabel: '背景图片 URL',
-        applyBg: '🎨 应用全站背景图',
-        wizNext: '下一步 (Next)',
-        wizStep1Title: 'Step 1: 选择身份',
-        wizVisitor: '🤖 访客 (Visitor)',
-        wizTeam: '⚡ PIT Team',
-        wizVisTitle: '完善访客信息',
-        wizVisName: '虚拟姓名',
-        wizVisCity: '所在城市',
-        wizVisAvatar: '头像 (Emoji 或 本地图片)',
-        wizFinish: '进入大厅',
-        logoutTitle: '确认退出登录？',
-        logoutDesc: '退出后将返回公开大厅状态。',
-        logoutYes: 'Yes (退出)',
-        logoutNo: 'No (取消)',
-        themes: {
-          cyberpunk: '赛博朋克风 (高强霓虹)',
-          engineering: '工程风 (金黄网格)',
-          bluemix: '深蓝浅蓝 (电光极光)',
-          minimal: '简约风 (纯黑高对比)'
-        }
-      },
-      'zh-HK': {
-        subtitle: 'PIT Hub 賽博朋克公共社區大廳',
-        signIn: '🔐 登入 (Sign In)',
-        signUp: '✨ 建立帳戶 (Create Account)',
-        hallTitle: '🏛️ 社區大廳',
-        postTitle: '✍️ 發佈社區動態',
-        selectProd: '掛載推廣產品',
-        teamFlag: '標記為團隊官方回覆 (綠色高亮)',
-        btnPost: '🚀 發佈內容',
-        listTitle: '🏛️ 動態列表',
-        profileTitle: '👤 我的個人資訊',
-        nameLabel: '用戶暱稱',
-        cityLabel: '所在城市',
-        avatarLabel: '虛擬頭像 (支援Emoji或上傳本地圖片)',
-        uploadBtn: '📁 本地選擇',
-        themeLabel: '選擇背景主題風格 (誇張漸變)',
-        saveProfile: '💾 儲存設定',
-        customBgTitle: '🎨 全站自訂背景圖片 URL (PIT Team 專屬)',
-        bgUrlLabel: '背景圖片 URL',
-        applyBg: '🎨 應用全站背景圖',
-        wizNext: '下一步 (Next)',
-        wizStep1Title: 'Step 1: 選擇身份',
-        wizVisitor: '🤖 訪客 (Visitor)',
-        wizTeam: '⚡ PIT Team',
-        wizVisTitle: '完善訪客資訊',
-        wizVisName: '虛擬姓名',
-        wizVisCity: '所在城市',
-        wizVisAvatar: '頭像 (Emoji 或 本地圖片)',
-        wizFinish: '進入大廳',
-        logoutTitle: '確認登出？',
-        logoutDesc: '登出後將返回公開大廳狀態。',
-        logoutYes: 'Yes (登出)',
-        logoutNo: 'No (取消)',
-        themes: {
-          cyberpunk: '賽博朋克風 (高強霓虹)',
-          engineering: '工程風 (金黃網格)',
-          bluemix: '深藍淺藍 (電光極光)',
-          minimal: '簡約風 (純黑高對比)'
-        }
-      },
-      'zh-TW': {
-        subtitle: 'PIT Hub 賽博朋克社區大廳',
-        signIn: '🔐 登入 (Sign In)',
-        signUp: '✨ 建立帳號 (Create Account)',
-        hallTitle: '🏛️ 社區大廳',
-        postTitle: '✍️ 發布社區動態',
-        selectProd: '掛載推廣產品',
-        teamFlag: '標記為團隊官方回覆 (綠色高亮)',
-        btnPost: '🚀 發布內容',
-        listTitle: '🏛️ 動態列表',
-        profileTitle: '👤 我的個人資訊',
-        nameLabel: '使用者暱稱',
-        cityLabel: '所在城市',
-        avatarLabel: '虛擬頭像 (支援Emoji或上傳本地圖片)',
-        uploadBtn: '📁 本地選擇',
-        themeLabel: '選擇背景主題風格 (誇張漸變)',
-        saveProfile: '💾 儲存設定',
-        customBgTitle: '🎨 全站自訂背景圖片 URL (PIT Team 專屬)',
-        bgUrlLabel: '背景圖片 URL',
-        applyBg: '🎨 應用全站背景圖',
-        wizNext: '下一步 (Next)',
-        wizStep1Title: 'Step 1: 選擇身份',
-        wizVisitor: '🤖 訪客 (Visitor)',
-        wizTeam: '⚡ PIT Team',
-        wizVisTitle: '完善訪客資訊',
-        wizVisName: '虛擬姓名',
-        wizVisCity: '所在城市',
-        wizVisAvatar: '頭像 (Emoji 或 本地圖片)',
-        wizFinish: '進入大廳',
-        logoutTitle: '確認登出？',
-        logoutDesc: '登出後將返回公開大廳狀態。',
-        logoutYes: 'Yes (登出)',
-        logoutNo: 'No (取消)',
-        themes: {
-          cyberpunk: '賽博朋克風 (高強霓虹)',
-          engineering: '工程風 (金黃網格)',
-          bluemix: '深藍淺藍 (電光極光)',
-          minimal: '簡約風 (純黑高對比)'
-        }
-      },
-      'en': {
-        subtitle: 'PIT Hub Cyberpunk Community Hall',
-        signIn: '🔐 Sign In',
-        signUp: '✨ Create Account',
-        hallTitle: '🏛️ Community Hall',
-        postTitle: '✍️ Create Post',
-        selectProd: 'Attach Product',
-        teamFlag: 'Mark as Team Reply (Green Highlight)',
-        btnPost: '🚀 Post Now',
-        listTitle: '🏛️ Activity Feed',
-        profileTitle: '👤 My Profile',
-        nameLabel: 'Nickname',
-        cityLabel: 'City',
-        avatarLabel: 'Avatar (Emoji or Upload Image)',
-        uploadBtn: '📁 Upload File',
-        themeLabel: 'Select Background Theme (Extreme)',
-        saveProfile: '💾 Save Profile',
-        customBgTitle: '🎨 Custom Background URL (PIT Team Only)',
-        bgUrlLabel: 'Background Image URL',
-        applyBg: '🎨 Apply Background',
-        wizNext: 'Next',
-        wizStep1Title: 'Step 1: Select Identity',
-        wizVisitor: '🤖 Visitor',
-        wizTeam: '⚡ PIT Team',
-        wizVisTitle: 'Complete Visitor Profile',
-        wizVisName: 'Virtual Name',
-        wizVisCity: 'City',
-        wizVisAvatar: 'Avatar (Emoji or Image)',
-        wizFinish: 'Enter Hall',
-        logoutTitle: 'Confirm Sign Out?',
-        logoutDesc: 'You will return to the public hall state.',
-        logoutYes: 'Yes (Sign Out)',
-        logoutNo: 'No (Cancel)',
-        themes: {
-          cyberpunk: 'Cyberpunk (Neon Pulse)',
-          engineering: 'Engineering (Golden Grid)',
-          bluemix: 'Blue Gradient (Electro Blue)',
-          minimal: 'Minimalist (Pure Black)'
-        }
-      }
-    };
-
-    class PitHubApp {
-      constructor() {
-        this.lang = localStorage.getItem('pithub_lang') || 'zh-CN';
-        this.user = JSON.parse(localStorage.getItem('pithub_user')) || null;
-        this.theme = localStorage.getItem('pithub_theme') || 'cyberpunk';
-        this.customBg = localStorage.getItem('pithub_bg') || '';
-        this.tempAvatarData = { profile: null, wiz: null };
-
-        this.comments = [];
-        this.products = JSON.parse(localStorage.getItem('pithub_products')) || [
-          { id: 101, name: 'PhoneBox', price: '$59.99', badge: '90% off', link: '#' }
-        ];
-
-        this.init();
-      }
-
-      init() {
-        this.applyTheme(this.theme);
-        this.applyCustomBg();
-        this.updateLanguageUI();
-        this.updateNav();
-        this.renderProducts();
-        this.showPage(this.user ? 'home' : 'landing');
-
-        this.listenCloudUpdates();
-        this.loadCommentsFromCloud();
-      }
-
-      async loadCommentsFromCloud() {
-        const { data, error } = await supabaseClient
-          .from('comments')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('拉取云端评论失败:', error);
-          return;
-        }
-
-        const commentMap = {};
-        const mainComments = [];
-
-        data.forEach(item => {
-          item.replies = [];
-          commentMap[item.id] = item;
-        });
-
-        data.forEach(item => {
-          if (item.parent_id && commentMap[item.parent_id]) {
-            commentMap[item.parent_id].replies.push(item);
-          } else if (!item.parent_id) {
-            mainComments.push(item);
-          }
-        });
-
-        this.comments = mainComments;
-        this.renderComments();
-      }
-
-      listenCloudUpdates() {
-        supabaseClient
-          .channel('public:comments')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
-            this.loadCommentsFromCloud();
-          })
-          .subscribe();
-      }
-
-      onLanguageChange(lang) {
-        this.lang = lang;
-        localStorage.setItem('pithub_lang', lang);
-        this.updateLanguageUI();
-      }
-
-      updateLanguageUI() {
-        const dict = i18nDict[this.lang] || i18nDict['zh-CN'];
-        
-        document.getElementById('tSubtitle').innerText = dict.subtitle;
-        document.getElementById('btnSignIn').innerText = dict.signIn;
-        document.getElementById('btnSignUp').innerText = dict.signUp;
-        document.getElementById('tHallTitle').innerText = dict.hallTitle;
-        document.getElementById('tPostTitle').innerText = dict.postTitle;
-        document.getElementById('tSelectProd').innerText = dict.selectProd;
-        document.getElementById('tTeamFlag').innerText = dict.teamFlag;
-        document.getElementById('btnPost').innerText = dict.btnPost;
-        document.getElementById('tListTitle').innerText = dict.listTitle;
-        document.getElementById('tProfileTitle').innerText = dict.profileTitle;
-        document.getElementById('tNameLabel').innerText = dict.nameLabel;
-        document.getElementById('tCityLabel').innerText = dict.cityLabel;
-        document.getElementById('tAvatarLabel').innerText = dict.avatarLabel;
-        document.getElementById('btnUploadAvatar').innerText = dict.uploadBtn;
-        document.getElementById('tThemeLabel').innerText = dict.themeLabel;
-        document.getElementById('btnSaveProfile').innerText = dict.saveProfile;
-        document.getElementById('tCustomBgTitle').innerText = dict.customBgTitle;
-        document.getElementById('tBgUrlLabel').innerText = dict.bgUrlLabel;
-        document.getElementById('btnApplyBg').innerText = dict.applyBg;
-
-        document.getElementById('btnWizNext0').innerText = dict.wizNext;
-        document.getElementById('tWizStep1Title').innerText = dict.wizStep1Title;
-        document.getElementById('btnWizVisitor').innerText = dict.wizVisitor;
-        document.getElementById('btnWizTeam').innerText = dict.wizTeam;
-        document.getElementById('tWizVisTitle').innerText = dict.wizVisTitle;
-        document.getElementById('tWizVisNameLabel').innerText = dict.wizVisName;
-        document.getElementById('tWizVisCityLabel').innerText = dict.wizVisCity;
-        document.getElementById('tWizAvatarLabel').innerText = dict.wizVisAvatar;
-        document.getElementById('btnWizUpload').innerText = dict.uploadBtn;
-        document.getElementById('btnWizFinish').innerText = dict.wizFinish;
-
-        document.getElementById('tLogoutTitle').innerText = dict.logoutTitle;
-        document.getElementById('tLogoutDesc').innerText = dict.logoutDesc;
-        document.getElementById('btnLogoutYes').innerText = dict.logoutYes;
-        document.getElementById('btnLogoutNo').innerText = dict.logoutNo;
-
-        const themeSelect = document.getElementById('profileThemeSelect');
-        themeSelect.innerHTML = `
-          <option value="cyberpunk" ${this.theme==='cyberpunk'?'selected':''}>${dict.themes.cyberpunk}</option>
-          <option value="engineering" ${this.theme==='engineering'?'selected':''}>${dict.themes.engineering}</option>
-          <option value="bluemix" ${this.theme==='bluemix'?'selected':''}>${dict.themes.bluemix}</option>
-          <option value="minimal" ${this.theme==='minimal'?'selected':''}>${dict.themes.minimal}</option>
-        `;
-
-        document.getElementById('wizardLang').value = this.lang;
-      }
-
-      changeTheme(themeKey) {
-        this.theme = themeKey;
-        localStorage.setItem('pithub_theme', themeKey);
-        this.applyTheme(themeKey);
-      }
-
-      applyTheme(themeKey) {
-        document.body.setAttribute('data-theme', themeKey);
-        this.applyCustomBg();
-      }
-
-      applyCustomBg() {
-        const bgEl = document.getElementById('bgCustom');
-        if (this.customBg) {
-          bgEl.style.backgroundImage = `url('${this.customBg}')`;
-          bgEl.style.display = 'block';
-        } else {
-          bgEl.style.backgroundImage = 'none';
-          bgEl.style.display = 'none';
-        }
-      }
-
-      startWizard(type) {
-        const modal = document.getElementById('wizardModal');
-        document.getElementById('wizardStep0').classList.remove('hidden');
-        document.getElementById('wizardStep1').classList.add('hidden');
-        document.getElementById('wizardStepVisitor').classList.add('hidden');
-        modal.classList.add('active');
-      }
-
-      nextWizardStep(step) {
-        if (step === 1) {
-          document.getElementById('wizardStep0').classList.add('hidden');
-          document.getElementById('wizardStep1').classList.remove('hidden');
-        }
-      }
-
-      completeWizard(role) {
-        if (role === 'team') {
-          const password = prompt('请输入 PIT Team 管理员密码:');
-          if (password === 'pit123' || password === 'admin') {
-            this.user = { role: 'team', name: 'PIT Official', city: 'Base HQ', avatar: '⚡' };
-            localStorage.setItem('pithub_user', JSON.stringify(this.user));
-            document.getElementById('wizardModal').classList.remove('active');
-            this.updateNav();
-            this.showPage('home');
-          } else {
-            alert('密码错误！');
-          }
-        } else {
-          document.getElementById('wizardStep1').classList.add('hidden');
-          document.getElementById('wizardStepVisitor').classList.remove('hidden');
-        }
-      }
-
-      finishVisitorReg() {
-        const name = document.getElementById('wizName').value.trim() || 'Visitor_' + Math.floor(Math.random()*1000);
-        const city = document.getElementById('wizCity').value.trim() || 'Cyberspace';
-        const avatar = this.tempAvatarData.wiz || document.getElementById('wizAvatarText').value.trim() || '🤖';
-
-        this.user = { role: 'visitor', name, city, avatar };
-        localStorage.setItem('pithub_user', JSON.stringify(this.user));
-        document.getElementById('wizardModal').classList.remove('active');
-        this.updateNav();
-        this.showPage('home');
-      }
-
-      updateNav() {
-        const nav = document.getElementById('navLinks');
-        if (!this.user) {
-          nav.innerHTML = `
-            <button class="btn btn-sm" onclick="app.showPage('landing')">🏛️ 社区大厅</button>
-            <button class="btn btn-primary btn-sm" onclick="app.startWizard('signin')">🔐 登录</button>
-          `;
-          document.getElementById('teamPostOptions')?.classList.add('hidden');
-          document.getElementById('teamBgCard')?.classList.add('hidden');
-        } else {
-          let extraLinks = '';
-          if (this.user.role === 'team') {
-            extraLinks = `<button class="btn btn-sm" onclick="app.showPage('edit')">⚙️ PIT Panel</button>`;
-            document.getElementById('teamPostOptions')?.classList.remove('hidden');
-            document.getElementById('teamBgCard')?.classList.remove('hidden');
-          } else {
-            document.getElementById('teamPostOptions')?.classList.add('hidden');
-            document.getElementById('teamBgCard')?.classList.add('hidden');
-          }
-
-          nav.innerHTML = `
-            <button class="btn btn-sm" onclick="app.showPage('home')">🏠 动态首页</button>
-            <button class="btn btn-sm" onclick="app.showPage('profile')">👤 ${this.user.name}</button>
-            ${extraLinks}
-            <button class="btn btn-danger btn-sm" onclick="app.openLogoutModal()">🚪 退出</button>
-          `;
-
-          // Fill Profile Form
-          document.getElementById('profileName').value = this.user.name || '';
-          document.getElementById('profileCity').value = this.user.city || '';
-          this.renderAvatarPreview('profileAvatarPreview', this.user.avatar || '👤');
-        }
-      }
-
-      showPage(pageId) {
-        const pages = document.querySelectorAll('.page');
-        pages.forEach(p => p.classList.remove('active'));
-
-        const target = document.getElementById('page' + pageId.charAt(0).toUpperCase() + pageId.slice(1));
-        if (target) target.classList.add('active');
-
-        this.renderComments();
-      }
-
-      openLogoutModal() {
-        document.getElementById('logoutModal').classList.add('active');
-      }
-
-      confirmLogout(confirm) {
-        document.getElementById('logoutModal').classList.remove('active');
-        if (confirm) {
-          this.user = null;
-          localStorage.removeItem('pithub_user');
-          this.updateNav();
-          this.showPage('landing');
-        }
-      }
-
-      updateAvatarPreview(type) {
-        const text = document.getElementById(type + 'AvatarText').value.trim();
-        if (text) {
-          this.tempAvatarData[type] = null;
-          this.renderAvatarPreview(type + 'AvatarPreview', text);
-        }
-      }
-
-      handleFileUpload(event, type) {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.tempAvatarData[type] = e.target.result;
-            this.renderAvatarPreview(type + 'AvatarPreview', e.target.result);
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-
-      handleBgUpload(event) {
-        const file = event.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.customBg = e.target.result;
-            localStorage.setItem('pithub_bg', this.customBg);
-            this.applyCustomBg();
-            document.getElementById('bgUploadStatus').innerText = '已应用本地自定义图片';
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-
-      renderAvatarPreview(containerId, avatarValue) {
-        const container = document.getElementById(containerId);
-        if (!container) return;
-        if (avatarValue && avatarValue.startsWith('data:image')) {
-          container.innerHTML = `<img src="${avatarValue}" alt="avatar">`;
-        } else {
-          container.innerText = avatarValue || '👤';
-        }
-      }
-
-      async createPost() {
-        if (!this.user) return alert('请先登录！');
-        const content = document.getElementById('postContent').value.trim();
-        if (!content) return alert('请输入动态内容！');
-
-        const isTeam = document.getElementById('postIsTeam')?.checked || (this.user.role === 'team');
-        const prodId = document.getElementById('postProductSelect')?.value;
-        const attachedProd = this.products.find(p => p.id == prodId);
-
-        const newComment = {
-          name: this.user.name,
-          city: this.user.city,
-          avatar: this.user.avatar,
-          content,
-          is_team: isTeam,
-          product_name: attachedProd ? attachedProd.name : null,
-          product_link: attachedProd ? attachedProd.link : null
-        };
-
-        const { error } = await supabaseClient.from('comments').insert([newComment]);
-        if (error) {
-          alert('发布失败: ' + error.message);
-        } else {
-          document.getElementById('postContent').value = '';
-          this.loadCommentsFromCloud();
-        }
-      }
-
-      async addReply(commentId) {
-        const input = document.getElementById(`replyInput-${commentId}`);
-        const content = input ? input.value.trim() : '';
-        if (!content) return;
-
-        const { error } = await supabaseClient
-          .from('comments')
-          .insert([{
-            name: this.user ? this.user.name : '访客',
-            city: this.user ? (this.user.city || 'Local') : 'Local',
-            avatar: this.user ? (this.user.avatar || '👤') : '👤',
-            content,
-            parent_id: commentId
-          }]);
-
-        if (error) {
-          alert('回复失败: ' + error.message);
-        } else {
-          input.value = '';
-          const box = document.getElementById(`replyBox-${commentId}`);
-          if (box) box.style.display = 'none';
-          this.loadCommentsFromCloud();
-        }
-      }
-
-      toggleReplyInput(id) {
-        const box = document.getElementById(`replyBox-${id}`);
-        if (box) {
-          const currentDisplay = window.getComputedStyle(box).display;
-          if (currentDisplay === 'none') {
-            box.style.setProperty('display', 'flex', 'important');
-            const input = document.getElementById(`replyInput-${id}`);
-            if (input) input.focus();
-          } else {
-            box.style.setProperty('display', 'none', 'important');
-          }
-        }
-      }
-
-      async deleteComment(id) {
-        if (!confirm('确定要删除这条动态吗？')) return;
-        const { error } = await supabaseClient.from('comments').delete().eq('id', id);
-        if (error) alert('删除失败: ' + error.message);
-        else this.loadCommentsFromCloud();
-      }
-
-      renderComments() {
-        const query = (document.getElementById('searchInput')?.value || '').toLowerCase();
-        const filtered = this.comments.filter(c => c.content && c.content.toLowerCase().includes(query));
-
-        const html = filtered.map(item => {
-          const isTeamClass = item.is_team ? 'team-reply' : '';
-          const teamBadgeHtml = item.is_team ? `<span class="team-badge">OFFICIAL</span>` : '';
-          const avatarHtml = (item.avatar && item.avatar.startsWith('data:image')) 
-            ? `<img src="${item.avatar}">` 
-            : (item.avatar || '👤');
-
-          const deleteBtn = (this.user && this.user.role === 'team') 
-            ? `<button class="btn-delete" onclick="app.deleteComment(${item.id})">🗑️</button>` : '';
-
-          const productHtml = item.product_name 
-            ? `<a href="${item.product_link || '#'}" target="_blank" class="product-badge">🛍️ ${item.product_name}</a>` : '';
-
-          const repliesHtml = (item.replies || []).map(r => `
-            <div class="reply-item">
-              <div class="reply-header">
-                <span class="reply-user">${r.name} (${r.city || 'Local'})</span>
-                <span class="comment-time">${new Date(r.created_at).toLocaleString()}</span>
-              </div>
-              <div>${r.content}</div>
-            </div>
-          `).join('');
-
-          return `
-            <div class="comment-item ${isTeamClass}">
-              ${deleteBtn}
-              <div class="comment-header">
-                <div class="comment-avatar">${avatarHtml}</div>
-                <div class="comment-meta">
-                  <div class="comment-name">${item.name} ${teamBadgeHtml}</div>
-                  <div class="comment-city">📍 ${item.city || 'Cyberspace'}</div>
-                </div>
-                <span class="comment-time">${new Date(item.created_at).toLocaleString()}</span>
-              </div>
-              <div class="comment-body">${item.content}</div>
-              ${productHtml}
-              
-              <div class="comment-actions">
-                <button class="btn btn-sm" onclick="app.toggleReplyInput(${item.id})">💬 回复</button>
-              </div>
-
-              <div class="reply-input-box" id="replyBox-${item.id}">
-                <input type="text" class="form-input" id="replyInput-${item.id}" placeholder="输入回复内容...">
-                <button class="btn btn-primary btn-sm" onclick="app.addReply(${item.id})">发送</button>
-              </div>
-
-              ${repliesHtml ? `<div class="replies-box">${repliesHtml}</div>` : ''}
-            </div>
-          `;
-        }).join('') || `<div class="empty-state">暂无相关动态</div>`;
-
-        const containerLanding = document.getElementById('commentsListLanding');
-        const containerHome = document.getElementById('commentsListHome');
-        if (containerLanding) containerLanding.innerHTML = html;
-        if (containerHome) containerHome.innerHTML = html;
-      }
-
-      saveProfile() {
-        if (!this.user) return;
-        this.user.name = document.getElementById('profileName').value.trim() || this.user.name;
-        this.user.city = document.getElementById('profileCity').value.trim() || this.user.city;
-        if (this.tempAvatarData.profile) {
-          this.user.avatar = this.tempAvatarData.profile;
-        } else {
-          const txt = document.getElementById('profileAvatarText').value.trim();
-          if (txt) this.user.avatar = txt;
-        }
-
-        localStorage.setItem('pithub_user', JSON.stringify(this.user));
-        this.updateNav();
-        alert('个人设置保存成功！');
-      }
-
-      saveCustomBg() {
-        const url = document.getElementById('customBgUrl').value.trim();
-        this.customBg = url;
-        localStorage.setItem('pithub_bg', url);
-        this.applyCustomBg();
-        alert('全站背景图设置成功！');
-      }
-
-      renderProducts() {
-        const select = document.getElementById('postProductSelect');
-        if (select) {
-          select.innerHTML = '<option value="">-- 不挂载产品 --</option>' +
-            this.products.map(p => `<option value="${p.id}">${p.name} (${p.price})</option>`).join('');
-        }
-
-        const container = document.getElementById('productsContainer');
-        if (container) {
-          container.innerHTML = this.products.map(p => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
-              <div>
-                <strong>${p.name}</strong> - <span style="color:var(--neon-green)">${p.price}</span>
-                <span class="team-badge">${p.badge}</span>
-              </div>
-              <button class="btn btn-danger btn-sm" onclick="app.deleteProduct(${p.id})">删除</button>
-            </div>
-          `).join('');
-        }
-      }
-
-      saveProduct() {
-        const name = document.getElementById('prodName').value.trim();
-        const price = document.getElementById('prodPrice').value.trim();
-        const badge = document.getElementById('prodBadge').value.trim();
-        const link = document.getElementById('prodLink').value.trim();
-
-        if (!name) return alert('请填入产品名称');
-
-        const newProd = { id: Date.now(), name, price, badge, link };
-        this.products.push(newProd);
-        localStorage.setItem('pithub_products', JSON.stringify(this.products));
-
-        document.getElementById('prodName').value = '';
-        document.getElementById('prodPrice').value = '';
-        document.getElementById('prodBadge').value = '';
-        document.getElementById('prodLink').value = '';
-
-        this.renderProducts();
-        alert('产品已上架！');
-      }
-
-      deleteProduct(id) {
-        this.products = this.products.filter(p => p.id !== id);
-        localStorage.setItem('pithub_products', JSON.stringify(this.products));
-        this.renderProducts();
-      }
-    }
-
-    // 全局实例化并暴露
-    const app = new PitHubApp();
-    window.app = app;
-  </script>
-</body>
-</html>
+<!doctype html>
+<html lang="en" translate="no"><head><meta charset="utf-8"><meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily Quest</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--ink:#2b2540;--mut:#6d6786;--card:rgba(255,255,255,.95);--ac:#2563eb;--ok:#1f9d63}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;min-height:100vh;background:#0b4a8f}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px 90px;position:relative}
+h1{font-size:22px;margin:4px 0 2px}.sub{opacity:.9;font-size:14px;margin-bottom:12px}
+.card{background:var(--card);color:var(--ink);border-radius:14px;padding:14px;margin:10px 0;box-shadow:0 4px 14px rgba(0,0,0,.2);border-left:5px solid var(--ac)}
+.bar{height:12px;background:#dbe5f7;border-radius:8px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#2563eb,#f59f00);transition:width .4s}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.t{font-weight:600}.m{font-size:13px;color:var(--mut)}
+.tag{display:inline-block;background:#e3ecff;color:#1d4ed8;border-radius:20px;padding:2px 9px;font-size:12px;margin-right:6px}
+button,.btn{font:inherit;border:0;border-radius:10px;padding:9px 14px;background:var(--ac);color:#fff;cursor:pointer;font-weight:600;display:inline-block}
+button.g,.btn.g{background:#e3e9f5;color:var(--ink)}button.ok{background:var(--ok)}button.r{background:#e5484d}
+button:disabled{opacity:.5;cursor:default}
+input,select,textarea{font:inherit;width:100%;padding:9px 11px;border:1px solid #c9d3e8;border-radius:10px;margin:4px 0 10px;background:#fff;color:var(--ink)}
+input[type=checkbox]{width:auto;margin:0}input[type=file]{display:none}
+label{font-size:13px;color:var(--mut)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.chip{background:#e3ecff;padding:6px 10px;border-radius:20px;display:flex;gap:5px;align-items:center;color:var(--ink)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));gap:6px;justify-content:center;z-index:5}
+nav button{flex:1;max-width:150px;background:transparent;color:var(--mut)}nav button.on{background:#e3ecff;color:#1d4ed8}
+.done{opacity:.75}.thumb{width:100%;max-height:240px;object-fit:cover;border-radius:10px;margin-top:8px}
+.sw{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}.sw span{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid #fff;box-shadow:0 0 0 1px #aaa}
+.modal{position:fixed;inset:0;background:rgba(5,15,40,.65);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9;overflow:auto}
+.modal .card{width:100%;max-width:420px}
+.late{color:#c2410c}.pos{color:var(--ok);font-weight:700}
+#gear{position:fixed;right:-30px;bottom:50px;width:200px;height:200px;opacity:.12;pointer-events:none}
+</style></head><body>
+<svg id="gear" viewBox="0 0 120 120" fill="none" stroke="currentColor"><circle cx="60" cy="60" r="44" stroke-width="14" stroke-dasharray="12 11.5"/><circle cx="60" cy="60" r="37" stroke-width="6"/><circle cx="60" cy="60" r="12" stroke-width="6"/></svg>
+<div class="wrap" id="app"></div><nav id="nav"></nav><div id="modal"></div>
+<script>
+var KEY='dailyquest.v2',GOAL=100,DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function G(a,b,bg,s,t){return 'linear-gradient('+a+' 1px,transparent 1px) 0 0/'+s+'px '+s+'px,linear-gradient(90deg,'+a+' 1px,transparent 1px) 0 0/'+s+'px '+s+'px,linear-gradient('+b+' 1px,transparent 1px) 0 0/'+t+'px '+t+'px,linear-gradient(90deg,'+b+' 1px,transparent 1px) 0 0/'+t+'px '+t+'px,'+bg}
+var TH={blueprint:['Blueprint',G('rgba(255,255,255,.10)','rgba(255,255,255,.24)','#0b4a8f',20,100),'#fff'],
+circuit:['Circuit',G('rgba(80,255,150,.12)','rgba(80,255,150,.28)','#0d2b1d',30,120),'#fff'],
+graph:['Graph paper',G('rgba(30,120,60,.18)','rgba(30,120,60,.4)','#f3f7ec',16,80),'#1a2b3c'],
+steel:['Steel',G('rgba(255,255,255,.06)','rgba(255,255,255,.14)','#26303b',24,120),'#fff']};
+var S={v:2,nick:'Friend',bg:'blueprint',bgImg:'',credits:0,tasks:[],done:{},journal:[]},col=null,mode='this device';
+try{var raw=localStorage.getItem(KEY);if(raw)Object.assign(S,JSON.parse(raw));}catch(e){}
+function lite(){var o={};for(var k in S)if(k!=='journal'&&k!=='bgImg')o[k]=S[k];return o}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){try{localStorage.setItem(KEY,JSON.stringify(lite()))}catch(e2){}}
+ if(col)col.doc('state').set(lite()).catch(function(){})}
+(async function(){try{
+ if(!window.claude)return;
+ var u=await claude.use('user'),d=await claude.use('db'),id=u&&await u.id();if(!d||!id)return;
+ col=d.collection('data/users/'+id);
+ var q=await col.get(),has=false,j=[];
+ q.docs.forEach(function(x){var v=x.data()||{};
+  if(x.id==='state'){has=true;Object.assign(S,v)}else if(x.id==='bg')S.bgImg=v.img||'';else if(x.id.charAt(0)==='j')j.push(v)});
+ if(has)S.journal=j.sort(function(a,b){return a.id<b.id?1:-1});
+ else{save();S.journal.forEach(function(e){col.doc(e.id).set(e).catch(function(){})});if(S.bgImg)col.doc('bg').set({img:S.bgImg}).catch(function(){})}
+ mode='your account';render();
+}catch(e){}})();
+var tab='home',edit=null,fin=null,pic='',D=null;
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function pad(n){return String(n).padStart(2,'0')}
+function today(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function nowHM(){var d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())}
+function fmt(v){var h=+v.slice(0,2);return (h%12||12)+':'+v.slice(3)+(h>=12?' PM':' AM')}
+function isDone(id){return !!(S.done[today()]&&S.done[today()][id])}
+function applies(t){return t.date?t.date===today():(!t.days||t.days.indexOf(new Date().getDay())>-1)}
+function repTxt(t){return t.date?'Only '+(t.date===today()?'today':t.date):(!t.days?'Every day':t.days.map(function(i){return DN[i]}).join(' '))}
+function applyBg(){var b=document.body,th=TH[S.bg];
+ if(S.bgImg){b.style.background='url('+S.bgImg+') center/cover';b.style.color='#fff'}
+ else if(th){b.style.background=th[1];b.style.color=th[2]}else{b.style.background=S.bg;b.style.color='#fff'}
+ b.style.backgroundAttachment='fixed'}
+function go(t){tab=t;render()}
+function opts(a,s){return a.map(function(x){return '<option'+(String(x)===String(s)?' selected':'')+'>'+x+'</option>'}).join('')}
+function rng(a,b){var r=[];for(var i=a;i<=b;i++)r.push(i);return r}
+function newD(){return {s:'',t:'',due:'',c:10,rep:'daily',days:[1,2,3,4,5]}}
+function grab(){if(!D||!document.getElementById('f_t'))return;D.s=f_s.value;D.t=f_t.value;D.c=f_c.value;D.due=getDue();D.rep=f_r.value;
+ if(D.rep==='days')D.days=[].slice.call(document.querySelectorAll('.dchk:checked')).map(function(x){return +x.value})}
+function getDue(){if(!f_h.value)return '';return pad(+f_h.value%12+(f_p.value==='PM'?12:0))+':'+f_m.value}
+function startEdit(id){var t=S.tasks.filter(function(x){return x.id===id})[0];edit=id;
+ D={s:t.subject,t:t.title,due:t.due||'',c:t.credit,rep:t.date?'once':(t.days?'days':'daily'),days:t.days||[1,2,3,4,5]};render();scrollTo(0,0)}
+function render(){
+ applyBg();if(!D)D=newD();
+ var h='',tk=S.tasks.filter(applies),n=tk.filter(function(t){return isDone(t.id)}).length;
+ if(tab==='home'){
+  h+='<h1>Hi, '+esc(S.nick)+'!</h1><div class="sub">'+new Date().toDateString()+'</div><div id="clk" style="font-size:34px;font-weight:700;margin:-4px 0 8px"></div>';
+  h+='<div class="card"><div class="row"><span class="t">⭐ '+S.credits+' / '+GOAL+' credits</span><span class="m">Gift from Mom 🎁</span></div><div class="bar"><i style="width:'+Math.min(100,S.credits/GOAL*100)+'%"></i></div>';
+  h+=S.credits>=GOAL?'<button class="ok" onclick="claim()">Claim my gift from Mom!</button>':'<span class="m">'+(GOAL-S.credits)+' more credits to go</span>';
+  h+='</div><div class="card"><span class="t">Today: '+n+' / '+tk.length+' done</span></div>';
+  if(!tk.length)h+='<div class="card m">No tasks for today. Go to "Tasks" to add one.</div>';
+  tk.sort(function(a,b){return (a.due||'99').localeCompare(b.due||'99')}).forEach(function(t){var d=isDone(t.id);
+   h+='<div class="card '+(d?'done':'')+'"><div class="row"><div><div class="t">'+(d?'✅ ':'')+esc(t.title)+'</div><div class="m"><span class="tag">'+esc(t.subject||'General')+'</span>'+(t.due?'by '+fmt(t.due)+' · ':'')+'+'+t.credit+' credits</div></div>'+(d?'':'<button class="ok" onclick="openFin(\''+t.id+'\')">Finish</button>')+'</div></div>'});
+  var oth=S.tasks.filter(function(t){return !applies(t)&&!(t.date&&t.date<today())});
+  if(oth.length){h+='<h1 style="font-size:16px;margin-top:18px">Other tasks (not today)</h1>';oth.forEach(function(t){h+='<div class="card done"><div class="row"><div><div class="t">'+esc(t.title)+'</div><div class="m"><span class="tag">'+esc(t.subject||'General')+'</span>'+repTxt(t)+(t.due?' · '+fmt(t.due):'')+' · +'+t.credit+'</div></div>'+(isDone(t.id)?'<span class="pos">Done</span>':'<button class="ok" onclick="openFin(\''+t.id+'\')">Finish</button>')+'</div></div>'})}
+ }
+ if(tab==='tasks'){
+  var hh='',mm='',pp='AM';if(D.due){var a=+D.due.slice(0,2);hh=a%12||12;mm=D.due.slice(3);pp=a>=12?'PM':'AM'}
+  h+='<h1>My tasks</h1><div class="sub">Choose when each task repeats.</div><div class="card"><label>Subject (example: Math)</label><input id="f_s" value="'+esc(D.s)+'"><label>What do I need to do?</label><input id="f_t" value="'+esc(D.t)+'">';
+  h+='<label>Finish before (time)</label><div class="row"><select id="f_h"><option value="">No time</option>'+opts(rng(1,12),hh)+'</select><select id="f_m">'+opts(rng(0,59).map(pad),mm||'00')+'</select><select id="f_p">'+opts(['AM','PM'],pp)+'</select></div>';
+  h+='<label>Credits</label><input id="f_c" type="number" min="0" value="'+esc(D.c)+'"><label>Repeat</label><select id="f_r" onchange="grab();render()"><option value="daily"'+(D.rep==='daily'?' selected':'')+'>Every day</option><option value="days"'+(D.rep==='days'?' selected':'')+'>Choose days</option><option value="once"'+(D.rep==='once'?' selected':'')+'>Only today</option></select>';
+  if(D.rep==='days')h+='<div class="chips">'+DN.map(function(n,i){return '<label class="chip"><input type="checkbox" class="dchk" value="'+i+'"'+(D.days.indexOf(i)>-1?' checked':'')+'>'+n+'</label>'}).join('')+'</div>';
+  h+='<button onclick="saveTask()">'+(edit?'Save changes':'+ Add task')+'</button> '+(edit?'<button class="g" onclick="edit=null;D=newD();render()">Cancel</button>':'')+'</div>';
+  S.tasks.forEach(function(t){h+='<div class="card"><div class="row"><div><div class="t">'+esc(t.title)+'</div><div class="m"><span class="tag">'+esc(t.subject||'General')+'</span>'+(t.due?fmt(t.due)+' · ':'')+'+'+t.credit+' · '+repTxt(t)+'</div></div><div>'+(isDone(t.id)?'':'<button class="ok" onclick="openFin(\''+t.id+'\')">Finish</button> ')+'<button class="g" onclick="startEdit(\''+t.id+'\')">Edit</button> <button class="r" onclick="delTask(\''+t.id+'\')">✕</button></div></div></div>'});
+ }
+ if(tab==='journal'){
+  h+='<h1>My journal</h1><div class="sub">'+S.journal.length+' things I did</div>';
+  if(!S.journal.length)h+='<div class="card m">Nothing yet. Finish a task and it will show up here.</div>';
+  S.journal.forEach(function(j){h+='<div class="card"><div class="row"><div class="t">'+esc(j.title)+'</div><span class="'+(j.earned?'pos':'late')+'">'+(j.earned?'+'+j.earned:'late')+'</span></div><div class="m"><span class="tag">'+esc(j.subject||'General')+'</span>'+esc(j.date)+' '+fmt(j.time)+'</div>'+(j.note?'<div style="margin-top:6px"><b>Why:</b> '+esc(j.note)+'</div>':'')+'<img class="thumb" src="'+j.img+'" alt="proof"></div>'});
+ }
+ if(tab==='me'){
+  var cols=['#2563eb','#e8590c','#2f9e44','#862e9c','#c92a2a','#212529'];
+  h+='<h1>Settings</h1><div class="card"><label>My nickname</label><input value="'+esc(S.nick)+'" oninput="S.nick=this.value;save()"><label>Engineering backgrounds</label><div class="sw">'+Object.keys(TH).map(function(k){return '<button class="'+(S.bg===k&&!S.bgImg?'':'g')+'" onclick="setBg(\''+k+'\')">'+TH[k][0]+'</button>'}).join('')+'</div><label>Plain colors</label><div class="sw">'+cols.map(function(c){return '<span style="background:'+c+'" onclick="setBg(\''+c+'\')"></span>'}).join('')+'</div><label>Or use my own picture</label><div><label class="btn g">Choose picture<input type="file" accept="image/*" onchange="bgPic(this)"></label> '+(S.bgImg?'<button class="g" onclick="setBg(S.bg)">Remove</button>':'')+'</div></div>';
+  h+='<div class="card"><label>Credits (you can edit)</label><input type="number" min="0" value="'+S.credits+'" onchange="S.credits=Math.max(0,+this.value||0);save();render()"><div class="m">Saved on: '+mode+'</div></div>';
+ }
+ document.getElementById('app').innerHTML=h;if(typeof tick==='function')tick();
+ document.getElementById('nav').innerHTML=[['home','Home'],['tasks','Tasks'],['journal','Journal'],['me','Settings']].map(function(x){return '<button class="'+(tab===x[0]?'on':'')+'" onclick="go(\''+x[0]+'\')">'+x[1]+'</button>'}).join('');
+}
+function saveTask(){grab();
+ if(!D.t.trim()){alert('Please write what you need to do.');return}
+ if(D.rep==='days'&&!D.days.length){alert('Choose at least one day.');return}
+ var t={subject:D.s.trim(),title:D.t.trim(),due:D.due,credit:Math.max(0,+D.c||0),days:D.rep==='days'?D.days:null,date:D.rep==='once'?today():null};
+ if(edit){S.tasks.forEach(function(x){if(x.id===edit)Object.assign(x,t)})}else{t.id='t'+Date.now();S.tasks.push(t)}
+ edit=null;D=newD();save();render();
+}
+function delTask(id){if(confirm('Delete this task?')){S.tasks=S.tasks.filter(function(t){return t.id!==id});save();render()}}
+function setBg(c){S.bg=c;S.bgImg='';save();if(col)col.doc('bg').set({img:''}).catch(function(){});render()}
+function shrink(file,max,q,cb){var r=new FileReader();r.onload=function(){var im=new Image();im.onload=function(){var k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',q))};im.src=r.result};r.readAsDataURL(file)}
+function bgPic(el){if(el.files[0])shrink(el.files[0],900,.5,function(u){S.bgImg=u;save();if(col)col.doc('bg').set({img:u}).catch(function(){});render()})}
+function openFin(id){fin=id;pic='';showModal()}
+function showModal(){
+ var t=S.tasks.filter(function(x){return x.id===fin})[0];if(!t){document.getElementById('modal').innerHTML='';return}
+ document.getElementById('modal').innerHTML='<div class="modal"><div class="card"><div class="t">Did you finish "'+esc(t.title)+'"?</div><div class="m" style="margin:6px 0 10px">Upload a picture or proof of what you did.</div><label class="btn g">Choose picture<input type="file" accept="image/*" onchange="getPic(this)"></label><div id="pv"></div><br><label>Explain what you did and why you finished it</label><textarea id="f_note" rows="3" oninput="chk()"></textarea><div class="row"><button class="g" onclick="fin=null;showModal()">Cancel</button><button class="ok" id="yes" onclick="doFin()" disabled>Yes, I did it!</button></div></div></div>';
+}
+function getPic(el){if(el.files[0])shrink(el.files[0],520,.6,function(u){pic=u;document.getElementById('pv').innerHTML='<img class="thumb" src="'+u+'" alt="">';chk()})}
+function chk(){document.getElementById('yes').disabled=!(pic&&f_note.value.trim())}
+function doFin(){
+ var t=S.tasks.filter(function(x){return x.id===fin})[0];if(!t||!pic||!f_note.value.trim()){alert('Please add a picture and explain what you did.');return}
+ var onTime=!t.due||nowHM()<=t.due,earn=onTime?t.credit:0,e={id:'j'+Date.now(),date:today(),time:nowHM(),subject:t.subject,title:t.title,img:pic,note:f_note.value.trim(),earned:earn};
+ S.done[today()]=S.done[today()]||{};S.done[today()][t.id]=true;S.credits+=earn;S.journal.unshift(e);
+ save();if(col)col.doc(e.id).set(e).catch(function(){});
+ fin=null;showModal();render();
+ alert(onTime?'Great job! +'+earn+' credits':'Saved to your journal. It was late, so no credits this time.');
+}
+function claim(){if(confirm('Ask Mom for your gift now? This uses 100 credits.')){S.credits-=GOAL;save();render();alert('Enjoy your gift from Mom!')}}
+function tick(){var e=document.getElementById('clk');if(!e)return;var d=new Date(),h=d.getHours();e.textContent=(h%12||12)+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+(h>=12?' PM':' AM')}
+setInterval(tick,1000);
+render();tick();
+</script></body></html>
